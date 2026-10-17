@@ -4,9 +4,9 @@
 
 | File | Trigger | What it does |
 |---|---|---|
-| `.github/workflows/ci.yml` | PRs into `main`/`develop`, pushes to them, manual | `npm ci`, ESLint, typecheck + Vite build, Vitest |
-| `.github/workflows/deploy.yml` | CI succeeded on a push to `develop` or `main`, or manual | Vercel build and deploy, then a smoke test of the home page |
-| `.github/dependabot.yml` | Weekly / monthly | Dependency and Actions update PRs into `develop` |
+| `.github/workflows/ci.yml` | PRs into `main`/`development`, pushes to them, manual | `npm ci`, ESLint, typecheck + Vite build, Vitest |
+| `.github/workflows/deploy.yml` | CI succeeded on a push to `development` or `main`, or manual | Vercel build and deploy, then a smoke test of the home page |
+| `.github/dependabot.yml` | Weekly / monthly | Dependency and Actions update PRs into `development` |
 
 CI mocks the API in tests and builds without Supabase values, so it needs **no secrets**.
 
@@ -17,7 +17,7 @@ CI still runs and nothing is deployed.
 
 | Branch | GitHub Environment | Vercel target |
 |---|---|---|
-| `develop` | `staging` | Preview deployment (optionally aliased to a stable URL) |
+| `development` | `staging` | Preview deployment (optionally aliased to a stable URL) |
 | `main` | `production` | Production (`--prod`) |
 
 ## One-time setup
@@ -42,7 +42,7 @@ CI still runs and nothing is deployed.
    `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` (`.vercel/project.json` after `npx vercel link`).
    **Variables**: `DEPLOY_ENABLED=true` to turn deploys on; optional `VERCEL_STAGING_ALIAS`
    (e.g. `laag-ta-bai-staging.vercel.app`) in `staging`.
-5. Push to `develop` and watch **Actions → Deploy**.
+5. Push to `development` and watch **Actions → Deploy**.
 
 ## Secrets policy
 
