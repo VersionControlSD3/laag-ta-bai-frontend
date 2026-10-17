@@ -17,7 +17,7 @@ CI still runs and nothing is deployed.
 
 | Branch | GitHub Environment | Vercel target |
 |---|---|---|
-| `develop` | `development` | Preview deployment (optionally aliased to a stable URL) |
+| `develop` | `staging` | Preview deployment (optionally aliased to a stable URL) |
 | `main` | `production` | Production (`--prod`) |
 
 ## One-time setup
@@ -36,12 +36,12 @@ CI still runs and nothing is deployed.
    `vercel.json` disables Vercel's own Git auto-deploys so GitHub Actions is the only deployer.
 2. **Supabase Auth URLs**: in each Supabase project → Authentication → URL Configuration, set the
    Site URL to that environment's frontend URL and add it to the redirect allow list.
-3. **GitHub Environments**: Settings → Environments → create `development` and `production`.
+3. **GitHub Environments**: Settings → Environments → create `staging` and `production`.
    Add a required reviewer to `production`.
 4. **Secrets** (add to each environment): `VERCEL_TOKEN` (Vercel → Account Settings → Tokens),
    `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` (`.vercel/project.json` after `npx vercel link`).
-   **Variables**: `DEPLOY_ENABLED=true` to turn deploys on; optional `VERCEL_DEV_ALIAS`
-   (e.g. `laag-ta-bai-dev.vercel.app`) in `development`.
+   **Variables**: `DEPLOY_ENABLED=true` to turn deploys on; optional `VERCEL_STAGING_ALIAS`
+   (e.g. `laag-ta-bai-staging.vercel.app`) in `staging`.
 5. Push to `develop` and watch **Actions → Deploy**.
 
 ## Secrets policy

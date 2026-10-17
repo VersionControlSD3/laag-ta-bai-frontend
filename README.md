@@ -75,5 +75,6 @@ therefore **public**. Never put a secret key, database password or account login
 
 - [Architecture](docs/architecture.md)
 - [CI/CD and deployment](docs/ci-cd.md)
+- [Team Git workflow (visual guide)](docs/team-workflow.html): branches, PRs, staging and production
 - [Branching and branch protection](docs/branching.md)
 - [Contributing](CONTRIBUTING.md)
