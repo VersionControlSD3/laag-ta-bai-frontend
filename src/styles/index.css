@@ -1,0 +1,109 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Brand palette from the reference prototype (Reference_LaagtabAI tailwind.config.js). */
+@theme {
+  --color-maroon: #2b0e0e;
+  --color-maroon-light: #571717;
+  --color-gold: #ffc107;
+  --color-amber: #e69138;
+  --color-coral: #ff5e3e;
+  --color-crimson: #b71c1c;
+  --color-cream: #fffdf4;
+  --color-leaf: #4caf50;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Semantic tokens that switch with the theme (SRS 3.1.6.2.a, 3.7.1.5). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-nav: var(--nav);
+}
+
+:root,
+[data-theme='light'] {
+  --bg: #fffdf4;
+  --bg-2: #f6eedb;
+  --surface: rgb(43 14 14 / 0.05);
+  --surface-strong: rgb(43 14 14 / 0.1);
+  --line: rgb(43 14 14 / 0.12);
+  --fg: #333333;
+  --muted: #6b5f5a;
+  --primary: #e69138;
+  --on-primary: #2b0e0e;
+  --nav: #ffffff;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #2b0e0e;
+  --bg-2: #571717;
+  --surface: rgb(255 255 255 / 0.07);
+  --surface-strong: rgb(255 255 255 / 0.12);
+  --line: rgb(255 255 255 / 0.12);
+  --fg: #f4ece4;
+  --muted: #c9b8b0;
+  --primary: #ffc107;
+  --on-primary: #2b0e0e;
+  --nav: #fffdf4;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%) fixed;
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* SRS 3.2.1.2: 48x48 minimum touch targets. */
+.touch-target {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.pb-nav {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+  padding-top: max(16px, env(safe-area-inset-top));
+}
+
+/* Portrait lock fallback (SRS 3.6.1.2): browsers ignore manifest orientation outside installed PWAs. */
+.landscape-guard {
+  display: none;
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .landscape-guard {
+    display: flex;
+  }
+}
+
+.markdown p {
+  margin: 0 0 0.5rem;
+}
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+.markdown ul,
+.markdown ol {
+  margin: 0 0 0.5rem 1.25rem;
+  list-style: revert;
+}
