@@ -4,7 +4,7 @@ Progressive web app for **Laag ta bAI**, the AI travel companion for Cebu herita
 scan a landmark, hear its story, ask the AI guide, and earn XP and badges as you explore.
 
 The backend lives in [`laag-ta-bai-api`](https://github.com/VersionControlSD3/laag-ta-bai-api);
-its [`openapi.yaml`](https://github.com/VersionControlSD3/laag-ta-bai-api/blob/develop/openapi.yaml)
+its [`openapi.yaml`](https://github.com/VersionControlSD3/laag-ta-bai-api/blob/development/openapi.yaml)
 is the contract this app follows. UI and palette follow the team's Expo prototype
 (`Reference_LaagtabAI`), rebuilt for the web as the SRS requires (React PWA).
 
@@ -75,5 +75,6 @@ therefore **public**. Never put a secret key, database password or account login
 
 - [Architecture](docs/architecture.md)
 - [CI/CD and deployment](docs/ci-cd.md)
+- [Team Git workflow (visual guide)](docs/team-workflow.html): branches, PRs, staging and production
 - [Branching and branch protection](docs/branching.md)
 - [Contributing](CONTRIBUTING.md)

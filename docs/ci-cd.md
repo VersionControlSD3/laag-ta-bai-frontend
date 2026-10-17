@@ -4,9 +4,9 @@
 
 | File | Trigger | What it does |
 |---|---|---|
-| `.github/workflows/ci.yml` | PRs into `main`/`develop`, pushes to them, manual | `npm ci`, ESLint, typecheck + Vite build, Vitest |
-| `.github/workflows/deploy.yml` | CI succeeded on a push to `develop` or `main`, or manual | Vercel build and deploy, then a smoke test of the home page |
-| `.github/dependabot.yml` | Weekly / monthly | Dependency and Actions update PRs into `develop` |
+| `.github/workflows/ci.yml` | PRs into `main`/`development`, pushes to them, manual | `npm ci`, ESLint, typecheck + Vite build, Vitest |
+| `.github/workflows/deploy.yml` | CI succeeded on a push to `development` or `main`, or manual | Vercel build and deploy, then a smoke test of the home page |
+| `.github/dependabot.yml` | Weekly / monthly | Dependency and Actions update PRs into `development` |
 
 CI mocks the API in tests and builds without Supabase values, so it needs **no secrets**.
 
@@ -17,7 +17,7 @@ CI still runs and nothing is deployed.
 
 | Branch | GitHub Environment | Vercel target |
 |---|---|---|
-| `develop` | `development` | Preview deployment (optionally aliased to a stable URL) |
+| `development` | `staging` | Preview deployment (optionally aliased to a stable URL) |
 | `main` | `production` | Production (`--prod`) |
 
 ## One-time setup
@@ -36,13 +36,13 @@ CI still runs and nothing is deployed.
    `vercel.json` disables Vercel's own Git auto-deploys so GitHub Actions is the only deployer.
 2. **Supabase Auth URLs**: in each Supabase project → Authentication → URL Configuration, set the
    Site URL to that environment's frontend URL and add it to the redirect allow list.
-3. **GitHub Environments**: Settings → Environments → create `development` and `production`.
+3. **GitHub Environments**: Settings → Environments → create `staging` and `production`.
    Add a required reviewer to `production`.
 4. **Secrets** (add to each environment): `VERCEL_TOKEN` (Vercel → Account Settings → Tokens),
    `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` (`.vercel/project.json` after `npx vercel link`).
-   **Variables**: `DEPLOY_ENABLED=true` to turn deploys on; optional `VERCEL_DEV_ALIAS`
-   (e.g. `laag-ta-bai-dev.vercel.app`) in `development`.
-5. Push to `develop` and watch **Actions → Deploy**.
+   **Variables**: `DEPLOY_ENABLED=true` to turn deploys on; optional `VERCEL_STAGING_ALIAS`
+   (e.g. `laag-ta-bai-staging.vercel.app`) in `staging`.
+5. Push to `development` and watch **Actions → Deploy**.
 
 ## Secrets policy
 
