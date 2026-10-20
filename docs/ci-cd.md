@@ -63,4 +63,4 @@ CI still runs and nothing is deployed.
 - Reproduce CI locally: `npm ci && npm run lint && npm test && npm run build`.
 - Deploy job skipped: check `DEPLOY_ENABLED` and that CI passed on a **push** (PRs don't deploy).
 - Deploy job "Missing secret": the secret is missing from that GitHub Environment.
-- 401 from preview smoke test: Vercel Deployment Protection is on; that step is non-blocking for previews.
+- Smoke test uses `vercel curl` (auth-aware) and is non-blocking for previews.
