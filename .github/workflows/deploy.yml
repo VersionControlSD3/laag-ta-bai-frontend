@@ -1,4 +1,5 @@
-# Deploys after CI passes on a push to development (staging) or main (production).
+# deploy.yml
+# Deploys after CI passes on a push to staging or main (production).
 # Disabled until the repository variable DEPLOY_ENABLED is set to "true".
 # See docs/ci-cd.md for the secrets and variables this needs.
 # VITE_* build variables come from the Vercel project's environment settings
@@ -9,7 +10,7 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-    branches: [development, main]
+    branches: [staging, main]
   workflow_dispatch:
     inputs:
       environment:
