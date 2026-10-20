@@ -13,7 +13,6 @@ on:
     workflows: [CI]
     types: [completed]
     branches: [staging, main]
-    branches: [staging, main]
   workflow_dispatch:
     inputs:
       environment:
