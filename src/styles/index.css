@@ -102,8 +102,98 @@ body {
 .markdown p:last-child {
   margin-bottom: 0;
 }
+
 .markdown ul,
 .markdown ol {
   margin: 0 0 0.5rem 1.25rem;
   list-style: revert;
+}
+
+/*
+ * Artifact design layer.
+ * Keep this below the existing styles while the screens are migrated.
+ */
+:root {
+  --artifact-ivory: #f7f3ea;
+  --artifact-navy: #243b53;
+  --artifact-sage: #a9b7a5;
+  --artifact-sage-dark: #536b58;
+  --artifact-terracotta: #c66a4e;
+  --artifact-line: #d8d1c5;
+}
+
+@theme {
+  --color-artifact-ivory: #f7f3ea;
+  --color-artifact-navy: #243b53;
+  --color-artifact-sage: #a9b7a5;
+  --color-artifact-sage-dark: #536b58;
+  --color-artifact-terracotta: #c66a4e;
+  --color-artifact-line: #d8d1c5;
+}
+
+.artifact-page {
+  background: var(--artifact-ivory);
+  color: var(--artifact-navy);
+}
+
+.artifact-display {
+  color: var(--artifact-navy);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.artifact-panel {
+  border: 1px solid var(--artifact-line);
+  border-radius: 1.5rem;
+  background: rgb(255 255 255 / 0.42);
+}
+
+.artifact-splash {
+  background: #e8e4dc;
+  color: var(--artifact-navy);
+}
+
+.artifact-splash-content {
+  min-height: 396px;
+  padding-inline: 46px;
+}
+
+.artifact-splash-logo {
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.artifact-splash-title {
+  object-fit: contain;
+}
+
+.artifact-progress-track {
+  width: 179px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(36 59 83 / 0.12);
+}
+
+.artifact-progress-value {
+  width: 52%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--artifact-terracotta), var(--artifact-sage));
+}
+
+.artifact-splash-caption {
+  margin-top: 12px;
+  color: #60758a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  line-height: 15px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 420px) {
+  .artifact-splash-content {
+    padding-inline: 24px;
+  }
 }
