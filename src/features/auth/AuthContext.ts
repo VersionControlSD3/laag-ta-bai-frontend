@@ -10,7 +10,15 @@ export type AuthState = {
   /** Bearer token for the API. */
   token: string | null
   signIn(email: string, password: string): Promise<void>
-  signUp(input: { email: string; password: string; displayName: string }): Promise<{ needsConfirmation: boolean }>
+  signUp(input: {
+    email: string
+    password: string
+    displayName: string
+    dateOfBirth: string
+    nationality: string
+    bio: string
+  }): Promise<{ needsConfirmation: boolean }>
+  signUpWithGoogle(): Promise<void>
   signInAsDev(displayName?: string): void
   signOut(): Promise<void>
 }

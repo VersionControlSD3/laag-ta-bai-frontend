@@ -40,15 +40,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
       },
-      async signUp({ email, password, displayName }) {
+      async signUp({ email, password, displayName, dateOfBirth, nationality, bio }) {
         if (!supabase) throw new Error('Supabase is not configured. Use the dev sign-in.')
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { display_name: displayName }, emailRedirectTo: window.location.origin },
+          options: {
+            data: { display_name: displayName, date_of_birth: dateOfBirth, nationality, bio },
+            emailRedirectTo: window.location.origin,
+          },
         })
         if (error) throw error
         return { needsConfirmation: !data.session }
+      },
+      async signUpWithGoogle() {
+        if (!supabase) throw new Error('Supabase is not configured. Use the dev sign-in.')
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: `${window.location.origin}/` },
+        })
+        if (error) throw error
       },
       signInAsDev(displayName = 'Dev Traveler') {
         const next = { id: 'local-dev-user', email: null, displayName }
