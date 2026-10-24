@@ -23,9 +23,9 @@ const fort: Landmark = {
 }
 
 describe('app routes', () => {
-  it('sends first-time visitors to the welcome screen', async () => {
+  it('shows the splash screen for first-time visitors', async () => {
     renderRoutes(routes, '/')
-    expect(await screen.findByText(/Discover Cebu's heritage/)).toBeInTheDocument()
+    expect(await screen.findByRole('main', { name: 'Preparing your Cebu journey' })).toBeInTheDocument()
   })
 
   it('shows the bottom navigation and popular landmarks on Explore', async () => {
