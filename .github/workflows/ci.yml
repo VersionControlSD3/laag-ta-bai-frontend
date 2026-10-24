@@ -3,9 +3,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, staging, development]
+    branches: [main, staging]
   push:
-    branches: [main, staging, development]
+    branches: [main, staging]
   workflow_dispatch:
 
 permissions:
