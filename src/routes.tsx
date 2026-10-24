@@ -16,7 +16,7 @@ const ChatPage = lazy(() => import('@/pages/ChatPage'))
 const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 const LoginPage = lazy(() => import('@/pages/AuthPages').then((m) => ({ default: m.LoginPage })))
-const RegisterPage = lazy(() => import('@/pages/AuthPages').then((m) => ({ default: m.RegisterPage })))
+const RegisterPage = lazy(() => import('@/pages/authentication/SignUpPage'))
 
 const page = (element: ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>
 
