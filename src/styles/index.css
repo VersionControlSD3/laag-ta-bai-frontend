@@ -129,6 +129,26 @@ body {
   --color-artifact-sage-dark: #536b58;
   --color-artifact-terracotta: #c66a4e;
   --color-artifact-line: #d8d1c5;
+
+  --color-ivory: #faf5ec;
+  --color-ivory-deep: #f1e9dc;
+  --color-design-surface: #faf5ec;
+  --color-design-line: #d8d1c5;
+  --color-navy: #243b53;
+  --color-on-navy: #faf5ec;
+  --color-navy-soft: #e7edf2;
+  --color-sage: #9baf9a;
+  --color-sage-soft: #e6ece4;
+  --color-sage-deep: #536b58;
+  --color-terracotta: #c66b4e;
+  --color-terracotta-ink: #9e4f3a;
+  --color-terracotta-soft: #f4e1d9;
+  --color-error: #ff7b72;
+  --color-success: #6fcf75;
+  --color-ink: #243b53;
+  --color-ink-body: #334e68;
+  --color-ink-muted: #627d98;
+  --color-ink-faint: #829ab1;
 }
 
 .artifact-page {
