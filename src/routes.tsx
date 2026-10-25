@@ -20,7 +20,7 @@ const RegisterPage = lazy(() => import('@/pages/AuthPages').then((m) => ({ defau
 
 const page = (element: ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>
 
-/** Sends first-time visitors to the welcome screen. */
+/** Sends first-time visitors to the splash, then the welcome screen. */
 function FirstRun({ children }: { children: ReactNode }) {
   const { onboarded } = usePreferences()
   return onboarded ? children : <Navigate to="/splash" replace />

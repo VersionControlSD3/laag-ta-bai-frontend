@@ -1,21 +1,34 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 
 export default function SplashScreenPage() {
   const navigate = useNavigate()
+  const goToWelcome = useCallback(() => {
+    navigate('/welcome', { replace: true })
+  }, [navigate])
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      navigate('/welcome', { replace: true })
-    }, 5000)
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      goToWelcome()
+      return
+    }
 
+    const timer = window.setTimeout(goToWelcome, 1500)
     return () => window.clearTimeout(timer)
-  }, [navigate])
+  }, [goToWelcome])
 
   return (
     <main
-      className="artifact-splash flex min-h-dvh flex-col items-center justify-center"
+      className="artifact-page artifact-splash flex min-h-dvh flex-col items-center justify-center"
       aria-label="Preparing your Cebu journey"
+      onClick={goToWelcome}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          goToWelcome()
+        }
+      }}
+      tabIndex={0}
     >
       <section
         className="artifact-splash-content grid w-full max-w-[385px] grid-rows-[auto_auto_auto] justify-items-center"
@@ -43,9 +56,6 @@ export default function SplashScreenPage() {
             className="artifact-progress-track"
             role="progressbar"
             aria-label="Loading progress"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={52}
           >
             <div className="artifact-progress-value" />
           </div>
