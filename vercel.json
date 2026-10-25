@@ -5,5 +5,5 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/((?!assets/|landmarks/|brand/|.*\\..*).*)", "destination": "/index.html" }],
-  "git": { "deploymentEnabled": true }
+  "git": { "deploymentEnabled": false }
 }
