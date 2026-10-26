@@ -10,11 +10,15 @@ export type AuthState = {
   /** Bearer token for the API. */
   token: string | null
   signIn(email: string, password: string): Promise<void>
+  /**
+   * `date_of_birth` is intentionally absent: `openapi.yaml` has no such field
+   * yet, so it is collected for the age check but not persisted until the
+   * API PR lands (CONTRIBUTING #4).
+   */
   signUp(input: {
     email: string
     password: string
     displayName: string
-    dateOfBirth: string
     nationality: string
     bio: string
   }): Promise<{ needsConfirmation: boolean }>

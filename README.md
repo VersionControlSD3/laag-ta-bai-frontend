@@ -31,6 +31,20 @@ Without Supabase values, the sign-in screen offers **Continue as dev traveler**,
 with the API's memory mode. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for real
 accounts (and point the API at the same Supabase project).
 
+**Google sign-up** needs a one-time Supabase setup (nothing to commit — the keys stay in
+Supabase):
+
+1. Supabase Dashboard → *Authentication* → *Providers* → enable **Google** and paste the
+   OAuth client ID and secret from Google Cloud Console.
+2. Supabase Dashboard → *Authentication* → *URL Configuration* → add every origin that will
+   use it to the redirect allow-list: `http://localhost:5173`, each teammate's
+   `http://<lan-ip>:5173` dev URL, the Vercel preview URLs and
+   `https://laag-ta-bai-frontend.vercel.app`.
+
+Until both steps are done, "Continue with Google" fails with a provider error. Google
+sign-ups also skip the sign-up form, so those accounts start without date of birth or
+nationality (added later from the Profile screen).
+
 To test on a phone on the same Wi-Fi: `npm run dev -- --host`, open the printed network URL,
 and add that origin to the API's `CORS_ORIGINS`. Camera capture and geolocation need HTTPS
 outside `localhost`, so use a deployed preview (or a tunnel) for full device testing.

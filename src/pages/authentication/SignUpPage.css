@@ -5,12 +5,12 @@
 }
 
 .auth-signup-day {
-  background-image: linear-gradient(rgb(18 91 145 / 0.08), rgb(18 91 145 / 0.08)), url('/authenticationBG/RegisterDay.png');
+  background-image: linear-gradient(rgb(18 91 145 / 0.08), rgb(18 91 145 / 0.08)), url('/authenticationBG/RegisterDay.webp');
   color: var(--color-ivory);
 }
 
 .auth-signup-night {
-  background-image: linear-gradient(rgb(12 24 38 / 0.25), rgb(12 24 38 / 0.25)), url('/authenticationBG/RegisterNight.jpg');
+  background-image: linear-gradient(rgb(12 24 38 / 0.25), rgb(12 24 38 / 0.25)), url('/authenticationBG/RegisterNight.webp');
   color: var(--color-ivory);
 }
 
@@ -178,14 +178,14 @@
 
 .auth-password-status,
 .auth-field-error {
-  font-size: 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .auth-google-button {
-  min-height: 44px;
+  min-height: 48px;
   border: 1px solid #dadce0;
   background: #fff;
   color: #243b53;
@@ -268,8 +268,8 @@
   z-index: 20;
   top: calc(100% + 0.5rem);
   left: 0;
-  width: min(290px, calc(100vw - 24px));
-  max-width: calc(100vw - 24px);
+  width: min(360px, calc(100vw - 16px));
+  max-width: calc(100vw - 16px);
   box-sizing: border-box;
   overflow: visible;
   border: 1px solid rgb(198 107 78 / 0.35);
@@ -295,7 +295,7 @@
 
 .auth-calendar-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr) 44px 44px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr) 48px 48px;
   align-items: center;
   gap: 0.35rem;
   border-bottom: 1px solid rgb(250 245 236 / 0.16);
@@ -304,7 +304,7 @@
 
 .auth-calendar-toolbar button,
 .auth-calendar-actions button {
-  min-height: 44px;
+  min-height: 48px;
   border-radius: 0.5rem;
   background: transparent;
   color: var(--color-ivory);
@@ -402,7 +402,7 @@
 .auth-calendar-select-option {
   display: block;
   width: 100%;
-  min-height: 44px;
+  min-height: 48px;
   border-radius: 0.4rem;
   padding: 0.35rem 0.65rem;
   color: var(--color-ivory);
@@ -425,7 +425,7 @@
 .auth-calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.2rem;
+  gap: 0.1rem;
   margin-top: 0.65rem;
   text-align: center;
 }
@@ -437,11 +437,20 @@
 }
 
 .auth-calendar-day {
-  min-height: 44px;
+  min-height: 48px;
   min-width: 0;
   border-radius: 0.45rem;
   color: var(--color-ivory);
   font-size: 0.8rem;
+}
+
+.auth-calendar-day:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.auth-calendar-day:disabled:hover {
+  background: transparent;
 }
 
 .auth-calendar-day:hover {
@@ -480,7 +489,7 @@
 
   .auth-calendar-toolbar {
     gap: 0.15rem;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.65fr) 44px 44px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.65fr) 48px 48px;
   }
 
   .auth-calendar-toolbar button,
@@ -489,7 +498,7 @@
   }
 
   .auth-calendar-grid {
-    gap: 0.1rem;
+    gap: 0.05rem;
   }
 }
 

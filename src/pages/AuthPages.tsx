@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '@/features/auth/AuthContext'
+import { DevSignIn } from '@/features/auth/DevSignIn'
 
 function AuthLayout({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
@@ -14,30 +15,6 @@ function AuthLayout({ title, subtitle, children }: { title: string; subtitle: st
 }
 
 const input = 'mt-1 h-12 w-full rounded-2xl border border-line bg-surface px-4 outline-none focus:border-primary'
-
-function DevSignIn() {
-  const auth = useAuth()
-  const navigate = useNavigate()
-  return (
-    <div className="rounded-2xl border border-dashed border-primary/60 bg-surface p-4 text-sm">
-      <p className="font-semibold">Supabase isn't configured.</p>
-      <p className="mt-1 text-muted">
-        Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> for real accounts, or continue as a local
-        test user (works with the API in memory mode).
-      </p>
-      <button
-        type="button"
-        onClick={() => {
-          auth.signInAsDev()
-          navigate('/')
-        }}
-        className="touch-target mt-3 w-full rounded-2xl bg-primary font-bold text-on-primary"
-      >
-        Continue as dev traveler
-      </button>
-    </div>
-  )
-}
 
 export function LoginPage() {
   const auth = useAuth()
