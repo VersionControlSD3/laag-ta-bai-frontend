@@ -4,6 +4,7 @@ import { AppShell } from '@/components/AppShell'
 import { Loading } from '@/components/StateMessage'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
 import ExplorePage from '@/pages/ExplorePage'
+import SplashScreenPage from '@/pages/SplashScreenPage'
 
 // Explore is eager so the home screen paints fast (SRS 3.4.3); the rest load on demand.
 const ArchivesPage = lazy(() => import('@/pages/ArchivesPage'))
@@ -19,10 +20,10 @@ const RegisterPage = lazy(() => import('@/pages/AuthPages').then((m) => ({ defau
 
 const page = (element: ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>
 
-/** Sends first-time visitors to the welcome screen. */
+/** Sends first-time visitors to the splash, then the welcome screen. */
 function FirstRun({ children }: { children: ReactNode }) {
   const { onboarded } = usePreferences()
-  return onboarded ? children : <Navigate to="/welcome" replace />
+  return onboarded ? children : <Navigate to="/splash" replace />
 }
 
 export const routes: RouteObject[] = [
@@ -42,6 +43,7 @@ export const routes: RouteObject[] = [
   },
   { path: 'landmarks/:id', element: page(<LandmarkPage />) },
   { path: 'landmarks/:id/chat', element: page(<ChatPage />) },
+  { path: 'splash', element: page(<SplashScreenPage />) },
   { path: 'welcome', element: page(<WelcomePage />) },
   { path: 'login', element: page(<LoginPage />) },
   { path: 'register', element: page(<RegisterPage />) },

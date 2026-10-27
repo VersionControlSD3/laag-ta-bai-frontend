@@ -102,8 +102,128 @@ body {
 .markdown p:last-child {
   margin-bottom: 0;
 }
+
 .markdown ul,
 .markdown ol {
   margin: 0 0 0.5rem 1.25rem;
   list-style: revert;
+}
+
+/*
+ * Artifact design layer.
+ * Keep this below the existing styles while the screens are migrated.
+ */
+:root {
+  --artifact-ivory: #f7f3ea;
+  --artifact-navy: #243b53;
+  --artifact-sage: #a9b7a5;
+  --artifact-sage-dark: #536b58;
+  --artifact-terracotta: #c66a4e;
+  --artifact-line: #d8d1c5;
+}
+
+@theme {
+  --color-artifact-ivory: #f7f3ea;
+  --color-artifact-navy: #243b53;
+  --color-artifact-sage: #a9b7a5;
+  --color-artifact-sage-dark: #536b58;
+  --color-artifact-terracotta: #c66a4e;
+  --color-artifact-line: #d8d1c5;
+}
+
+.artifact-page {
+  background: var(--artifact-ivory);
+  color: var(--artifact-navy);
+}
+
+.artifact-display {
+  color: var(--artifact-navy);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.artifact-panel {
+  border: 1px solid var(--artifact-line);
+  border-radius: 1.5rem;
+  background: rgb(255 255 255 / 0.42);
+}
+
+.artifact-splash {
+  background: var(--artifact-ivory);
+  color: var(--artifact-navy);
+}
+
+[data-theme='dark'] .artifact-splash {
+  --artifact-ivory: #151d29;
+  --artifact-navy: #f7f3ea;
+  --artifact-line: #536b58;
+  --artifact-sage: #a9b7a5;
+  --artifact-terracotta: #e89a7d;
+}
+
+[data-theme='dark'] .artifact-splash-logo,
+[data-theme='dark'] .artifact-splash-title {
+  filter: brightness(1.35) saturate(0.9);
+}
+
+.artifact-splash-content {
+  min-height: 396px;
+  padding-inline: 46px;
+}
+
+.artifact-splash-logo {
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.artifact-splash-title {
+  object-fit: contain;
+}
+
+.artifact-progress-track {
+  width: 179px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--artifact-navy) 12%, transparent);
+}
+
+.artifact-progress-value {
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--artifact-terracotta), var(--artifact-sage));
+  animation: artifact-progress 1.5s ease-in-out infinite;
+}
+
+.artifact-splash-caption {
+  margin-top: 12px;
+  color: color-mix(in srgb, var(--artifact-navy) 65%, transparent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+@keyframes artifact-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artifact-progress-value {
+    animation: none;
+    transform: translateX(75%);
+  }
+}
+
+@media (max-width: 420px) {
+  .artifact-splash-content {
+    padding-inline: 24px;
+  }
 }
