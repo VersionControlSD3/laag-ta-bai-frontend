@@ -65,7 +65,8 @@ export function useScan() {
   const { token } = useAuth()
   const onProgress = useProgressHandler()
   return useMutation({
-    mutationFn: (input: { image: File; lat?: number; lng?: number }) => api.scan(input, token),
+    mutationFn: ({ signal, ...input }: { image: File; lat?: number; lng?: number; signal?: AbortSignal }) =>
+      api.scan(input, token, signal),
     onSuccess: (result) => onProgress(result.progress),
   })
 }

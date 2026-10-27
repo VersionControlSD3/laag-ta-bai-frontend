@@ -36,11 +36,12 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <ExplorePage /> },
       { path: 'archives', element: page(<ArchivesPage />) },
-      { path: 'scan', element: page(<ScanPage />) },
       { path: 'mastery', element: page(<MasteryPage />) },
       { path: 'profile', element: page(<ProfilePage />) },
     ],
   },
+  // Scan is a full-screen camera, so it sits outside AppShell and hides the tab bar (Figma).
+  { path: 'scan', element: <FirstRun>{page(<ScanPage />)}</FirstRun> },
   { path: 'landmarks/:id', element: page(<LandmarkPage />) },
   { path: 'landmarks/:id/chat', element: page(<ChatPage />) },
   { path: 'splash', element: page(<SplashScreenPage />) },
