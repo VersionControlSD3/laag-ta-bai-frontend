@@ -73,6 +73,8 @@ therefore **public**. Never put a secret key, database password or account login
 
 ## Documentation
 
+- [Developer and AI-agent guide](CLAUDE.md): start here
+- [Design system](docs/design-system.md): Figma tokens, components and status
 - [Architecture](docs/architecture.md)
 - [CI/CD and deployment](docs/ci-cd.md)
 - [Team Git workflow (visual guide)](docs/team-workflow.html): branches, PRs, staging and production
