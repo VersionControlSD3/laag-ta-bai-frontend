@@ -214,7 +214,10 @@ export default function SignUpPage() {
         </header>
         <section className="auth-signup-card my-8 flex-1 rounded-[2rem] p-6 sm:p-8">
           {confirmEmail ? (
-            <p role="status" className="rounded-2xl border border-design-line bg-design-surface p-4 text-center text-navy">Check <strong>{form.email}</strong> for a confirmation link, then sign in.</p>
+            // Direct child of the card, so the unlayered `.auth-signup-card > .rounded-2xl`
+            // override gives it a dark surface (it beats the layered `bg-design-surface`
+            // utility) — keep the text explicitly ivory for contrast in both themes.
+            <p role="status" className="rounded-2xl border border-design-line bg-design-surface p-4 text-center text-ivory">Check <strong>{form.email}</strong> for a confirmation link, then sign in.</p>
           ) : (
             <>
               {/* Form header */}
