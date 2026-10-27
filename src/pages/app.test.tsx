@@ -51,6 +51,42 @@ describe('app routes', () => {
     expect(JSON.parse(localStorage.getItem('laagtabai:bookmarks')!)[0].id).toBe('fort-san-pedro')
   })
 
+  it('asks for permissions and shows the denied state when the browser blocks them', async () => {
+    renderRoutes(routes, '/permissions')
+    expect(await screen.findAllByRole('checkbox')).toHaveLength(2)
+    for (const name of [/Camera/, /Location/]) expect(screen.getByRole('checkbox', { name })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('button', { name: 'Maybe later' })).toBeInTheDocument()
+
+    // jsdom has no camera or geolocation, so both requests are denied.
+    await userEvent.click(screen.getByRole('button', { name: 'ALLOW PERMISSIONS' }))
+    expect(await screen.findByRole('heading', { name: 'No worries' })).toBeInTheDocument()
+    expect(screen.getAllByText('Blocked')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'CONTINUE' })).toBeInTheDocument()
+  })
+
+  it('shows the partial state and tells a dismissed prompt apart from a blocked one', async () => {
+    // Location is allowed; the camera prompt was closed, so its permission is still 'prompt'.
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { getCurrentPosition: (ok: PositionCallback) => ok({} as GeolocationPosition) },
+    })
+    Object.defineProperty(navigator, 'permissions', {
+      configurable: true,
+      value: { query: async () => ({ state: 'prompt' }) },
+    })
+    try {
+      renderRoutes(routes, '/permissions')
+      await userEvent.click(await screen.findByRole('button', { name: 'ALLOW PERMISSIONS' }))
+      expect(await screen.findByRole('heading', { name: 'Almost set' })).toBeInTheDocument()
+      expect(screen.getByText('Allowed')).toBeInTheDocument()
+      expect(screen.getByText('Not now')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+    } finally {
+      delete (navigator as { geolocation?: unknown }).geolocation
+      delete (navigator as { permissions?: unknown }).permissions
+    }
+  })
+
   it('offers dev sign-in when Supabase is not configured', async () => {
     renderRoutes(routes, '/login')
     expect(await screen.findByRole('button', { name: 'Continue as dev traveler' })).toBeInTheDocument()

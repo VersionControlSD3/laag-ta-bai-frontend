@@ -14,6 +14,7 @@ const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const LandmarkPage = lazy(() => import('@/pages/LandmarkPage'))
 const ChatPage = lazy(() => import('@/pages/ChatPage'))
 const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
+const PermissionsPage = lazy(() => import('@/pages/PermissionsPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 const LoginPage = lazy(() => import('@/pages/AuthPages').then((m) => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('@/pages/AuthPages').then((m) => ({ default: m.RegisterPage })))
@@ -45,6 +46,7 @@ export const routes: RouteObject[] = [
   { path: 'landmarks/:id/chat', element: page(<ChatPage />) },
   { path: 'splash', element: page(<SplashScreenPage />) },
   { path: 'welcome', element: page(<WelcomePage />) },
+  { path: 'permissions', element: page(<PermissionsPage />) },
   { path: 'login', element: page(<LoginPage />) },
   { path: 'register', element: page(<RegisterPage />) },
   { path: '*', element: page(<NotFoundPage />) },
