@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { NavLink } from 'react-router'
+import { NavLink, useLocation } from 'react-router'
 import {
   BookIcon,
   BookOutlineIcon,
@@ -29,22 +29,36 @@ const TABS: Tab[] = [
  * the others show an outline icon in ink-muted and keep their label for screen readers only.
  */
 export function BottomNav() {
+  const { pathname } = useLocation()
+  const current = TABS.findIndex((t) => t.to === pathname)
+  // Tells the CSS which way to slide: towards the tab's side of the bar.
+  const onNavigate = (index: number) => {
+    document.documentElement.setAttribute('data-tab-direction', index < current ? 'back' : 'forward')
+  }
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md items-center justify-between rounded-t-chrome bg-ivory-surface px-4 shadow-tabbar min-[375px]:px-6"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md items-center justify-between rounded-t-chrome bg-ivory-surface px-4 shadow-tabbar [view-transition-name:bottom-nav] min-[375px]:px-6"
       style={{ height: 'calc(var(--spacing-tabbar) + env(safe-area-inset-bottom))', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      {TABS.map((tab) => (tab.to === '/scan' ? <ScanTab key={tab.to} tab={tab} /> : <TabLink key={tab.to} tab={tab} />))}
+      {TABS.map((tab, i) =>
+        tab.to === '/scan' ? (
+          <ScanTab key={tab.to} tab={tab} onClick={() => onNavigate(i)} />
+        ) : (
+          <TabLink key={tab.to} tab={tab} onClick={() => onNavigate(i)} />
+        ),
+      )}
     </nav>
   )
 }
 
-function TabLink({ tab }: { tab: Tab }) {
+function TabLink({ tab, onClick }: { tab: Tab; onClick: () => void }) {
   return (
     <NavLink
       to={tab.to}
       end={tab.to === '/'}
+      viewTransition
+      onClick={onClick}
       className="flex min-h-12 min-w-12 flex-col items-center justify-center gap-1 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
     >
       {({ isActive }) => {
@@ -61,10 +75,12 @@ function TabLink({ tab }: { tab: Tab }) {
 }
 
 /** The raised Scan button: a navy disc that overlaps the top edge of the bar by 17px, as in Figma. */
-function ScanTab({ tab }: { tab: Tab }) {
+function ScanTab({ tab, onClick }: { tab: Tab; onClick: () => void }) {
   return (
     <NavLink
       to={tab.to}
+      viewTransition
+      onClick={onClick}
       className="group -mt-[17px] flex flex-col items-center gap-1 self-start rounded-full focus-visible:outline-none"
     >
       {({ isActive }) => (
