@@ -100,3 +100,34 @@ export const PersonOutlineIcon = icon(
     />
   </>,
 )
+
+export const SearchIcon = icon(
+  <path
+    fill="currentColor"
+    d="M456.69 421.39L362.6 327.3a173.81 173.81 0 0034.84-104.58C397.44 126.38 319.06 48 222.72 48S48 126.38 48 222.72s78.38 174.72 174.72 174.72A173.81 173.81 0 00327.3 362.6l94.09 94.09a25 25 0 0035.3-35.3zM97.92 222.72a124.8 124.8 0 11124.8 124.8 124.95 124.95 0 01-124.8-124.8z"
+  />,
+)
+
+export const OptionsOutlineIcon = icon(
+  <>
+    <path {...stroke} d="M368 128h80M64 128h240M368 384h80M64 384h240M208 256h240M64 256h80" />
+    <circle {...stroke} cx="336" cy="128" r="32" />
+    <circle {...stroke} cx="176" cy="256" r="32" />
+    <circle {...stroke} cx="336" cy="384" r="32" />
+  </>,
+)
+
+export const LocateOutlineIcon = icon(
+  <>
+    <path {...stroke} strokeWidth={48} d="M256 96V56M256 456v-40" />
+    <path fill="none" stroke="currentColor" strokeMiterlimit={10} strokeWidth={32} d="M256 112a144 144 0 10144 144 144 144 0 00-144-144z" />
+    <path {...stroke} strokeWidth={48} d="M416 256h40M56 256h40" />
+  </>,
+)
+
+export const StarIcon = icon(
+  <path
+    fill="currentColor"
+    d="M394 480a16 16 0 01-9.39-3L256 383.76 127.39 477a16 16 0 01-24.55-18.08L153 310.35 23 221.2a16 16 0 019-29.2h160.38l48.4-148.95a16 16 0 0130.44 0l48.4 149H480a16 16 0 019.05 29.2L359 310.35l50.13 148.53A16 16 0 01394 480z"
+  />,
+)
