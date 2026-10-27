@@ -58,6 +58,112 @@
   color-scheme: dark;
 }
 
+/*
+ * Laag ta bAI design system, copied from the Figma variables collection "Laag ta bAI / Ivory"
+ * (Foundations page). This is the target palette; the maroon/gold tokens above are the scaffold
+ * and get replaced screen by screen. See docs/design-system.md before adding or changing a token.
+ * Figma `color/surface` and `color/line` are `ivory-surface` and `ivory-line` here until the
+ * scaffold's `surface` and `line` are retired.
+ */
+@theme inline {
+  --color-ivory: var(--ds-ivory);
+  --color-ivory-deep: var(--ds-ivory-deep);
+  --color-ivory-surface: var(--ds-surface);
+  --color-ivory-line: var(--ds-line);
+  --color-line-strong: var(--ds-line-strong);
+  --color-navy: var(--ds-navy);
+  --color-navy-pressed: var(--ds-navy-pressed);
+  --color-navy-soft: var(--ds-navy-soft);
+  --color-on-navy: var(--ds-on-navy);
+  --color-ink: var(--ds-ink);
+  --color-ink-body: var(--ds-ink-body);
+  --color-ink-muted: var(--ds-ink-muted);
+  --color-ink-faint: var(--ds-ink-faint);
+  --color-sage: var(--ds-sage);
+  --color-sage-soft: var(--ds-sage-soft);
+  --color-sage-deep: var(--ds-sage-deep);
+  --color-terracotta: var(--ds-terracotta);
+  --color-terracotta-ink: var(--ds-terracotta-ink);
+  --color-terracotta-soft: var(--ds-terracotta-soft);
+  --color-danger: var(--ds-danger);
+  --color-danger-soft: var(--ds-danger-soft);
+  --color-danger-line: var(--ds-danger-line);
+  --shadow-tabbar: var(--ds-shadow-tabbar);
+  --shadow-topbar: var(--ds-shadow-topbar);
+  --shadow-navy: var(--ds-shadow-navy);
+}
+
+/* Figma radius/*, size/* (md, lg, xl, 2xl, 3xl and full match Tailwind's defaults). */
+@theme {
+  --radius-tray: 30px;
+  --radius-chrome: 40px;
+  --spacing-tabbar: 70px;
+  --spacing-topbar: 60px;
+  --spacing-scan-button: 64px;
+}
+
+:root,
+[data-theme='light'] {
+  --ds-ivory: #faf5ec;
+  --ds-ivory-deep: #f2ebdd;
+  --ds-surface: #fffdf8;
+  --ds-line: #e3dccd;
+  --ds-line-strong: #8f8878;
+  --ds-navy: #243b53;
+  --ds-navy-pressed: #1a2c3f;
+  --ds-navy-soft: #e5e2dd;
+  --ds-on-navy: var(--ds-ivory);
+  --ds-ink: var(--ds-navy);
+  --ds-ink-body: #3d5166;
+  --ds-ink-muted: #536170;
+  --ds-ink-faint: #8a96a1;
+  --ds-sage: #9baf9a;
+  --ds-sage-soft: #dee0d3;
+  --ds-sage-deep: #4d654d;
+  --ds-terracotta: #c66b4e;
+  --ds-terracotta-ink: #9f4b31;
+  --ds-terracotta-soft: #f3e2d6;
+  --ds-danger: #a8322a;
+  --ds-danger-soft: #f7e1dc;
+  --ds-danger-line: #e3b3aa;
+  --ds-shadow-tabbar: 0 -5px 10px 0 rgb(36 59 83 / 0.08);
+  --ds-shadow-topbar: 0 5px 10px 0 rgb(36 59 83 / 0.08);
+  --ds-shadow-navy: 0 10px 15px -3px rgb(36 59 83 / 0.25), 0 4px 6px -4px rgb(36 59 83 / 0.2);
+}
+
+/*
+ * Provisional dark values: Figma has no dark mode for Ivory + Sage yet. Derived from the same
+ * hues so every text pair still meets WCAG AA. Navy fills invert to a light navy with dark
+ * text. Replace with the designer's values once they exist.
+ */
+[data-theme='dark'] {
+  --ds-ivory: #121a24;
+  --ds-ivory-deep: #0c121a;
+  --ds-surface: #1b2633;
+  --ds-line: #2c3a4a;
+  --ds-line-strong: #7f8c9a;
+  --ds-navy: #dbe5ef;
+  --ds-navy-pressed: #c2d0de;
+  --ds-navy-soft: #26364a;
+  --ds-on-navy: #121a24;
+  --ds-ink: #faf5ec;
+  --ds-ink-body: #d3dbe3;
+  --ds-ink-muted: #a7b2bd;
+  --ds-ink-faint: #6b7885;
+  --ds-sage: #9baf9a;
+  --ds-sage-soft: #2b3a31;
+  --ds-sage-deep: #b9cdb8;
+  --ds-terracotta: #d98a6e;
+  --ds-terracotta-ink: #eca88f;
+  --ds-terracotta-soft: #3a2a22;
+  --ds-danger: #f2958a;
+  --ds-danger-soft: #3a1f1c;
+  --ds-danger-line: #7a3b34;
+  --ds-shadow-tabbar: 0 -5px 10px 0 rgb(0 0 0 / 0.35);
+  --ds-shadow-topbar: 0 5px 10px 0 rgb(0 0 0 / 0.35);
+  --ds-shadow-navy: 0 10px 15px -3px rgb(0 0 0 / 0.45), 0 4px 6px -4px rgb(0 0 0 / 0.35);
+}
+
 html,
 body,
 #root {
