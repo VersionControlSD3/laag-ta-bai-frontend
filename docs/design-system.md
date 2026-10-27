@@ -170,17 +170,17 @@ Each component in Figma has a written spec next to it. Read it before building.
 | GradientBackground | Vertical ivory → ivory-deep gradient behind every screen | ❌ (scaffold gradient) |
 | GlassPanel | The card: card, quiet, panel, modal, well tones | ❌ |
 | Button | Full width; one navy primary per screen; large = UPPERCASE | ❌ |
-| IconButton | One Ionicon in a 40–48 px disc; always has an accessible label | ❌ |
+| IconButton | One Ionicon in a 40–48 px disc; always has an accessible label | ⚠️ camera tone only (`OverlayButton` in `ScanPage.tsx`) |
 | Tag | Heritage, navy, rating, locked / unlocked pills | ❌ |
 | LandmarkCard / LandmarkRow | 160 px rail tile / 80 px thumbnail row | ⚠️ scaffold version |
 | PaginationDots | 8 px sage dots, current 24 px terracotta | ❌ |
-| TopNavbar | Back, centred navy title, optional action; 40 px bottom corners; 60 px + inset | ❌ |
+| TopNavbar | Back, centred navy title, optional action; 40 px bottom corners; 60 px + inset | ✅ `TopNavbar.tsx` |
 | **ScreenNavbar** | Four tabs + raised navy Scan; 40 px top corners; 70 px + inset | ✅ `BottomNav.tsx` |
 | TextField | Uppercase label, surface well, line-strong border, terracotta icon; 56 / 48 px | ❌ |
 | SearchBar | Surface field, terracotta search icon, filter button on Explore | ❌ |
 | Switch | Ivory-deep track off; navy or sage-deep on | ❌ |
-| ChatComposer / ChatBubble | Sage camera, send turns navy; guide in surface, traveller in navy | ❌ |
-| InfoSection | Terracotta-ink title, ink-body text; Trivia callout in terracotta-soft | ⚠️ scaffold `StorySection` |
+| ChatComposer / ChatBubble | Sage camera, send turns navy; guide in surface, traveller in navy | ✅ in `ChatPage.tsx` |
+| InfoSection | Terracotta-ink title, ink-body text; Trivia callout in terracotta-soft | ✅ in `LandmarkPage.tsx` (scaffold `StorySection` is unused) |
 | OptionRow / SettingsList | Icon disc, title, chevron / radio / switch; eyebrow group labels | ❌ |
 | ProgressBar | Navy XP, terracotta quest, sage-deep identifying; 12 / 6 px | ⚠️ scaffold `XpBar` |
 | StatTile, QuestCard, BadgeTile, LevelRing | Mastery and Profile pieces | ❌ |
@@ -201,11 +201,38 @@ Profile`. Implemented in `src/components/BottomNav.tsx`:
   `camera-outline` in `on-navy`. Its label shows only when Scan is active.
 - Tabs are at least 48 × 48 px; the Scan disc is 64 px.
 
-**Visibility rules.** The bar is rendered by `AppShell`, so it shows only on the five tab screens
-(`/`, `/archives`, `/scan`, `/mastery`, `/profile`). It's hidden on pushed screens (landmark
+**Visibility rules.** The bar is rendered by `AppShell`, so it shows only on the tab screens
+(`/`, `/archives`, `/mastery`, `/profile`). The Scan tab opens a full-screen camera (`/scan`, outside
+`AppShell`), as in the Figma Scan-to-Story frames. It's also hidden on pushed screens (landmark
 details, chat), auth, splash, welcome, permissions and 404, which use a TopNavbar or nothing. Keep
 new tab-level screens inside `AppShell` and pushed screens outside it. The designer still needs to
 show these rules in the prototype (ticket #27).
+
+### Scan-to-Story (camera, processing, results, details, chat)
+
+Figma: Final Pages → *Scan-to-Story Page* (`268:7812`, overlay `268:7961`), *… - Scanning*
+(`268:7994`) and *… - Landmark Details* (`268:8180`). Implemented in `ScanPage.tsx`,
+`LandmarkPage.tsx` and `ChatPage.tsx`:
+
+- **Camera** (`useCamera`, getUserMedia): full screen, navy gradients behind the header and
+  controls, terracotta viewfinder corners, 82 px shutter ("Scan landmark"), gallery and
+  switch-camera controls, flash when the device supports it. Screens on photos set
+  `data-theme="light"` so they keep the light token values in dark mode.
+- **Processing**: the captured photo with a navy glass panel, a spinner (still under reduced motion)
+  and a Cancel button that aborts the request.
+- **Results** (not in Figma, designed in the same style): low confidence, not nearby and no match,
+  with the captured photo beside the best guess, a "Best match" tag, the score as text and a bar,
+  nearby alternatives, Retake and Search. A confident match goes straight to Landmark Details with
+  a "Landmark matched · 98%" pill.
+- **States**: camera permission denied, no camera, offline and API error, each with a way forward.
+- **Details**: hero photo under the TopNavbar, story sheet, fact tiles, Trivia callout, and an "Ask
+  bAI" card with follow-up question chips that open the chat and ask the question.
+- **Chat** (SRS 3.1.2): ChatBubble / ChatComposer styling, a typing indicator, follow-up chips
+  after each answer, retry on error, copy / export / clear.
+
+API gap: per-candidate confidence isn't in `ScanResult`, and the API only returns the guess
+(`landmark`) when the status is `identified`. The UI shows a best match and score whenever the API
+sends one; ranking several matches by confidence needs an API change.
 
 ## Assets
 

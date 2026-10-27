@@ -55,6 +55,7 @@ therefore **public**. Never put a secret key, database password or account login
 | `VITE_API_URL` | yes | API base URL. Default `http://localhost:3000` |
 | `VITE_SUPABASE_URL` | for real accounts | Supabase project URL |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | for real accounts | Publishable / anon key |
+| `VITE_MOCK_API` | no | `true` serves demo landmarks, scan results and chat answers (`src/api/mock.ts`). Add `?mock=low`, `not-nearby`, `no-match`, `error` or `offline` to `/scan` to see each state |
 | `VITE_GOOGLE_MAPS_API_KEY` | not yet used | Reserved for the interactive map |
 
 ## Screens
