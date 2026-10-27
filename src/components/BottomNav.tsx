@@ -1,59 +1,80 @@
+import type { ComponentType } from 'react'
 import { NavLink } from 'react-router'
-import { BookOpen, Camera, Map, Trophy, User, type LucideIcon } from 'lucide-react'
+import {
+  BookIcon,
+  BookOutlineIcon,
+  CameraOutlineIcon,
+  MapIcon,
+  MapOutlineIcon,
+  PersonIcon,
+  PersonOutlineIcon,
+  TrophyIcon,
+  TrophyOutlineIcon,
+} from './icons/ionicons'
 
-type Tab = { to: string; label: string; icon: LucideIcon }
+type Icon = ComponentType<{ size?: number; className?: string }>
+type Tab = { to: string; label: string; icon: Icon; activeIcon: Icon }
 
 const TABS: Tab[] = [
-  { to: '/', label: 'Explore', icon: Map },
-  { to: '/archives', label: 'Archives', icon: BookOpen },
-  { to: '/scan', label: 'Scan', icon: Camera },
-  { to: '/mastery', label: 'Mastery', icon: Trophy },
-  { to: '/profile', label: 'Profile', icon: User },
+  { to: '/', label: 'Explore', icon: MapOutlineIcon, activeIcon: MapIcon },
+  { to: '/archives', label: 'Archives', icon: BookOutlineIcon, activeIcon: BookIcon },
+  { to: '/scan', label: 'Scan', icon: CameraOutlineIcon, activeIcon: CameraOutlineIcon },
+  { to: '/mastery', label: 'Mastery', icon: TrophyOutlineIcon, activeIcon: TrophyIcon },
+  { to: '/profile', label: 'Profile', icon: PersonOutlineIcon, activeIcon: PersonIcon },
 ]
 
-/** Thumb-reach bottom navigation (SRS 3.2.1.1), styled after the reference ScreenNavbar. */
+/**
+ * Thumb-reach bottom navigation (SRS 3.2.1.1), built from the Figma ScreenNavbar component
+ * (Components page, node 151:122). The focused tab gets a filled navy icon and a visible label;
+ * the others show an outline icon in ink-muted and keep their label for screen readers only.
+ */
 export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md items-end justify-around rounded-t-[40px] bg-gradient-to-b from-cream to-[#D9D7CE] px-2 pt-2 shadow-[0_-5px_10px_rgba(0,0,0,0.15)]"
-      style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md items-center justify-between rounded-t-chrome bg-ivory-surface px-4 shadow-tabbar min-[375px]:px-6"
+      style={{ height: 'calc(var(--spacing-tabbar) + env(safe-area-inset-bottom))', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      {TABS.map(({ to, label, icon: Icon }) =>
-        to === '/scan' ? (
-          <NavLink key={to} to={to} aria-label={label} className="-mt-8 flex flex-col items-center">
-            {({ isActive }) => (
-              <>
-                <span className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-cream bg-gold text-maroon shadow-lg motion-safe:animate-[pulse_2s_ease-in-out_infinite]">
-                  <Camera size={30} aria-hidden />
-                </span>
-                <span className={`mt-1 text-xs font-semibold text-[#333] ${isActive ? 'opacity-100' : 'opacity-0'}`}>
-                  {label}
-                </span>
-              </>
-            )}
-          </NavLink>
-        ) : (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            className="touch-target flex flex-1 flex-col items-center justify-center gap-0.5 text-[#333]"
-          >
-            {({ isActive }) => (
-              <>
-                <Icon
-                  size={24}
-                  aria-hidden
-                  className={isActive ? 'scale-110 text-amber transition' : 'opacity-60 transition'}
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
-                <span className={`text-xs font-bold ${isActive ? 'opacity-100' : 'opacity-60'}`}>{label}</span>
-              </>
-            )}
-          </NavLink>
-        ),
-      )}
+      {TABS.map((tab) => (tab.to === '/scan' ? <ScanTab key={tab.to} tab={tab} /> : <TabLink key={tab.to} tab={tab} />))}
     </nav>
+  )
+}
+
+function TabLink({ tab }: { tab: Tab }) {
+  return (
+    <NavLink
+      to={tab.to}
+      end={tab.to === '/'}
+      className="flex min-h-12 min-w-12 flex-col items-center justify-center gap-1 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+    >
+      {({ isActive }) => {
+        const Icon = isActive ? tab.activeIcon : tab.icon
+        return (
+          <>
+            <Icon size={isActive ? 28 : 24} className={isActive ? 'text-navy' : 'text-ink-muted'} />
+            <span className={isActive ? 'text-xs font-bold whitespace-nowrap text-navy' : 'sr-only'}>{tab.label}</span>
+          </>
+        )
+      }}
+    </NavLink>
+  )
+}
+
+/** The raised Scan button: a navy disc that overlaps the top edge of the bar by 17px, as in Figma. */
+function ScanTab({ tab }: { tab: Tab }) {
+  return (
+    <NavLink
+      to={tab.to}
+      className="group -mt-[17px] flex flex-col items-center gap-1 self-start rounded-full focus-visible:outline-none"
+    >
+      {({ isActive }) => (
+        <>
+          <span className="flex size-scan-button items-center justify-center rounded-full border-4 border-ivory bg-navy text-on-navy shadow-navy group-active:bg-navy-pressed group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-navy">
+            <tab.icon size={30} />
+          </span>
+          <span className={isActive ? 'text-xs font-bold text-navy' : 'sr-only'}>{tab.label}</span>
+        </>
+      )}
+    </NavLink>
   )
 }
