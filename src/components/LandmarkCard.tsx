@@ -34,12 +34,16 @@ function Rating({ value }: { value: number }) {
   )
 }
 
-/** Figma "Landmark Card": 160 px tile for horizontal rails (Nearby You). */
+/**
+ * Figma "Landmark Card": 160 px tile for horizontal rails (Nearby You).
+ * `relative` keeps the absolutely positioned sr-only rating label inside the card; without it the
+ * label escapes the rail's scroll clipping and widens the whole page on phones.
+ */
 export function LandmarkTile({ landmark }: { landmark: LandmarkSummary }) {
   return (
     <Link
       to={`/landmarks/${landmark.id}`}
-      className={`flex w-40 shrink-0 snap-start flex-col rounded-2xl border border-ivory-line bg-ivory-surface p-3 shadow-md ${focus}`}
+      className={`relative flex w-40 shrink-0 snap-start flex-col rounded-2xl border border-ivory-line bg-ivory-surface p-3 shadow-md ${focus}`}
     >
       <Media landmark={landmark} className="h-32 w-full" />
       <p className="mt-3 truncate text-base leading-6 font-bold text-ink">{landmark.name}</p>
@@ -59,7 +63,7 @@ export function LandmarkRow({ landmark }: { landmark: LandmarkSummary }) {
   return (
     <Link
       to={`/landmarks/${landmark.id}`}
-      className={`flex items-center gap-4 rounded-2xl border border-ivory-line bg-ivory-surface p-3 ${focus}`}
+      className={`relative flex items-center gap-4 rounded-2xl border border-ivory-line bg-ivory-surface p-3 ${focus}`}
     >
       <Media landmark={landmark} className="size-20" />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
