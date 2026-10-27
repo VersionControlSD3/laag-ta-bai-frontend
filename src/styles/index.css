@@ -88,6 +88,11 @@
   --color-danger: var(--ds-danger);
   --color-danger-soft: var(--ds-danger-soft);
   --color-danger-line: var(--ds-danger-line);
+  --color-scrim-photo: var(--ds-scrim-photo);
+  --color-scrim-modal: var(--ds-scrim-modal);
+  --color-panel-glass: var(--ds-panel-glass);
+  --color-camera-control: var(--ds-camera-control);
+  --color-on-photo: var(--ds-on-photo);
   --shadow-tabbar: var(--ds-shadow-tabbar);
   --shadow-topbar: var(--ds-shadow-topbar);
   --shadow-navy: var(--ds-shadow-navy);
@@ -126,6 +131,12 @@
   --ds-danger: #a8322a;
   --ds-danger-soft: #f7e1dc;
   --ds-danger-line: #e3b3aa;
+  /* Overlays sit on photos and the camera feed, so dark mode keeps these values. */
+  --ds-scrim-photo: rgb(36 59 83 / 0.55);
+  --ds-scrim-modal: rgb(36 59 83 / 0.45);
+  --ds-panel-glass: rgb(250 245 236 / 0.9);
+  --ds-camera-control: rgb(36 59 83 / 0.5);
+  --ds-on-photo: rgb(255 253 248 / 0.92);
   --ds-shadow-tabbar: 0 -5px 10px 0 rgb(36 59 83 / 0.08);
   --ds-shadow-topbar: 0 5px 10px 0 rgb(36 59 83 / 0.08);
   --ds-shadow-navy: 0 10px 15px -3px rgb(36 59 83 / 0.25), 0 4px 6px -4px rgb(36 59 83 / 0.2);

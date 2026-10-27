@@ -1,4 +1,5 @@
 import { env } from '@/lib/env'
+import { mockApi } from './mock'
 import type {
   ChatMessage,
   Landmark,
@@ -87,25 +88,30 @@ function toQuery(params: Record<string, string | number | boolean | undefined>):
 
 export const api = {
   listLandmarks: (query: LandmarkQuery = {}, signal?: AbortSignal) =>
-    apiRequest<LandmarkSummary[]>(`/v1/landmarks${toQuery(query)}`, { signal }),
+    env.mockApi
+      ? mockApi.listLandmarks(query)
+      : apiRequest<LandmarkSummary[]>(`/v1/landmarks${toQuery(query)}`, { signal }),
   getLandmark: (id: string, signal?: AbortSignal) =>
-    apiRequest<Landmark>(`/v1/landmarks/${encodeURIComponent(id)}`, { signal }),
+    env.mockApi ? mockApi.getLandmark(id) : apiRequest<Landmark>(`/v1/landmarks/${encodeURIComponent(id)}`, { signal }),
   listQuests: (token: string | null) => apiRequest<QuestProgress[]>('/v1/quests', { token }),
-  scan: (input: { image: File; lat?: number; lng?: number }, token: string | null) => {
+  scan: (input: { image: File; lat?: number; lng?: number }, token: string | null, signal?: AbortSignal) => {
+    if (env.mockApi) return mockApi.scan(signal)
     const form = new FormData()
     form.set('image', input.image)
     if (input.lat !== undefined && input.lng !== undefined) {
       form.set('lat', String(input.lat))
       form.set('lng', String(input.lng))
     }
-    return apiRequest<ScanResult>('/v1/scan', { method: 'POST', form, token })
+    return apiRequest<ScanResult>('/v1/scan', { method: 'POST', form, token, signal })
   },
   chat: (input: { landmarkId: string; messages: ChatMessage[] }, token: string | null) =>
-    apiRequest<{ message: ChatMessage; progress: ProgressUpdate | null }>('/v1/chat', {
-      method: 'POST',
-      json: input,
-      token,
-    }),
+    env.mockApi
+      ? mockApi.chat(input)
+      : apiRequest<{ message: ChatMessage; progress: ProgressUpdate | null }>('/v1/chat', {
+          method: 'POST',
+          json: input,
+          token,
+        }),
   getMe: (token: string) => apiRequest<Me>('/v1/me', { token }),
   updateMe: (update: ProfileUpdate, token: string) =>
     apiRequest<Profile>('/v1/me', { method: 'PATCH', json: update, token }),

@@ -43,8 +43,10 @@ describe('app routes', () => {
     renderRoutes(routes, '/landmarks/fort-san-pedro')
     expect(await screen.findByRole('heading', { name: 'Fort San Pedro' })).toBeInTheDocument()
     expect(screen.getByText('A triangular fort.')).toBeInTheDocument()
-    expect(screen.getByText('Historical Significance')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Ask bAI/ })).toHaveAttribute('href', '/landmarks/fort-san-pedro/chat')
+    expect(screen.getByRole('heading', { name: 'Why it matters' })).toBeInTheDocument()
+    expect(screen.getByText('Oldest fort.')).toBeInTheDocument()
+    expect(screen.getByText('Was a zoo.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ask bAI' })).toHaveAttribute('href', '/landmarks/fort-san-pedro/chat')
 
     await userEvent.click(screen.getByRole('button', { name: 'Save for offline reading' }))
     expect(screen.getByRole('button', { name: 'Remove bookmark' })).toHaveAttribute('aria-pressed', 'true')
