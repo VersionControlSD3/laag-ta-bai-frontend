@@ -41,36 +41,36 @@ function CalendarSelect({ label, value, options, open, onToggle, onChange, isDis
 
 function CustomDatePicker({ value, onChange, invalid }: { value: string; onChange: (value: string) => void; invalid: boolean }) {
   const today = new Date()
-  // Date-only bounds: future birth dates are not selectable (PR #17 review).
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const maxYear = today.getFullYear() - 18
+  // Age gate: latest selectable date is today minus 18 years (PR #17 review).
+  const maxBirthDate = new Date(maxYear, today.getMonth(), today.getDate())
   const selected = value ? new Date(`${value}T00:00:00`) : null
   const pickerRef = useRef<HTMLDivElement>(null)
   const calendarRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   const [openSelect, setOpenSelect] = useState<'month' | 'year' | null>(null)
   const [openAbove, setOpenAbove] = useState(false)
-  const [viewDate, setViewDate] = useState(() => selected ?? new Date(today.getFullYear() - 18, today.getMonth(), 1))
+  const [viewDate, setViewDate] = useState(() => selected ?? new Date(maxYear, today.getMonth(), 1))
   const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay()
   const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate()
   const days = Array.from({ length: firstDay + daysInMonth }, (_, index) => index < firstDay ? null : index - firstDay + 1)
-  const years = Array.from({ length: 101 }, (_, index) => today.getFullYear() - index)
+  const years = Array.from({ length: 101 }, (_, index) => maxYear - index)
   /** Keeps the view month inside the `years` list so the Year button never goes blank. */
   const clampViewDate = (date: Date) => {
-    const maxMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    const maxMonth = new Date(maxYear, today.getMonth(), 1)
     const minMonth = new Date(years[years.length - 1], 0, 1)
     return date > maxMonth ? maxMonth : date < minMonth ? minMonth : date
   }
-  const atMaxMonth = viewDate.getFullYear() === today.getFullYear() && viewDate.getMonth() === today.getMonth()
+  const atMaxMonth = viewDate.getFullYear() === maxYear && viewDate.getMonth() === today.getMonth()
   const atMinMonth = viewDate.getFullYear() === years[years.length - 1] && viewDate.getMonth() === 0
-  const isFutureMonth = (month: number) => viewDate.getFullYear() === today.getFullYear() && month > today.getMonth()
-  const isFutureDay = (day: number) => new Date(viewDate.getFullYear(), viewDate.getMonth(), day) > startOfToday
+  const isUnderageMonth = (month: number) => viewDate.getFullYear() === maxYear && month > today.getMonth()
+  const isUnderageDay = (day: number) => new Date(viewDate.getFullYear(), viewDate.getMonth(), day) > maxBirthDate
   const selectDate = (day: number) => {
     const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), day)
     const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     onChange(iso)
     setOpen(false)
   }
-  const isToday = (day: number) => day === today.getDate() && viewDate.getMonth() === today.getMonth() && viewDate.getFullYear() === today.getFullYear()
   const isSelected = (day: number) => selected?.getDate() === day && selected.getMonth() === viewDate.getMonth() && selected.getFullYear() === viewDate.getFullYear()
 
   useEffect(() => {
@@ -118,7 +118,7 @@ function CustomDatePicker({ value, onChange, invalid }: { value: string; onChang
         onClick={() => {
           // Open on the chosen date, else on the "18 years ago" default — never
           // reset to the current month (PR #17 review).
-          if (!open) setViewDate(selected ?? new Date(today.getFullYear() - 18, today.getMonth(), 1))
+          if (!open) setViewDate(selected ?? new Date(maxYear, today.getMonth(), 1))
           setOpen((current) => !current)
         }}
         className={`auth-date-field ${invalid ? 'auth-date-field-invalid' : ''}`}
@@ -129,7 +129,7 @@ function CustomDatePicker({ value, onChange, invalid }: { value: string; onChang
       {open && (
         <div ref={calendarRef} className={`auth-calendar ${openAbove ? 'auth-calendar-above' : ''}`} role="dialog" aria-label="Choose date of birth">
           <div className="auth-calendar-toolbar">
-            <CalendarSelect label="Month" value={viewDate.getMonth()} options={MONTHS} open={openSelect === 'month'} onToggle={() => setOpenSelect((current) => current === 'month' ? null : 'month')} isDisabled={isFutureMonth} onChange={(month) => { setViewDate(clampViewDate(new Date(viewDate.getFullYear(), month, 1))); setOpenSelect(null) }} />
+            <CalendarSelect label="Month" value={viewDate.getMonth()} options={MONTHS} open={openSelect === 'month'} onToggle={() => setOpenSelect((current) => current === 'month' ? null : 'month')} isDisabled={isUnderageMonth} onChange={(month) => { setViewDate(clampViewDate(new Date(viewDate.getFullYear(), month, 1))); setOpenSelect(null) }} />
             <CalendarSelect label="Year" value={years.indexOf(viewDate.getFullYear())} options={years.map(String)} open={openSelect === 'year'} onToggle={() => setOpenSelect((current) => current === 'year' ? null : 'year')} onChange={(yearIndex) => { setViewDate(clampViewDate(new Date(years[yearIndex], viewDate.getMonth(), 1))); setOpenSelect(null) }} />
             <button type="button" aria-label="Previous month" disabled={atMinMonth} onClick={() => setViewDate(clampViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)))}><ChevronLeft size={18} /></button>
             <button type="button" aria-label="Next month" disabled={atMaxMonth} onClick={() => setViewDate(clampViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)))}><ChevronRight size={18} /></button>
@@ -137,7 +137,7 @@ function CustomDatePicker({ value, onChange, invalid }: { value: string; onChang
           <div className="auth-calendar-grid" role="grid">
             {WEEKDAYS.map((weekday) => <span key={weekday} className="auth-calendar-weekday">{weekday}</span>)}
             {days.map((day, index) => day ? (
-              <button key={day} type="button" role="gridcell" aria-selected={isSelected(day)} aria-current={isToday(day) ? 'date' : undefined} disabled={isFutureDay(day)} onClick={() => selectDate(day)} className={`auth-calendar-day ${isSelected(day) ? 'auth-calendar-day-selected' : ''} ${isToday(day) ? 'auth-calendar-day-today' : ''}`}>{day}</button>
+              <button key={day} type="button" role="gridcell" aria-selected={isSelected(day)} disabled={isUnderageDay(day)} onClick={() => selectDate(day)} className={`auth-calendar-day ${isSelected(day) ? 'auth-calendar-day-selected' : ''}`}>{day}</button>
             ) : <span key={`empty-${index}`} aria-hidden="true" />)}
           </div>
           <div className="auth-calendar-actions">
@@ -162,9 +162,9 @@ export default function SignUpPage() {
   const [submitted, setSubmitted] = useState(false)
   const [oauthError, setOauthError] = useState<string | null>(null)
 
-  const startOfToday = (() => {
+  const maxBirthDate = (() => {
     const now = new Date()
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    return new Date(now.getFullYear() - 18, now.getMonth(), now.getDate())
   })()
   const passwordRules = useMemo(() => [
     ['At least 8 characters', form.password.length >= 8],
@@ -174,7 +174,7 @@ export default function SignUpPage() {
   const passwordValid = passwordRules.every(([, valid]) => valid)
   const confirmValid = form.confirmPassword.length > 0 && form.password === form.confirmPassword
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
-  const dobInFuture = Boolean(form.dateOfBirth) && new Date(`${form.dateOfBirth}T00:00:00`) > startOfToday
+  const isUnderage = Boolean(form.dateOfBirth) && new Date(`${form.dateOfBirth}T00:00:00`) > maxBirthDate
   const fieldError = (message: string) => <span className="auth-field-error" role="alert">{message}</span>
   const update = (field: keyof typeof form, value: string | boolean) => setForm((current) => ({ ...current, [field]: value }))
 
@@ -183,7 +183,7 @@ export default function SignUpPage() {
     setSubmitted(true)
     setBusy(true)
     setError(null)
-    if (!form.displayName || !emailValid || !form.dateOfBirth || dobInFuture || !form.nationality || !passwordValid || !confirmValid || !form.acceptedTerms) {
+    if (!form.displayName || !emailValid || !form.dateOfBirth || isUnderage || !form.nationality || !passwordValid || !confirmValid || !form.acceptedTerms) {
       setBusy(false)
       return
     }
@@ -237,9 +237,10 @@ export default function SignUpPage() {
                 </label>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="auth-label block">Date of birth <span aria-hidden="true">*</span>
-                    <CustomDatePicker value={form.dateOfBirth} onChange={(value) => update('dateOfBirth', value)} invalid={submitted && (!form.dateOfBirth || dobInFuture)} />
+                    <CustomDatePicker value={form.dateOfBirth} onChange={(value) => update('dateOfBirth', value)} invalid={submitted && (!form.dateOfBirth || isUnderage)} />
+                    <input type="text" className="sr-only" tabIndex={-1} aria-hidden="true" name="dateOfBirth" value={form.dateOfBirth} onChange={(e) => update('dateOfBirth', e.target.value)} />
                     {submitted && !form.dateOfBirth && fieldError('Date of birth is required.')}
-                    {submitted && dobInFuture && fieldError("Date of birth can't be in the future.")}
+                    {submitted && isUnderage && fieldError('You must be at least 18 to create an account.')}
                   </label>
                   <label className="auth-label block">Nationality <span aria-hidden="true">*</span>
                     <input required autoComplete="country-name" value={form.nationality} onChange={(e) => update('nationality', e.target.value)} className={inputClass(submitted && !form.nationality)} aria-invalid={submitted && !form.nationality} />

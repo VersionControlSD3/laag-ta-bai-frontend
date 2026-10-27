@@ -40,8 +40,8 @@ export function TermsPage() {
       <Section heading="Acceptance">
         By creating an account or using Laag ta bAI you agree to these terms. If you do not agree, do not use the app.
       </Section>
-      <Section heading="Your account">
-        You are responsible for the information you provide at sign-up and for keeping your credentials secure. Tell us if you believe your account has been accessed by someone else.
+      <Section heading="Your account and eligibility">
+        You must be 18 years of age or older to register and create an account. You are responsible for the information you provide at sign-up and for keeping your credentials secure. Tell us if you believe your account has been accessed by someone else.
       </Section>
       <Section heading="Acceptable use">
         Use the app for personal travel and learning. Do not attempt to disrupt the service, misuse the AI guide, or submit content you do not have the right to share.
@@ -64,6 +64,9 @@ export function PrivacyPage() {
     <LegalLayout title="Privacy Policy">
       <Section heading="What we collect">
         Account details you enter at sign-up (name, email, nationality and optional bio), your progress such as XP, streaks and quest completions, and the landmarks you save for offline reading.
+      </Section>
+      <Section heading="Age requirement and date of birth">
+        You must be 18 or older to register. In accordance with the Data Privacy Act proportionality principle, date of birth is collected solely to verify you meet the 18+ age requirement and is not stored or sent to our servers.
       </Section>
       <Section heading="Location and camera">
         Location is used only while you use the nearby or check-in features to sort landmarks by distance. Photos are used only when you run a scan, to identify the landmark. Neither is collected in the background.

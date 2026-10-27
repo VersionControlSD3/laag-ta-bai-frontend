@@ -69,8 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password,
           options: {
             // Only display_name belongs here: the API reads it when it creates
-            // the profile row. nationality/bio go to PATCH /v1/me below, and
-            // date_of_birth is not in openapi.yaml yet (CONTRIBUTING #4).
+            // the profile row. nationality/bio go to PATCH /v1/me below.
+            // date_of_birth is used only for the 18+ age check at sign-up and is not stored or sent to the API (DPA proportionality).
             data: { display_name: displayName },
             emailRedirectTo: window.location.origin,
           },

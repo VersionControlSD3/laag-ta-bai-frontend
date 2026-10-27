@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { writeJson } from '@/lib/storage'
@@ -61,30 +61,47 @@ describe('sign-up page', () => {
     expect(new Set(labels).size).toBe(7)
   })
 
-  it('blocks future birth dates and paging past the current month', async () => {
+  it('enforces 18+ minimum age in the picker: ends year list at 18 years ago and disables underage days', async () => {
     const user = userEvent.setup()
     await openRegister()
 
     await user.click(screen.getByRole('button', { name: 'Choose date of birth' }))
     const dialog = await screen.findByRole('dialog', { name: 'Choose date of birth' })
     const now = new Date()
+    const maxYear = now.getFullYear() - 18
 
-    // The default view is this month, 18 years ago: picking the current year
-    // lands on the current month.
-    await user.click(within(dialog).getByRole('button', { name: 'Year' }))
-    await user.click(await within(dialog).findByRole('option', { name: String(now.getFullYear()) }))
-
+    // The default view is this month, 18 years ago: Next month is disabled
     expect(within(dialog).getByRole('button', { name: 'Next month' })).toBeDisabled()
 
+    // The year list ends at today minus 18 years (no underage years available)
+    await user.click(within(dialog).getByRole('button', { name: 'Year' }))
+    expect(within(dialog).queryByRole('option', { name: String(now.getFullYear()) })).not.toBeInTheDocument()
+    expect(within(dialog).queryByRole('option', { name: String(now.getFullYear() - 17) })).not.toBeInTheDocument()
+    expect(within(dialog).getByRole('option', { name: String(maxYear) })).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Year' }))
+
     const dayCells = within(dialog).getAllByRole('gridcell')
-    const futureDays = dayCells.filter((cell) => Number(cell.textContent) > now.getDate())
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
-    if (now.getDate() < daysInMonth) expect(futureDays.length).toBeGreaterThan(0)
-    for (const cell of futureDays) expect(cell).toBeDisabled()
+    const underageDays = dayCells.filter((cell) => Number(cell.textContent) > now.getDate())
+    const daysInMonth = new Date(maxYear, now.getMonth() + 1, 0).getDate()
+    if (now.getDate() < daysInMonth) expect(underageDays.length).toBeGreaterThan(0)
+    for (const cell of underageDays) expect(cell).toBeDisabled()
 
     // The old "Today" action set a birth date of today; only Clear remains.
     expect(within(dialog).queryByRole('button', { name: 'Today' })).not.toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: 'Clear' })).toBeInTheDocument()
+  })
+
+  it('shows 18+ requirement error when an underage date is submitted', async () => {
+    const user = userEvent.setup()
+    await openRegister()
+
+    const now = new Date()
+    const underageDate = `${now.getFullYear() - 16}-05-15`
+    const hiddenInput = document.querySelector<HTMLInputElement>('input[name="dateOfBirth"]')!
+    fireEvent.change(hiddenInput, { target: { value: underageDate } })
+
+    await user.click(screen.getByRole('button', { name: 'Create account' }))
+    expect(await screen.findByText('You must be at least 18 to create an account.')).toBeInTheDocument()
   })
 
   it('keeps the selected month when the calendar is reopened', async () => {
@@ -95,7 +112,7 @@ describe('sign-up page', () => {
     let dialog = await screen.findByRole('dialog', { name: 'Choose date of birth' })
     const now = new Date()
     await user.click(within(dialog).getByRole('button', { name: 'Year' }))
-    await user.click(await within(dialog).findByRole('option', { name: String(now.getFullYear() - 1) }))
+    await user.click(await within(dialog).findByRole('option', { name: String(now.getFullYear() - 19) }))
     const pastDay = within(dialog).getAllByRole('gridcell')[0]
     await user.click(pastDay)
     expect(screen.getByRole('button', { name: 'Choose date of birth' })).not.toHaveTextContent('mm/dd/yyyy')
@@ -103,7 +120,7 @@ describe('sign-up page', () => {
     // Reopening keeps the chosen month instead of jumping back to today.
     await user.click(screen.getByRole('button', { name: 'Choose date of birth' }))
     dialog = await screen.findByRole('dialog', { name: 'Choose date of birth' })
-    expect(within(dialog).getByRole('button', { name: 'Year' })).toHaveTextContent(String(now.getFullYear() - 1))
+    expect(within(dialog).getByRole('button', { name: 'Year' })).toHaveTextContent(String(now.getFullYear() - 19))
   })
 
   it('uses the night background when the Dark preference is on', async () => {
@@ -141,15 +158,18 @@ describe('sign-up page', () => {
     }
   })
 
-  it('renders the Terms route instead of the 404 page', async () => {
+  it('renders the Terms route instead of the 404 page and includes the 18+ requirement', async () => {
     renderRoutes(routes, '/terms')
     expect(await screen.findByRole('heading', { name: 'Terms of Use' })).toBeInTheDocument()
+    expect(screen.getByText(/18 years of age or older/i)).toBeInTheDocument()
     expect(screen.queryByText(/This page doesn't exist/)).not.toBeInTheDocument()
   })
 
-  it('renders the Privacy route instead of the 404 page', async () => {
+  it('renders the Privacy route instead of the 404 page and clarifies DOB is not stored', async () => {
     renderRoutes(routes, '/privacy')
     expect(await screen.findByRole('heading', { name: 'Privacy Policy' })).toBeInTheDocument()
+    expect(screen.getByText(/18 or older/i)).toBeInTheDocument()
+    expect(screen.getByText(/not stored or sent to our servers/i)).toBeInTheDocument()
     expect(screen.queryByText(/This page doesn't exist/)).not.toBeInTheDocument()
   })
 })
