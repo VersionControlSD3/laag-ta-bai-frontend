@@ -135,6 +135,8 @@ body {
   --color-design-surface: #faf5ec;
   --color-design-line: #d8d1c5;
   --color-navy: #243b53;
+  /* Navy darkened for the night-mode card base (navy 72% + black 28%). */
+  --color-navy-deep: #1a2a3c;
   --color-on-navy: #faf5ec;
   --color-navy-soft: #e7edf2;
   --color-sage: #9baf9a;

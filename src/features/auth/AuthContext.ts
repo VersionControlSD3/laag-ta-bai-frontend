@@ -11,9 +11,8 @@ export type AuthState = {
   token: string | null
   signIn(email: string, password: string): Promise<void>
   /**
-   * `date_of_birth` is intentionally absent: `openapi.yaml` has no such field
-   * yet, so it is collected for the age check but not persisted until the
-   * API PR lands (CONTRIBUTING #4).
+   * `date_of_birth` is intentionally absent: it is used only for the 18+ age
+   * check at sign-up and is not stored or sent to the API (DPA proportionality).
    */
   signUp(input: {
     email: string

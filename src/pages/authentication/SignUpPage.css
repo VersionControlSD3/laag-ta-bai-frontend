@@ -109,7 +109,7 @@
 
 .auth-signup-night .auth-signup-card {
   border-color: rgb(198 107 78 / 0.35);
-  background: color-mix(in srgb, color-mix(in srgb, var(--color-navy) 72%, #000 28%) 86%, transparent);
+  background: color-mix(in srgb, var(--color-navy-deep) 86%, transparent);
   box-shadow: 0 24px 60px rgb(36 59 83 / 0.42);
 }
 
@@ -184,11 +184,14 @@
   text-transform: uppercase;
 }
 
+/* Google's sign-in button branding is fixed by Google's guidelines, so the
+   surface/border/focus hex values stay literal on purpose; only our own navy
+   text colour uses a token. */
 .auth-google-button {
   min-height: 48px;
   border: 1px solid #dadce0;
   background: #fff;
-  color: #243b53;
+  color: var(--color-navy);
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
@@ -364,7 +367,7 @@
   overflow: hidden;
   border: 1px solid rgb(198 107 78 / 0.35);
   border-radius: 0.6rem;
-  background: #243b53;
+  background: var(--color-navy);
   padding: 0.25rem;
   box-shadow: 0 12px 24px rgb(36 59 83 / 0.4);
 }

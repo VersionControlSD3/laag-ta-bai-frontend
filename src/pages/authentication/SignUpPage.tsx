@@ -208,9 +208,9 @@ export default function SignUpPage() {
     <main className={`auth-signup min-h-dvh bg-cover bg-center bg-fixed ${resolvedTheme === 'light' ? 'auth-signup-day' : 'auth-signup-night'}`}>
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 py-6 sm:px-6">
         {/* Page header */}
-        <header className="flex items-center justify-between text-white">
+        <header className="flex items-center justify-between text-ivory">
           <Link to="/" className="text-sm font-bold tracking-[0.2em]">Laag ta b<span className="text-terracotta">AI</span></Link>
-          <span className="flex items-center gap-1 rounded-full border border-white/30 bg-slate-900/30 px-3 py-2 text-xs font-semibold"><MapPin size={14} /> Cebu, Philippines</span>
+          <span className="flex items-center gap-1 rounded-full border border-ivory/30 bg-navy/30 px-3 py-2 text-xs font-semibold"><MapPin size={14} /> Cebu, Philippines</span>
         </header>
         <section className="auth-signup-card my-8 flex-1 rounded-[2rem] p-6 sm:p-8">
           {confirmEmail ? (
