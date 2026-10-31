@@ -66,14 +66,13 @@ export default function MasteryPage() {
         )}
       </section>
 
-      <section className="flex flex-col gap-3" aria-labelledby="badges-title">
-        <SectionHeader id="badges-title" title="Badge Collection" to="/mastery/badges" linkLabel="See all badges" />
-        {quests.isPending ? (
-          <GridSkeleton />
-        ) : quests.isError ? null : (
-          <BadgeGrid badges={badgesFrom(quests.data, me.data).slice(0, BADGE_PREVIEW)} />
-        )}
-      </section>
+      {/* Badges come from the quests, so when quests fail the retry above covers both. */}
+      {!quests.isError && (
+        <section className="flex flex-col gap-3" aria-labelledby="badges-title">
+          <SectionHeader id="badges-title" title="Badge Collection" to="/mastery/badges" linkLabel="See all badges" />
+          {quests.isPending ? <GridSkeleton /> : <BadgeGrid badges={badgesFrom(quests.data, me.data).slice(0, BADGE_PREVIEW)} />}
+        </section>
+      )}
     </MasteryScreen>
   )
 }
