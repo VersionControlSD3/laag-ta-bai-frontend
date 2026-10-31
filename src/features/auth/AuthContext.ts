@@ -10,7 +10,18 @@ export type AuthState = {
   /** Bearer token for the API. */
   token: string | null
   signIn(email: string, password: string): Promise<void>
-  signUp(input: { email: string; password: string; displayName: string }): Promise<{ needsConfirmation: boolean }>
+  /**
+   * `date_of_birth` is intentionally absent: it is used only for the 18+ age
+   * check at sign-up and is not stored or sent to the API (DPA proportionality).
+   */
+  signUp(input: {
+    email: string
+    password: string
+    displayName: string
+    nationality: string
+    bio: string
+  }): Promise<{ needsConfirmation: boolean }>
+  signUpWithGoogle(): Promise<void>
   signInAsDev(displayName?: string): void
   signOut(): Promise<void>
 }
