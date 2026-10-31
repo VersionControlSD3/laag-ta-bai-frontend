@@ -10,6 +10,8 @@ import SplashScreenPage from '@/pages/SplashScreenPage'
 const ArchivesPage = lazy(() => import('@/pages/ArchivesPage'))
 const ScanPage = lazy(() => import('@/pages/ScanPage'))
 const MasteryPage = lazy(() => import('@/pages/MasteryPage'))
+const MasteryQuestsPage = lazy(() => import('@/pages/MasteryListPages').then((m) => ({ default: m.MasteryQuestsPage })))
+const MasteryBadgesPage = lazy(() => import('@/pages/MasteryListPages').then((m) => ({ default: m.MasteryBadgesPage })))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const LandmarkPage = lazy(() => import('@/pages/LandmarkPage'))
 const ChatPage = lazy(() => import('@/pages/ChatPage'))
@@ -38,6 +40,9 @@ export const routes: RouteObject[] = [
       { path: 'archives', element: page(<ArchivesPage />) },
       { path: 'scan', element: page(<ScanPage />) },
       { path: 'mastery', element: page(<MasteryPage />) },
+      // "See all" screens keep the bottom nav with Mastery active, as in Figma.
+      { path: 'mastery/quests', element: page(<MasteryQuestsPage />) },
+      { path: 'mastery/badges', element: page(<MasteryBadgesPage />) },
       { path: 'profile', element: page(<ProfilePage />) },
     ],
   },
