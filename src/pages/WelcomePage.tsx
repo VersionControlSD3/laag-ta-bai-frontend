@@ -7,7 +7,7 @@ export default function WelcomePage() {
   const navigate = useNavigate()
   const finish = (to: string) => {
     prefs.update({ onboarded: true })
-    navigate(to, { replace: true })
+    navigate('/permissions', { replace: true, state: { next: to } })
   }
   return (
     <div
