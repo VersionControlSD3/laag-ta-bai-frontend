@@ -67,8 +67,9 @@ export function LandmarkRow({ landmark }: { landmark: LandmarkSummary }) {
     >
       <Media landmark={landmark} className="size-20" />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex items-start gap-2">
-          <p className="min-w-0 flex-1 text-lg leading-7 font-bold text-ink">{landmark.name}</p>
+        {/* At large font sizes the rating chip wraps below the title instead of squeezing it. */}
+        <div className="flex flex-wrap items-start gap-2">
+          <p className="min-w-32 flex-1 text-lg leading-7 font-bold wrap-break-word text-ink">{landmark.name}</p>
           <span className="shrink-0 rounded-lg border border-ivory-line bg-ivory-surface px-2 py-1">
             <Rating value={landmark.rating} />
           </span>

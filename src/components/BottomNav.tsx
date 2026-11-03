@@ -31,7 +31,7 @@ const TABS: Tab[] = [
 export function BottomNav() {
   const { pathname } = useLocation()
   const current = TABS.findIndex((t) => t.to === pathname)
-  // Tells the CSS which way to slide: towards the tab's side of the bar.
+  // Tells the CSS which way to slide: towards the tab's side of the bar. Re-tapping the current tab doesn't animate.
   const onNavigate = (index: number) => {
     document.documentElement.setAttribute('data-tab-direction', index < current ? 'back' : 'forward')
   }
@@ -43,21 +43,21 @@ export function BottomNav() {
     >
       {TABS.map((tab, i) =>
         tab.to === '/scan' ? (
-          <ScanTab key={tab.to} tab={tab} onClick={() => onNavigate(i)} />
+          <ScanTab key={tab.to} tab={tab} animate={i !== current} onClick={() => onNavigate(i)} />
         ) : (
-          <TabLink key={tab.to} tab={tab} onClick={() => onNavigate(i)} />
+          <TabLink key={tab.to} tab={tab} animate={i !== current} onClick={() => onNavigate(i)} />
         ),
       )}
     </nav>
   )
 }
 
-function TabLink({ tab, onClick }: { tab: Tab; onClick: () => void }) {
+function TabLink({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClick: () => void }) {
   return (
     <NavLink
       to={tab.to}
       end={tab.to === '/'}
-      viewTransition
+      viewTransition={animate}
       onClick={onClick}
       className="flex min-h-12 min-w-12 flex-col items-center justify-center gap-1 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
     >
@@ -75,11 +75,11 @@ function TabLink({ tab, onClick }: { tab: Tab; onClick: () => void }) {
 }
 
 /** The raised Scan button: a navy disc that overlaps the top edge of the bar by 17px, as in Figma. */
-function ScanTab({ tab, onClick }: { tab: Tab; onClick: () => void }) {
+function ScanTab({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClick: () => void }) {
   return (
     <NavLink
       to={tab.to}
-      viewTransition
+      viewTransition={animate}
       onClick={onClick}
       className="group -mt-[17px] flex flex-col items-center gap-1 self-start rounded-full focus-visible:outline-none"
     >

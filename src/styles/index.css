@@ -189,8 +189,19 @@ body {
   min-height: 48px;
 }
 
+/* Room for the tab bar plus the Scan disc's 17px overhang, so no content sits behind them. */
+:root {
+  --nav-clearance: calc(var(--spacing-tabbar) + 26px + env(safe-area-inset-bottom));
+}
+
 .pb-nav {
-  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  padding-bottom: var(--nav-clearance);
+}
+
+/* Full-bleed screens: carry their own background down under AppShell's nav padding. */
+.bleed-under-nav {
+  margin-bottom: calc(-1 * var(--nav-clearance));
+  padding-bottom: var(--nav-clearance);
 }
 
 .pt-safe {

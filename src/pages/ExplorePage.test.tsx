@@ -38,10 +38,13 @@ afterEach(() => vi.unstubAllGlobals())
 describe('ExplorePage', () => {
   it('explains location use before asking, then shows nearby landmarks with distances', async () => {
     mockGeolocation('granted')
-    mockFetch(() => ({ data: [casa] }))
+    const fetchSpy = mockFetch(() => ({ data: [casa] }))
+    const nearbyRequests = () => fetchSpy.mock.calls.filter(([input]) => String(input).includes('radiusKm'))
     renderPage(<ExplorePage />)
 
     expect(screen.getByText(/sent to our server only to sort nearby landmarks and verify scans/)).toBeInTheDocument()
+    expect(await screen.findAllByRole('link', { name: /Casa Gorordo/ })).toHaveLength(1)
+    expect(nearbyRequests()).toHaveLength(0)
     expect(screen.queryByRole('button', { name: 'Recenter on my location' })).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Share location' }))
@@ -50,6 +53,8 @@ describe('ExplorePage', () => {
 
     const nearby = screen.getByRole('region', { name: 'Nearby You' })
     expect(await within(nearby).findByRole('link', { name: /Casa Gorordo/ })).toHaveTextContent('400 m')
+    expect(nearbyRequests()).toHaveLength(1)
+    expect(String(nearbyRequests()[0][0])).toContain('lat=10.29')
     expect(within(screen.getByRole('region', { name: 'Popular Landmarks' })).getByRole('link', { name: /Casa Gorordo/ })).toBeInTheDocument()
   })
 

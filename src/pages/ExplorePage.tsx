@@ -24,7 +24,8 @@ export default function ExplorePage() {
   }, [rationaleAccepted, status, request])
 
   const coords = geo.coords ? { lat: geo.coords.lat, lng: geo.coords.lng } : {}
-  const nearby = useLandmarks({ ...coords, radiusKm: 5, limit: 10 })
+  // Waits for coordinates: without them the radius means nothing and the request is wasted data.
+  const nearby = useLandmarks({ ...coords, radiusKm: 5, limit: 10 }, { enabled: geo.status === 'ready' })
   const results = useLandmarks({ q: q || undefined, category, free: freeOnly || undefined, ...coords })
   const filtering = Boolean(q || category || freeOnly)
 
@@ -32,24 +33,26 @@ export default function ExplorePage() {
     `min-h-12 rounded-full border px-4 text-sm font-bold ${focus} ${pressed ? 'border-navy bg-navy text-on-navy' : 'border-ivory-line bg-ivory-surface text-ink'}`
 
   return (
-    // Pulls the ivory under AppShell's nav padding so the scaffold background never shows below the list.
-    <div className="-mb-[calc(96px+env(safe-area-inset-bottom))] flex min-h-dvh flex-col gap-6 bg-ivory pt-[max(3rem,env(safe-area-inset-top))] pb-[calc(96px+env(safe-area-inset-bottom))]">
+    <div className="bleed-under-nav flex min-h-dvh flex-col gap-6 bg-ivory pt-[max(3rem,env(safe-area-inset-top))]">
       <header className="flex flex-col items-center gap-1 px-6 text-center">
         <h1 className="text-4xl font-extrabold tracking-tight text-ink">Explore</h1>
         <p className="text-base text-ink-muted">Discover the heart of Cebu</p>
       </header>
 
       <div className="px-6">
-        <label className="flex items-center gap-3 rounded-2xl border border-line-strong bg-ivory-surface pl-4 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-navy">
-          <SearchIcon size={20} className="shrink-0 text-terracotta" />
-          <span className="sr-only">Search landmarks</span>
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search landmarks, museums..."
-            className="h-12 min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-ink-muted"
-          />
+        {/* The Filters button sits outside the <label> so its name doesn't join the input's. */}
+        <div className="flex items-center gap-3 rounded-2xl border border-line-strong bg-ivory-surface pl-4 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-navy">
+          <label className="flex min-w-0 flex-1 items-center gap-3">
+            <SearchIcon size={20} className="shrink-0 text-terracotta" />
+            <span className="sr-only">Search landmarks</span>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search landmarks, museums..."
+              className="h-12 min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-ink-muted"
+            />
+          </label>
           <button
             type="button"
             onClick={() => setShowFilters((v) => !v)}
@@ -59,7 +62,7 @@ export default function ExplorePage() {
           >
             <OptionsOutlineIcon size={20} />
           </button>
-        </label>
+        </div>
 
         {showFilters && (
           <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filter by category">
