@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { Landmark } from '@/api/types'
 import { writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
@@ -43,12 +43,45 @@ describe('app routes', () => {
     renderRoutes(routes, '/landmarks/fort-san-pedro')
     expect(await screen.findByRole('heading', { name: 'Fort San Pedro' })).toBeInTheDocument()
     expect(screen.getByText('A triangular fort.')).toBeInTheDocument()
-    expect(screen.getByText('Historical Significance')).toBeInTheDocument()
+    expect(screen.getByText('Oldest fort.')).toBeInTheDocument()
+    expect(screen.getByText('Was a zoo.')).toBeInTheDocument()
+    expect(screen.getByText('Rated 4.7 out of 5')).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'About',
+      'Significance',
+      'History',
+      'Trivia',
+      'Nearby Stores',
+    ])
+    expect(screen.queryByText(/Landmark matched/)).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Ask bAI/ })).toHaveAttribute('href', '/landmarks/fort-san-pedro/chat')
+    expect(screen.getByRole('link', { name: /Scan another landmark/ })).toHaveAttribute('href', '/scan')
 
     await userEvent.click(screen.getByRole('button', { name: 'Save for offline reading' }))
     expect(screen.getByRole('button', { name: 'Remove bookmark' })).toHaveAttribute('aria-pressed', 'true')
     expect(JSON.parse(localStorage.getItem('laagtabai:bookmarks')!)[0].id).toBe('fort-san-pedro')
+  })
+
+  it('shows the scan match when opened from a scan', async () => {
+    mockFetch(() => ({ data: fort }))
+    renderRoutes(routes, { pathname: '/landmarks/fort-san-pedro', state: { confidence: 0.98 } })
+    expect(await screen.findByText('Landmark matched · 98%')).toBeInTheDocument()
+    expect(screen.getByText('Scan to story')).toBeInTheDocument()
+  })
+
+  it('notes story parts that have not been written yet', async () => {
+    mockFetch(() => ({ data: { ...fort, story: { ...fort.story, trivia: '' } } }))
+    renderRoutes(routes, '/landmarks/fort-san-pedro')
+    expect(await screen.findByText("This part of the story hasn't been written yet.")).toBeInTheDocument()
+  })
+
+  it('explains when a landmark does not exist', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ error: { code: 'not_found', message: 'Not found' } }), { status: 404 }),
+    )
+    renderRoutes(routes, '/landmarks/nowhere')
+    expect(await screen.findByText("We couldn't find this landmark")).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Explore landmarks' })).toHaveAttribute('href', '/')
   })
 
   it('offers dev sign-in when Supabase is not configured', async () => {

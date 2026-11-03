@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-rout
 import { AppProviders, createQueryClient } from '@/AppProviders'
 
 /** Renders routes inside the real providers with an in-memory router. */
-export function renderRoutes(routes: RouteObject[], initialPath = '/') {
+export function renderRoutes(routes: RouteObject[], initialPath: string | { pathname: string; state: unknown } = '/') {
   const router = createMemoryRouter(routes, { initialEntries: [initialPath] })
   return render(
     <AppProviders queryClient={createQueryClient()}>
