@@ -14,9 +14,12 @@ const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const LandmarkPage = lazy(() => import('@/pages/LandmarkPage'))
 const ChatPage = lazy(() => import('@/pages/ChatPage'))
 const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
+const PermissionsPage = lazy(() => import('@/pages/PermissionsPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 const LoginPage = lazy(() => import('@/pages/AuthPages').then((m) => ({ default: m.LoginPage })))
-const RegisterPage = lazy(() => import('@/pages/AuthPages').then((m) => ({ default: m.RegisterPage })))
+const RegisterPage = lazy(() => import('@/pages/authentication/SignUpPage'))
+const TermsPage = lazy(() => import('@/pages/LegalPages').then((m) => ({ default: m.TermsPage })))
+const PrivacyPage = lazy(() => import('@/pages/LegalPages').then((m) => ({ default: m.PrivacyPage })))
 
 const page = (element: ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>
 
@@ -45,7 +48,11 @@ export const routes: RouteObject[] = [
   { path: 'landmarks/:id/chat', element: page(<ChatPage />) },
   { path: 'splash', element: page(<SplashScreenPage />) },
   { path: 'welcome', element: page(<WelcomePage />) },
+  { path: 'permissions', element: page(<PermissionsPage />) },
   { path: 'login', element: page(<LoginPage />) },
   { path: 'register', element: page(<RegisterPage />) },
+  // Linked from the sign-up checkboxes (open in a new tab).
+  { path: 'terms', element: page(<TermsPage />) },
+  { path: 'privacy', element: page(<PrivacyPage />) },
   { path: '*', element: page(<NotFoundPage />) },
 ]
