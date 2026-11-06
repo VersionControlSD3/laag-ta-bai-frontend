@@ -188,6 +188,10 @@ body {
   padding-bottom: calc(96px + env(safe-area-inset-bottom));
 }
 
+.-mb-nav {
+  margin-bottom: calc(-96px - env(safe-area-inset-bottom));
+}
+
 .pt-safe {
   padding-top: max(16px, env(safe-area-inset-top));
 }
