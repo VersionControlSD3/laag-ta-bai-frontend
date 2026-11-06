@@ -7,7 +7,7 @@ export type GeoState = {
   error: string | null
 }
 
-const GRANTED_KEY = 'location-rationale-accepted'
+export const GRANTED_KEY = 'location-rationale-accepted'
 
 /**
  * Location is requested only after the traveler accepts an in-app rationale
