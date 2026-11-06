@@ -1,6 +1,7 @@
 export function formatDistance(meters?: number): string | null {
   if (meters === undefined) return null
-  return meters < 1000 ? `${meters} m` : `${(meters / 1000).toFixed(1)} km`
+  // Non-breaking space keeps the number and unit on one line at large font sizes.
+  return meters < 1000 ? `${meters}\u00a0m` : `${(meters / 1000).toFixed(1)}\u00a0km`
 }
 
 export function formatFee(fee: number): string {
