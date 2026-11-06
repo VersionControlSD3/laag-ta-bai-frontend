@@ -154,3 +154,53 @@ export const ChatbubbleEllipsesIcon = icon(<path fill="currentColor" d="M398 81.
 export const VolumeHighOutlineIcon = icon(<path {...stroke} d="M126 192H56a8 8 0 00-8 8v112a8 8 0 008 8h69.65a15.93 15.93 0 0110.14 3.54l91.47 74.89A8 8 0 00240 392V120a8 8 0 00-12.74-6.43l-91.47 74.89A15 15 0 01126 192zM320 320c9.74-19.38 16-40.84 16-64 0-23.48-6-44.42-16-64M368 368c19.48-33.92 32-64.06 32-112s-12-77.74-32-112M416 416c30-46 48-91.43 48-160s-18-113-48-160" />)
 
 export const PauseIcon = icon(<path fill="currentColor" d="M208 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16zM352 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16z" />)
+
+export const LocationIcon = icon(
+  <>
+    <circle fill="currentColor" cx="256" cy="192" r="32" />
+    <path
+      fill="currentColor"
+      d="M256 32c-88.22 0-160 68.65-160 153 0 40.17 18.31 93.59 54.42 158.78 29 52.34 62.55 99.67 80 123.22a31.75 31.75 0 0051.22 0c17.42-23.55 51-70.88 80-123.22C397.69 278.61 416 225.19 416 185c0-84.35-71.78-153-160-153zm0 224a64 64 0 1164-64 64.07 64.07 0 01-64 64z"
+    />
+  </>,
+)
+
+export const LockClosedIcon = icon(
+  <path
+    fill="currentColor"
+    d="M368 192h-16v-80a96 96 0 10-192 0v80h-16a64.07 64.07 0 00-64 64v176a64.07 64.07 0 0064 64h224a64.07 64.07 0 0064-64V256a64.07 64.07 0 00-64-64zm-48 0H192v-80a64 64 0 11128 0z"
+  />,
+)
+
+export const ShieldCheckmarkOutlineIcon = icon(
+  <>
+    <path {...stroke} d="M336 176L225.2 304 176 255.8" />
+    <path
+      {...stroke}
+      d="M463.1 112.37C373.68 96.33 336.71 84.45 256 48c-80.71 36.45-117.68 48.33-207.1 64.37C32.7 369.13 240.58 457.79 256 464c15.42-6.21 223.3-94.87 207.1-351.63z"
+    />
+  </>,
+)
+
+export const RadioButtonOffIcon = icon(
+  <path
+    fill="none"
+    stroke="currentColor"
+    strokeMiterlimit={10}
+    strokeWidth={32}
+    d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z"
+  />,
+)
+
+export const RadioButtonOnIcon = icon(
+  <>
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeMiterlimit={10}
+      strokeWidth={32}
+      d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z"
+    />
+    <circle fill="currentColor" cx="256" cy="256" r="144" />
+  </>,
+)
