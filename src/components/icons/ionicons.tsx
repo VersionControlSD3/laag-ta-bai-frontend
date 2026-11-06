@@ -101,6 +101,151 @@ export const PersonOutlineIcon = icon(
   </>,
 )
 
+export const LocationIcon = icon(
+  <>
+    <circle fill="currentColor" cx="256" cy="192" r="32" />
+    <path
+      fill="currentColor"
+      d="M256 32c-88.22 0-160 68.65-160 153 0 40.17 18.31 93.59 54.42 158.78 29 52.34 62.55 99.67 80 123.22a31.75 31.75 0 0051.22 0c17.42-23.55 51-70.88 80-123.22C397.69 278.61 416 225.19 416 185c0-84.35-71.78-153-160-153zm0 224a64 64 0 1164-64 64.07 64.07 0 01-64 64z"
+    />
+  </>,
+)
+
+export const LockClosedIcon = icon(
+  <path
+    fill="currentColor"
+    d="M368 192h-16v-80a96 96 0 10-192 0v80h-16a64.07 64.07 0 00-64 64v176a64.07 64.07 0 0064 64h224a64.07 64.07 0 0064-64V256a64.07 64.07 0 00-64-64zm-48 0H192v-80a64 64 0 11128 0z"
+  />,
+)
+
+export const ShieldCheckmarkOutlineIcon = icon(
+  <>
+    <path {...stroke} d="M336 176L225.2 304 176 255.8" />
+    <path
+      {...stroke}
+      d="M463.1 112.37C373.68 96.33 336.71 84.45 256 48c-80.71 36.45-117.68 48.33-207.1 64.37C32.7 369.13 240.58 457.79 256 464c15.42-6.21 223.3-94.87 207.1-351.63z"
+    />
+  </>,
+)
+
+export const RadioButtonOffIcon = icon(
+  <path
+    fill="none"
+    stroke="currentColor"
+    strokeMiterlimit={10}
+    strokeWidth={32}
+    d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z"
+  />,
+)
+
+export const RadioButtonOnIcon = icon(
+  <>
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeMiterlimit={10}
+      strokeWidth={32}
+      d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z"
+    />
+    <circle fill="currentColor" cx="256" cy="256" r="144" />
+  </>,
+)
+
+export const BookmarkIcon = icon(
+  <path
+    fill="currentColor"
+    d="M400 480a16 16 0 01-10.63-4L256 357.41 122.63 476A16 16 0 0196 464V96a64.07 64.07 0 0164-64h192a64.07 64.07 0 0164 64v368a16 16 0 01-16 16z"
+  />,
+)
+
+export const BookmarkOutlineIcon = icon(
+  <path
+    {...stroke}
+    d="M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z"
+  />,
+)
+
+export const CheckmarkCircleOutlineIcon = icon(
+  <>
+    <path
+      {...stroke}
+      strokeMiterlimit={10}
+      d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z"
+    />
+    <path {...stroke} d="M352 176L217.6 336 160 272" />
+  </>,
+)
+
+export const EyeOutlineIcon = icon(
+  <>
+    <path
+      {...stroke}
+      d="M255.66 112c-77.94 0-157.89 45.11-220.83 135.33a16 16 0 00-.27 17.77C82.92 340.8 161.8 400 255.66 400c92.84 0 173.34-59.38 221.79-135.25a16.14 16.14 0 000-17.47C428.89 172.28 347.8 112 255.66 112z"
+    />
+    <circle cx="256" cy="256" r="80" fill="none" stroke="currentColor" strokeMiterlimit={10} strokeWidth={32} />
+  </>,
+)
+
+export const TimeOutlineIcon = icon(
+  <>
+    <path
+      {...stroke}
+      strokeMiterlimit={10}
+      d="M256 64C150 64 64 150 64 256s86 192 192 192 192-86 192-192S362 64 256 64z"
+    />
+    <path {...stroke} d="M256 128v144h96" />
+  </>,
+)
+
+export const LocationOutlineIcon = icon(
+  <>
+    <path
+      {...stroke}
+      d="M256 48c-79.5 0-144 61.39-144 137 0 87 96 224.87 131.25 272.49a15.77 15.77 0 0025.5 0C304 409.89 400 272.07 400 185c0-75.61-64.5-137-144-137z"
+    />
+    <circle cx="256" cy="192" r="48" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={32} />
+  </>,
+)
+
+export const StarIcon = icon(
+  <path
+    fill="currentColor"
+    d="M394 480a16 16 0 01-9.39-3L256 383.76 127.39 477a16 16 0 01-24.55-18.08L153 310.35 23 221.2a16 16 0 019-29.2h160.38l48.4-148.95a16 16 0 0130.44 0l48.4 149H480a16 16 0 019.05 29.2L359 310.35l50.13 148.53A16 16 0 01394 480z"
+  />,
+)
+
+export const ArrowUndoOutlineIcon = icon(
+  <path {...stroke} d="M240 424v-96c116.4 0 159.39 33.76 208 96 0-119.23-39.57-240-208-240V88L64 256z" />,
+)
+
+export const CloudOfflineOutlineIcon = icon(
+  <>
+    <path
+      {...stroke}
+      d="M93.72 183.25C49.49 198.05 16 233.1 16 288c0 66 54 112 120 112h184.37M467.82 377.74C485.24 363.3 496 341.61 496 312c0-59.82-53-85.76-96-88-8.89-89.54-71-144-144-144-26.16 0-48.79 6.93-67.6 18.14"
+    />
+    <path {...stroke} strokeMiterlimit={10} d="M448 448L64 64" />
+  </>,
+)
+
+export const CompassOutlineIcon = icon(
+  <>
+    <path
+      {...stroke}
+      strokeMiterlimit={10}
+      d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z"
+    />
+    <path
+      fill="currentColor"
+      d="M350.67 150.93l-117.2 46.88a64 64 0 00-35.66 35.66l-46.88 117.2a8 8 0 0010.4 10.4l117.2-46.88a64 64 0 0035.66-35.66l46.88-117.2a8 8 0 00-10.4-10.4zM256 280a24 24 0 1124-24 24 24 0 01-24 24z"
+    />
+  </>,
+)
+
+export const CloseOutlineIcon = icon(
+  <path {...stroke} d="M368 368L144 144M368 144L144 368" />,
+)
+
 export const ArrowBackIcon = icon(<path {...stroke} strokeWidth={48} d="M244 400L100 256l144-144M120 256h292" />)
 
 export const FlameIcon = icon(
@@ -129,18 +274,4 @@ export const RibbonIcon = icon(
       d="M256.26 16c-79.42 0-144 64.59-144 144s64.61 144 144 144 144-64.6 144-144-64.59-144-144-144zm0 224a80 80 0 1180-80 80.1 80.1 0 01-80 80z"
     />
   </>,
-)
-
-export const StarIcon = icon(
-  <path
-    fill="currentColor"
-    d="M394 480a16 16 0 01-9.39-3L256 383.76 127.39 477a16 16 0 01-24.55-18.08L153 310.35 23 221.2a16 16 0 019-29.2h160.38l48.4-148.95a16 16 0 0130.44 0l48.4 149H480a16 16 0 019.05 29.2L359 310.35l50.13 148.53A16 16 0 01394 480z"
-  />,
-)
-
-export const LockClosedIcon = icon(
-  <path
-    fill="currentColor"
-    d="M368 192h-16v-80a96 96 0 10-192 0v80h-16a64.07 64.07 0 00-64 64v176a64.07 64.07 0 0064 64h224a64.07 64.07 0 0064-64V256a64.07 64.07 0 00-64-64zm-48 0H192v-80a64 64 0 11128 0z"
-  />,
 )
