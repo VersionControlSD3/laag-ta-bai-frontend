@@ -174,13 +174,13 @@ Each component in Figma has a written spec next to it. Read it before building.
 | Tag | Heritage, navy, rating, locked / unlocked pills | ❌ |
 | LandmarkCard / LandmarkRow | 160 px rail tile / 80 px thumbnail row | ⚠️ scaffold version |
 | PaginationDots | 8 px sage dots, current 24 px terracotta | ❌ |
-| TopNavbar | Back, centred navy title, optional action; 40 px bottom corners; 60 px + inset | ❌ |
+| TopNavbar | Back, centred navy title, optional action; 40 px bottom corners; 60 px + inset | ✅ `TopNavbar.tsx` |
 | **ScreenNavbar** | Four tabs + raised navy Scan; 40 px top corners; 70 px + inset | ✅ `BottomNav.tsx` |
 | TextField | Uppercase label, surface well, line-strong border, terracotta icon; 56 / 48 px | ❌ |
 | SearchBar | Surface field, terracotta search icon, filter button on Explore | ❌ |
 | Switch | Ivory-deep track off; navy or sage-deep on | ❌ |
 | ChatComposer / ChatBubble | Sage camera, send turns navy; guide in surface, traveller in navy | ❌ |
-| InfoSection | Terracotta-ink title, ink-body text; Trivia callout in terracotta-soft | ⚠️ scaffold `StorySection` |
+| InfoSection | Terracotta-ink title, ink-body text; Trivia callout in terracotta-soft | ⚠️ inline in `LandmarkPage.tsx` |
 | OptionRow / SettingsList | Icon disc, title, chevron / radio / switch; eyebrow group labels | ❌ |
 | ProgressBar | Navy XP, terracotta quest, sage-deep identifying; 12 / 6 px | ⚠️ scaffold `XpBar` |
 | StatTile, QuestCard, BadgeTile, LevelRing | Mastery and Profile pieces | ❌ |
