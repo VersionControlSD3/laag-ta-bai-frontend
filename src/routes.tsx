@@ -41,6 +41,15 @@ export const routes: RouteObject[] = [
       { path: 'archives', lazy: tab(() => import('@/pages/ArchivesPage')) },
       { path: 'scan', lazy: tab(() => import('@/pages/ScanPage')) },
       { path: 'mastery', lazy: tab(() => import('@/pages/MasteryPage')) },
+      // "See all" screens keep the bottom nav with Mastery active, as in Figma.
+      {
+        path: 'mastery/quests',
+        lazy: tab(() => import('@/pages/MasteryListPages').then((m) => ({ default: m.MasteryQuestsPage }))),
+      },
+      {
+        path: 'mastery/badges',
+        lazy: tab(() => import('@/pages/MasteryListPages').then((m) => ({ default: m.MasteryBadgesPage }))),
+      },
       { path: 'profile', lazy: tab(() => import('@/pages/ProfilePage')) },
     ],
   },
