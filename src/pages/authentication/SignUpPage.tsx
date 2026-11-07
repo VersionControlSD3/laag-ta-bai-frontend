@@ -279,7 +279,7 @@ export default function SignUpPage() {
 
               {/* Secondary authentication option */}
               <div className="my-5 flex items-center gap-3 text-xs text-ivory"><span className="h-px flex-1 bg-design-line" />OR<span className="h-px flex-1 bg-design-line" /></div>
-              <button type="button" disabled={auth.mode === 'dev' || busy} onClick={() => { setOauthError(null); void auth.signUpWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.')) }} className="auth-google-button touch-target flex w-full items-center justify-center gap-3 rounded-lg font-semibold disabled:opacity-60">
+              <button type="button" disabled={auth.mode === 'dev' || busy} onClick={() => { setOauthError(null); void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.')) }} className="auth-google-button touch-target flex w-full items-center justify-center gap-3 rounded-lg font-semibold disabled:opacity-60">
                 <GoogleIcon />
                 Continue with Google
               </button>
