@@ -1,5 +1,6 @@
 import { env } from '@/lib/env'
 import type {
+  AuthResult,
   ChatMessage,
   Landmark,
   LandmarkQuery,
@@ -86,6 +87,8 @@ function toQuery(params: Record<string, string | number | boolean | undefined>):
 }
 
 export const api = {
+  login: (input: { email: string; password: string }) =>
+    apiRequest<AuthResult>('/v1/auth/login', { method: 'POST', json: input }),
   listLandmarks: (query: LandmarkQuery = {}, signal?: AbortSignal) =>
     apiRequest<LandmarkSummary[]>(`/v1/landmarks${toQuery(query)}`, { signal }),
   getLandmark: (id: string, signal?: AbortSignal) =>

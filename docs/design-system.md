@@ -56,6 +56,7 @@ overlay tokens. Use the Tailwind class names in the second column; they switch w
 | `color/terracotta` | `terracotta` | `#C66B4E` | `#D98A6E` | Heritage accents; **icons and 24 px+ only** |
 | `color/terracotta-ink` | `terracotta-ink` | `#9F4B31` | `#ECA88F` | Terracotta for text |
 | `color/terracotta-soft` | `terracotta-soft` | `#F3E2D6` | `#3A2A22` | Callouts, heritage tags, unlocked badges |
+| none (raw `#EFAE97`) | `terracotta-light` | `#EFAE97` | `#EFAE97` | Labels, icons and links on the navy auth card only (code token; not a Figma variable yet) |
 | `color/danger` | `danger` | `#A8322A` | `#F2958A` | Destructive text |
 | `color/danger-soft` | `danger-soft` | `#F7E1DC` | `#3A1F1C` | Destructive button fill |
 | `color/danger-line` | `danger-line` | `#E3B3AA` | `#7A3B34` | Destructive button border |
@@ -99,7 +100,7 @@ Counted across all 31 Final Pages frames:
   | `#E8E4DC` | 79 | `ivory-line` or `navy-soft` |
   | `#9BAF9A` at 12–38 % | ~150 | `sage-soft` |
   | `#C66B4E` at 10–12 % | ~80 | `terracotta-soft` |
-  | `#EFAE97` | 82 | none (light terracotta, decoration) |
+  | `#EFAE97` | 82 | `terracotta-light` (code-only token, auth card) |
   | `#243B53` at 10–44 % | ~150 | navy overlays / `scrim-*` |
 
 - **Fully tokenized reference screens:** *Permissions Page* and *Local Commute Page* use no raw

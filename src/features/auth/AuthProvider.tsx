@@ -58,9 +58,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       token: supabase ? (session?.access_token ?? null) : devUser ? `dev:${devUser.id}` : null,
       async signIn(email, password) {
-        if (!supabase) throw new Error('Supabase is not configured. Use the dev sign-in.')
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
+        // POST /v1/auth/login (API #7). The API signs in with Supabase, or checks its in-memory
+        // accounts in memory mode and issues a `dev:<id>` token.
+        const { user, session: issued } = await api.login({ email, password })
+        if (!issued) throw new Error('Email not confirmed')
+        if (supabase) {
+          if (!issued.refreshToken) throw new Error('The server did not return a refresh token. Please try again.')
+          // Hand the tokens to the Supabase client so it persists and refreshes the session;
+          // onAuthStateChange then updates `session`.
+          const { error } = await supabase.auth.setSession({
+            access_token: issued.accessToken,
+            refresh_token: issued.refreshToken,
+          })
+          if (error) throw error
+          return
+        }
+        const next = { id: user.id, email: user.email, displayName: user.displayName }
+        writeJson(DEV_KEY, next)
+        setDevUser(next)
       },
       async signUp({ email, password, displayName, nationality, bio }) {
         if (!supabase) throw new Error('Supabase is not configured. Use the dev sign-in.')
@@ -86,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         return { needsConfirmation: false }
       },
-      async signUpWithGoogle() {
+      async signInWithGoogle() {
         if (!supabase) throw new Error('Supabase is not configured. Use the dev sign-in.')
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
