@@ -96,7 +96,7 @@ export default function LandmarkPage() {
       <TopNavbar title="Landmark Details" action={bookmark} />
       <article>
         {/* Pinned to the light palette: ivory text on a navy scrim reads on any photo in either theme. */}
-        <div data-theme="light" className="relative -mt-10 h-[22rem] overflow-hidden bg-sage-soft">
+        <div data-palette="light" className="relative -mt-10 h-[22rem] overflow-hidden bg-sage-soft">
           <LandmarkImage src={landmark.imageUrl} alt={`Photo of ${landmark.name}`} className="absolute inset-0 size-full" />
           <div className="absolute inset-0 bg-linear-to-b from-navy/50 via-transparent via-35% to-navy/95" aria-hidden />
           <div className="absolute inset-x-6 bottom-8 flex flex-col items-start">

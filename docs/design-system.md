@@ -80,6 +80,11 @@ with a gold accent, not a dark version of this palette.) The project still requi
 was checked for WCAG AA (lowest: `ink-muted` on `surface` 7.1:1). Navy fills invert to a light navy
 with dark text. Ask the designer for real dark values and replace them in one place.
 
+Define each colour **once**, through `--ds-*`: a second `--color-ivory: #...` elsewhere overrides the
+theme and breaks dark mode. To keep light text on a photo in both themes, put `data-palette="light"`
+on the wrapper (it pins these tokens only), and read `var(--ds-*)` rather than `var(--color-*)` in
+custom CSS, because `--color-*` is resolved once at the root.
+
 ### How colours are used on the Final Pages
 
 Counted across all 31 Final Pages frames:
