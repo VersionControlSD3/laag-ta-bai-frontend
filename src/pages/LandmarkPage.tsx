@@ -1,13 +1,13 @@
-import type { ReactNode } from 'react'
-import { Link, useLocation, useParams } from 'react-router'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { ApiError } from '@/api/client'
 import { useCheckIn, useLandmark } from '@/api/hooks'
 import {
+  BookmarkIcon,
+  BookmarkOutlineIcon,
   CameraOutlineIcon,
   ChatbubbleEllipsesIcon,
   CheckmarkIcon,
-  HeartIcon,
-  HeartOutlineIcon,
   LocationOutlineIcon,
   PauseIcon,
   SparklesIcon,
@@ -31,7 +31,13 @@ const secondary = `${button} border border-line-strong bg-ivory-surface text-ink
 /** Figma "Scan-to-Story Page - Landmark Details" (268:8180). */
 export default function LandmarkPage() {
   const { id } = useParams()
-  const match = useLocation().state as ScanMatchState | null
+  const location = useLocation()
+  const navigate = useNavigate()
+  // Read once, then cleared from history so back/forward doesn't show an old scan result again.
+  const [match] = useState(() => location.state as ScanMatchState | null)
+  useEffect(() => {
+    if (location.state) navigate(location.pathname, { replace: true, state: null })
+  }, [location.state, location.pathname, navigate])
   const { bookmarks, isSaved, toggle } = useBookmarks()
   const auth = useAuth()
   const checkIn = useCheckIn()
@@ -43,7 +49,7 @@ export default function LandmarkPage() {
   const speech = useSpeech([story.about, story.significance, story.architecture, story.trivia].join(' '))
 
   const saved = landmark ? isSaved(landmark.id) : false
-  const heart = landmark && (
+  const bookmark = landmark && (
     <button
       type="button"
       onClick={() => toggle(landmark)}
@@ -51,7 +57,7 @@ export default function LandmarkPage() {
       aria-label={saved ? 'Remove bookmark' : 'Save for offline reading'}
       className={`touch-target flex items-center justify-center rounded-full ${saved ? 'text-terracotta' : 'text-navy'} ${focus}`}
     >
-      {saved ? <HeartIcon /> : <HeartOutlineIcon />}
+      {saved ? <BookmarkIcon /> : <BookmarkOutlineIcon />}
     </button>
   )
 
@@ -68,7 +74,7 @@ export default function LandmarkPage() {
             <p className="text-sm text-ink-body">
               {notFound
                 ? 'It may have been removed. Browse the other heritage sites instead.'
-                : 'Check your connection and try again. Landmarks you save with the heart are available offline.'}
+                : 'Check your connection and try again. Landmarks you bookmark are available offline.'}
             </p>
             {notFound ? (
               <Link to="/" className={`${button} bg-navy text-on-navy`}>
@@ -87,7 +93,7 @@ export default function LandmarkPage() {
 
   return (
     <div className="min-h-dvh bg-ivory">
-      <TopNavbar title="Landmark Details" action={heart} />
+      <TopNavbar title="Landmark Details" action={bookmark} />
       <article>
         {/* Pinned to the light palette: ivory text on a navy scrim reads on any photo in either theme. */}
         <div data-theme="light" className="relative -mt-10 h-[22rem] overflow-hidden bg-sage-soft">
@@ -95,7 +101,7 @@ export default function LandmarkPage() {
           <div className="absolute inset-0 bg-linear-to-b from-navy/50 via-transparent via-35% to-navy/95" aria-hidden />
           <div className="absolute inset-x-6 bottom-8 flex flex-col items-start">
             {match && (
-              <p className="flex items-center gap-1.5 rounded-full bg-sage-deep/90 px-2.5 py-1.5 text-[0.625rem] leading-[0.875rem] font-bold tracking-[0.08em] text-ivory uppercase backdrop-blur-sm">
+              <p className="flex items-center gap-1.5 rounded-full bg-sage-deep/90 px-3 py-1.5 text-xs font-bold tracking-[0.08em] text-ivory uppercase backdrop-blur-sm">
                 <CheckmarkIcon size={14} />
                 Landmark matched · {Math.round(match.confidence * 100)}%
               </p>
