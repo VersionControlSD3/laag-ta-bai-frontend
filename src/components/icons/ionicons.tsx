@@ -151,8 +151,6 @@ export const RadioButtonOnIcon = icon(
   </>,
 )
 
-<<<<<<< HEAD
-=======
 export const SearchIcon = icon(
   <path
     fill="currentColor"
@@ -176,8 +174,6 @@ export const LocateOutlineIcon = icon(
     <path {...stroke} strokeWidth={48} d="M416 256h40M56 256h40" />
   </>,
 )
-
->>>>>>> origin/staging
 export const BookmarkIcon = icon(
   <path
     fill="currentColor"
@@ -393,23 +389,11 @@ export const MailOutlineIcon = icon(
   </>,
 )
 
-export const ArrowBackOutlineIcon = icon(
-  <path {...stroke} d="M240 400L112 272l128-128M128 272h288" />,
-)
-
 export const LockClosedOutlineIcon = icon(
   <>
     <path {...stroke} d="M336 208v-56a80 80 0 00-160 0v56" />
     <rect x="96" y="208" width="320" height="240" rx="32" ry="32" {...stroke} />
     <circle cx="256" cy="328" r="20" fill="currentColor" />
-  </>,
-)
-
-export const ImagesOutlineIcon = icon(
-  <>
-    <path {...stroke} d="M384 80H80a48 48 0 00-48 48v224M432 144H144a48 48 0 00-48 48v224a48 48 0 0048 48h288a48 48 0 0048-48V192a48 48 0 00-48-48z" />
-    <circle cx="208" cy="240" r="32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={32} />
-    <path {...stroke} d="M112 400l112-112 96 96M288 320l64-64 80 80" />
   </>,
 )
 
