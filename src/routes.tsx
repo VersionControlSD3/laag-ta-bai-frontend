@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from 'react'
+import { lazy, Suspense, type ComponentType, type ReactNode } from 'react'
 import { Navigate, type RouteObject } from 'react-router'
 import { AppShell } from '@/components/AppShell'
 import { Loading } from '@/components/StateMessage'
@@ -7,10 +7,9 @@ import ExplorePage from '@/pages/ExplorePage'
 import SplashScreenPage from '@/pages/SplashScreenPage'
 
 // Explore is eager so the home screen paints fast (SRS 3.4.3); the rest load on demand.
-const ArchivesPage = lazy(() => import('@/pages/ArchivesPage'))
-const ScanPage = lazy(() => import('@/pages/ScanPage'))
-const MasteryPage = lazy(() => import('@/pages/MasteryPage'))
-const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
+// Tab screens use the router's `lazy` so the chunk loads before the tab-switch transition starts,
+// instead of animating into a Suspense spinner.
+const tab = (load: () => Promise<{ default: ComponentType }>) => async () => ({ Component: (await load()).default })
 const LandmarkPage = lazy(() => import('@/pages/LandmarkPage'))
 const ChatPage = lazy(() => import('@/pages/ChatPage'))
 const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
@@ -31,6 +30,7 @@ function FirstRun({ children }: { children: ReactNode }) {
 
 export const routes: RouteObject[] = [
   {
+    hydrateFallbackElement: <Loading />,
     element: (
       <FirstRun>
         <AppShell />
@@ -38,10 +38,19 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <ExplorePage /> },
-      { path: 'archives', element: page(<ArchivesPage />) },
-      { path: 'scan', element: page(<ScanPage />) },
-      { path: 'mastery', element: page(<MasteryPage />) },
-      { path: 'profile', element: page(<ProfilePage />) },
+      { path: 'archives', lazy: tab(() => import('@/pages/ArchivesPage')) },
+      { path: 'scan', lazy: tab(() => import('@/pages/ScanPage')) },
+      { path: 'mastery', lazy: tab(() => import('@/pages/MasteryPage')) },
+      // "See all" screens keep the bottom nav with Mastery active, as in Figma.
+      {
+        path: 'mastery/quests',
+        lazy: tab(() => import('@/pages/MasteryListPages').then((m) => ({ default: m.MasteryQuestsPage }))),
+      },
+      {
+        path: 'mastery/badges',
+        lazy: tab(() => import('@/pages/MasteryListPages').then((m) => ({ default: m.MasteryBadgesPage }))),
+      },
+      { path: 'profile', lazy: tab(() => import('@/pages/ProfilePage')) },
     ],
   },
   { path: 'landmarks/:id', element: page(<LandmarkPage />) },

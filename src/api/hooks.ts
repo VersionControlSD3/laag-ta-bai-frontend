@@ -11,10 +11,11 @@ export const queryKeys = {
   me: (userId: string | null) => ['me', userId] as const,
 }
 
-export function useLandmarks(query: LandmarkQuery = {}) {
+export function useLandmarks(query: LandmarkQuery = {}, options: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: queryKeys.landmarks(query),
     queryFn: ({ signal }) => api.listLandmarks(query, signal),
+    enabled: options.enabled,
   })
 }
 

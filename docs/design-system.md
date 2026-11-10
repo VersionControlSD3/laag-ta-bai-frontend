@@ -182,8 +182,8 @@ Each component in Figma has a written spec next to it. Read it before building.
 | ChatComposer / ChatBubble | Sage camera, send turns navy; guide in surface, traveller in navy | ❌ |
 | InfoSection | Terracotta-ink title, ink-body text; Trivia callout in terracotta-soft | ⚠️ scaffold `StorySection` |
 | OptionRow / SettingsList | Icon disc, title, chevron / radio / switch; eyebrow group labels | ❌ |
-| ProgressBar | Navy XP, terracotta quest, sage-deep identifying; 12 / 6 px | ⚠️ scaffold `XpBar` |
-| StatTile, QuestCard, BadgeTile, LevelRing | Mastery and Profile pieces | ❌ |
+| ProgressBar | Navy XP, terracotta quest, sage-deep identifying; 12 / 6 px | ✅ `MasteryCards.tsx` (navy, terracotta); Profile still uses scaffold `XpBar` |
+| StatTile, QuestCard, BadgeTile, LevelRing | Mastery and Profile pieces | ✅ `MasteryCards.tsx` |
 
 Build components in `src/components/`, take colours only from the tokens above, and add a test.
 
@@ -206,6 +206,22 @@ Profile`. Implemented in `src/components/BottomNav.tsx`:
 details, chat), auth, splash, welcome, permissions and 404, which use a TopNavbar or nothing. Keep
 new tab-level screens inside `AppShell` and pushed screens outside it. The designer still needs to
 show these rules in the prototype (ticket #27).
+
+### Mastery (Final Pages → Mastery Page, All Quests, All Badges)
+
+Built in `src/pages/MasteryPage.tsx` and `MasteryListPages.tsx` from the component specs above.
+Where the Final Page frame and the Components page differ, the components win, because they're
+tokenized:
+
+- The frame's XP bar is a terracotta → sage gradient; the ProgressBar spec says **navy** for XP.
+- The frame's icons are Lucide placeholders pasted as vectors; the code uses the Ionicons
+  equivalents from the Icons page (`trophy`, `flame`, `footsteps`, `book-outline`, `ribbon`).
+- The frame's quest reward pill (`+300 XP`, gold `#CAB147`) has no token and the API has no
+  per-quest XP, so the pill shows the quest's **badge** in the QuestCard `navy-soft` style.
+- Locked badges are only faded in the frame (48 % opacity). The code uses the BadgeTile
+  `Unlocked=false` variant plus a lock icon and the word "Locked", so state isn't colour alone.
+- Active quests are ordered nearest to completion first (ClickUp #33); completed quests leave the
+  rail, and their badges move to the front of the collection.
 
 ## Assets
 
