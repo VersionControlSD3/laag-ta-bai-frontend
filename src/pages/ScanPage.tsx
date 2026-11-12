@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { Camera, ImageUp, Loader2, MapPin, ScanLine } from 'lucide-react'
 import { useScan } from '@/api/hooks'
 import type { ScanResult } from '@/api/types'
+import type { ScanMatchState } from '@/pages/LandmarkPage'
 import { LandmarkRow } from '@/components/LandmarkCard'
 import { PageHeader } from '@/components/PageHeader'
 import { ErrorMessage } from '@/components/StateMessage'
@@ -44,7 +45,8 @@ export default function ScanPage() {
       { image: file, lat: geo.coords?.lat, lng: geo.coords?.lng },
       {
         onSuccess: (result) => {
-          if (result.status === 'identified' && result.landmark) navigate(`/landmarks/${result.landmark.id}`)
+          if (result.status === 'identified' && result.landmark)
+            navigate(`/landmarks/${result.landmark.id}`, { state: { confidence: result.confidence } satisfies ScanMatchState })
         },
       },
     )

@@ -12,7 +12,7 @@ src/
     bookmarks/        offline-saved landmarks with full story text
     progress/         XP toast and level-up / badge dialog
   hooks/              useGeolocation (rationale-first), useSpeech (Web Speech TTS)
-  components/         BottomNav, LandmarkCard, StorySection, XpBar, icons/ (Ionicons), ...
+  components/         BottomNav, LandmarkCard, TopNavbar, XpBar, icons/ (Ionicons), ...
   pages/              one file per screen
   lib/                env, supabase client, storage, image validation, formatting
   styles/index.css    Tailwind + theme tokens (Figma Ivory + Sage, plus the scaffold palette)
