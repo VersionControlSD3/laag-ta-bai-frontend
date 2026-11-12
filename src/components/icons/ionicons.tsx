@@ -174,7 +174,6 @@ export const LocateOutlineIcon = icon(
     <path {...stroke} strokeWidth={48} d="M416 256h40M56 256h40" />
   </>,
 )
-
 export const BookmarkIcon = icon(
   <path
     fill="currentColor"
@@ -349,3 +348,86 @@ export const ChatbubbleEllipsesIcon = icon(<path fill="currentColor" d="M398 81.
 export const VolumeHighOutlineIcon = icon(<path {...stroke} d="M126 192H56a8 8 0 00-8 8v112a8 8 0 008 8h69.65a15.93 15.93 0 0110.14 3.54l91.47 74.89A8 8 0 00240 392V120a8 8 0 00-12.74-6.43l-91.47 74.89A15 15 0 01126 192zM320 320c9.74-19.38 16-40.84 16-64 0-23.48-6-44.42-16-64M368 368c19.48-33.92 32-64.06 32-112s-12-77.74-32-112M416 416c30-46 48-91.43 48-160s-18-113-48-160" />)
 
 export const PauseIcon = icon(<path fill="currentColor" d="M208 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16zM352 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16z" />)
+
+export const CreateOutlineIcon = icon(
+  <>
+    <path
+      {...stroke}
+      d="M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48"
+    />
+    <path
+      fill="currentColor"
+      d="M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34 0l12.26-12.26a16 16 0 00.65-22.12zM399.34 90L218.82 270.5a9 9 0 00-2.31 3.93L208.16 304a4 4 0 004.83 4.83l29.57-8.35a9 9 0 003.93-2.31L427 117.66a8 8 0 000-11.31l-16.32-16.35a8 8 0 00-11.34 0z"
+    />
+  </>,
+)
+
+export const GlobeOutlineIcon = icon(
+  <>
+    <circle cx="256" cy="256" r="208" {...stroke} />
+    <path {...stroke} d="M256 48c-58.07 0-96 93.36-96 208s37.93 208 96 208 96-93.36 96-208-37.93-208-96-208zM70.06 144h371.88M70.06 368h371.88" />
+  </>,
+)
+
+export const ChevronForwardOutlineIcon = icon(
+  <path {...stroke} d="M184 112l144 144-144 144" />,
+)
+
+export const MoonOutlineIcon = icon(
+  <path
+    {...stroke}
+    strokeLinejoin="round"
+    d="M160 136c0-30.62 4.51-61.61 16-88C99.57 81.27 48 159.32 48 248c0 119.29 96.71 216 216 216 88.68 0 166.73-51.57 200-128-26.39 11.49-57.38 16-88 16-119.29 0-216-96.71-216-216z"
+  />,
+)
+
+export const NotificationsOutlineIcon = icon(
+  <path
+    {...stroke}
+    d="M400 352c0-27.61-12-40-24-64-16-32-16-80-16-96a104 104 0 00-208 0c0 16 0 64-16 96-12 24-24 36.39-24 64 0 14 11 26 24 26h240c13 0 24-12 24-26zM320 384c0 17.67-14.33 32-32 32h-64c-17.67 0-32-14.33-32-32"
+  />,
+)
+
+export const HelpCircleOutlineIcon = icon(
+  <>
+    <circle cx="256" cy="256" r="208" {...stroke} />
+    <path
+      {...stroke}
+      d="M200 202.29s.84-17.5 19.57-32.57C238.29 154.67 266.36 157 280 172c14.28 15.68 12.3 35.6-1.57 48.57-15.11 14.12-26.43 28.57-26.43 51.43v8"
+    />
+    <circle cx="256" cy="336" r="16" fill="currentColor" />
+  </>,
+)
+
+export const InformationCircleOutlineIcon = icon(
+  <>
+    <circle cx="256" cy="256" r="208" {...stroke} />
+    <path {...stroke} d="M248 176h16v160h-16M248 136h16v16h-16" />
+  </>,
+)
+
+export const LogOutOutlineIcon = icon(
+  <>
+    <path {...stroke} d="M304 336v40a40 40 0 01-40 40H104a40 40 0 01-40-40V136a40 40 0 0140-40h160a40 40 0 0140 40v40M384 192l64 64-64 64M448 256H192" />
+  </>,
+)
+
+export const TrashOutlineIcon = icon(
+  <>
+    <path {...stroke} d="M112 112l20 320c1.07 17.6 15.6 32 33.2 32h181.6c17.6 0 32.13-14.4 33.2-32l20-320M80 112h352M192 112V72a24 24 0 0124-24h80a24 24 0 0124 24v40M256 176v224M184 176l8 224M328 176l-8 224" />
+  </>,
+)
+
+export const FlameOutlineIcon = icon(
+  <path
+    {...stroke}
+    d="M112 320c0-93 72-132 72-208 0-33.8-14-64-16-64 57 24 88 77 88 120 0 28-9 52-24 72 26 0 56-18 64-56 22 28 40 68 40 108 0 79.52-64.48 144-144 144S112 399.52 112 320z"
+  />,
+)
+
+export const RibbonOutlineIcon = icon(
+  <>
+    <circle cx="256" cy="160" r="112" {...stroke} />
+    <path {...stroke} d="M176 256l-32 208 112-64 112 64-32-208" />
+  </>,
+)
