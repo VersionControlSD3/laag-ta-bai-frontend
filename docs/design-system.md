@@ -81,6 +81,11 @@ with a gold accent, not a dark version of this palette.) The project still requi
 was checked for WCAG AA (lowest: `ink-muted` on `surface` 7.1:1). Navy fills invert to a light navy
 with dark text. Ask the designer for real dark values and replace them in one place.
 
+Define each colour **once**, through `--ds-*`: a second `--color-ivory: #...` elsewhere overrides the
+theme and breaks dark mode. To keep light text on a photo in both themes, put `data-palette="light"`
+on the wrapper (it pins these tokens only), and read `var(--ds-*)` rather than `var(--color-*)` in
+custom CSS, because `--color-*` is resolved once at the root.
+
 ### How colours are used on the Final Pages
 
 Counted across all 31 Final Pages frames:
@@ -175,13 +180,13 @@ Each component in Figma has a written spec next to it. Read it before building.
 | Tag | Heritage, navy, rating, locked / unlocked pills | ❌ |
 | LandmarkCard / LandmarkRow | 160 px rail tile / 80 px thumbnail row | ⚠️ scaffold version |
 | PaginationDots | 8 px sage dots, current 24 px terracotta | ❌ |
-| TopNavbar | Back, centred navy title, optional action; 40 px bottom corners; 60 px + inset | ❌ |
+| TopNavbar | Back, centred navy title, optional action; 40 px bottom corners; 60 px + inset | ✅ `TopNavbar.tsx` |
 | **ScreenNavbar** | Four tabs + raised navy Scan; 40 px top corners; 70 px + inset | ✅ `BottomNav.tsx` |
 | TextField | Uppercase label, surface well, line-strong border, terracotta icon; 56 / 48 px | ❌ |
 | SearchBar | Surface field, terracotta search icon, filter button on Explore | ❌ |
 | Switch | Ivory-deep track off; navy or sage-deep on | ❌ |
 | ChatComposer / ChatBubble | Sage camera, send turns navy; guide in surface, traveller in navy | ❌ |
-| InfoSection | Terracotta-ink title, ink-body text; Trivia callout in terracotta-soft | ⚠️ scaffold `StorySection` |
+| InfoSection | Terracotta-ink title, ink-body text; Trivia callout in terracotta-soft | ⚠️ inline in `LandmarkPage.tsx` |
 | OptionRow / SettingsList | Icon disc, title, chevron / radio / switch; eyebrow group labels | ❌ |
 | ProgressBar | Navy XP, terracotta quest, sage-deep identifying; 12 / 6 px | ✅ `MasteryCards.tsx` (navy, terracotta); Profile still uses scaffold `XpBar` |
 | StatTile, QuestCard, BadgeTile, LevelRing | Mastery and Profile pieces | ✅ `MasteryCards.tsx` |

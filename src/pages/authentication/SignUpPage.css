@@ -1,17 +1,17 @@
 .auth-signup {
   overflow-y: auto;
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
   font-family: var(--font-sans);
 }
 
 .auth-signup-day {
   background-image: linear-gradient(rgb(18 91 145 / 0.08), rgb(18 91 145 / 0.08)), url('/authenticationBG/RegisterDay.webp');
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
 }
 
 .auth-signup-night {
   background-image: linear-gradient(rgb(12 24 38 / 0.25), rgb(12 24 38 / 0.25)), url('/authenticationBG/RegisterNight.webp');
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
 }
 
 .auth-signup-card {
@@ -21,17 +21,17 @@
 }
 
 .auth-signup-heading {
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
 }
 
 .auth-signup-day > div > header {
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
 }
 
 .auth-signup-day > div > header .rounded-full {
   border-color: rgb(250 245 236 / 0.28);
   background: rgb(36 59 83 / 0.48);
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
 }
 
 .auth-signup-day .auth-signup-card {
@@ -41,7 +41,7 @@
 }
 
 .auth-signup-day .auth-signup-card .auth-label {
-  color: var(--color-terracotta);
+  color: var(--ds-terracotta);
 }
 
 .auth-signup-day .auth-signup-card input,
@@ -49,12 +49,12 @@
 .auth-signup-day .auth-signup-card .auth-date-field {
   border-color: rgb(250 245 236 / 0.28);
   background: var(--surface);
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
 }
 
 .auth-signup-day .auth-signup-card input::placeholder,
 .auth-signup-day .auth-signup-card textarea::placeholder {
-  color: var(--color-ink-muted);
+  color: var(--ds-ink-muted);
 }
 
 .auth-signup-day .auth-signup-card input.border-error,
@@ -86,7 +86,7 @@
 }
 
 .auth-signup-day .auth-date-field svg {
-  color: var(--color-terracotta);
+  color: var(--ds-terracotta);
 }
 
 .auth-signup-day .auth-signup-card .text-error {
@@ -103,8 +103,8 @@
 }
 
 .auth-signup-day .auth-signup-card form > button[type='submit'] {
-  background: var(--color-terracotta);
-  color: var(--color-ivory);
+  background: var(--ds-terracotta);
+  color: var(--ds-ivory);
 }
 
 .auth-signup-night .auth-signup-card {
@@ -132,7 +132,7 @@
 .auth-signup-night .auth-signup-card .auth-date-field:focus-visible,
 .auth-signup-night .auth-signup-card input:focus,
 .auth-signup-night .auth-signup-card textarea:focus {
-  border-color: var(--color-terracotta);
+  border-color: var(--ds-terracotta);
   box-shadow: 0 0 0 3px rgb(198 107 78 / 0.2);
 }
 
@@ -149,11 +149,11 @@
 }
 
 .auth-signup-night .auth-signup-card .auth-label {
-  color: var(--color-terracotta);
+  color: var(--ds-terracotta);
 }
 
 .auth-signup-night .auth-signup-card .text-muted {
-  color: var(--color-ink-muted);
+  color: var(--ds-ink-muted);
 }
 
 .auth-signup-night .auth-signup-card .text-error {
@@ -169,7 +169,7 @@
 }
 
 .auth-label {
-  color: var(--color-terracotta);
+  color: var(--ds-terracotta);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -191,7 +191,7 @@
   min-height: 48px;
   border: 1px solid #dadce0;
   background: #fff;
-  color: var(--color-navy);
+  color: var(--ds-navy);
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
@@ -224,7 +224,7 @@
 
 .auth-label input,
 .auth-label textarea {
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
   font-weight: 400;
   letter-spacing: normal;
   text-transform: none;
@@ -232,7 +232,7 @@
 
 .auth-label input::placeholder,
 .auth-label textarea::placeholder {
-  color: var(--color-ink-muted);
+  color: var(--ds-ink-muted);
 }
 
 .auth-date-field {
@@ -245,7 +245,7 @@
   border-radius: 0.75rem;
   background: var(--surface);
   padding: 0 1rem;
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
   font-size: 0.9375rem;
   font-weight: 400;
   text-align: left;
@@ -254,12 +254,12 @@
 }
 
 .auth-date-field:focus-visible {
-  border-color: var(--color-terracotta);
+  border-color: var(--ds-terracotta);
   box-shadow: 0 0 0 3px rgb(198 107 78 / 0.28);
 }
 
 .auth-date-field svg {
-  color: var(--color-terracotta);
+  color: var(--ds-terracotta);
 }
 
 .auth-date-field-invalid {
@@ -279,7 +279,7 @@
   border-radius: 1rem;
   background: rgb(36 59 83 / 0.96);
   padding: 0.75rem;
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
   box-shadow: 0 18px 40px rgb(36 59 83 / 0.4);
 }
 
@@ -310,7 +310,7 @@
   min-height: 48px;
   border-radius: 0.5rem;
   background: transparent;
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
   font-size: 0.75rem;
   font-weight: 600;
 }
@@ -325,7 +325,7 @@
 .auth-calendar-toolbar button:focus-visible,
 .auth-calendar-actions button:focus-visible,
 .auth-calendar-day:focus-visible {
-  outline: 2px solid var(--color-ivory);
+  outline: 2px solid var(--ds-ivory);
   outline-offset: 2px;
 }
 
@@ -367,7 +367,7 @@
   overflow: hidden;
   border: 1px solid rgb(198 107 78 / 0.35);
   border-radius: 0.6rem;
-  background: var(--color-navy);
+  background: var(--ds-navy);
   padding: 0.25rem;
   box-shadow: 0 12px 24px rgb(36 59 83 / 0.4);
 }
@@ -384,7 +384,7 @@
   max-height: 180px;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-color: var(--color-terracotta) transparent;
+  scrollbar-color: var(--ds-terracotta) transparent;
   scrollbar-width: thin;
 }
 
@@ -399,7 +399,7 @@
 .auth-calendar-select-scroll::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background: var(--color-terracotta);
+  background: var(--ds-terracotta);
 }
 
 .auth-calendar-select-option {
@@ -408,7 +408,7 @@
   min-height: 48px;
   border-radius: 0.4rem;
   padding: 0.35rem 0.65rem;
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
   font-size: 0.75rem;
   text-align: left;
   white-space: nowrap;
@@ -421,7 +421,7 @@
 }
 
 .auth-calendar-select-option-selected {
-  background: var(--color-terracotta);
+  background: var(--ds-terracotta);
   font-weight: 700;
 }
 
@@ -434,7 +434,7 @@
 }
 
 .auth-calendar-weekday {
-  color: var(--color-terracotta);
+  color: var(--ds-terracotta);
   font-size: 0.7rem;
   font-weight: 700;
 }
@@ -443,7 +443,7 @@
   min-height: 48px;
   min-width: 0;
   border-radius: 0.45rem;
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
   font-size: 0.8rem;
 }
 
@@ -461,14 +461,14 @@
 }
 
 .auth-calendar-day-selected {
-  background: var(--color-terracotta);
-  color: var(--color-ivory);
+  background: var(--ds-terracotta);
+  color: var(--ds-ivory);
   font-weight: 700;
 }
 
 .auth-calendar-day-today:not(.auth-calendar-day-selected) {
-  border: 1px solid var(--color-sage);
-  color: var(--color-sage);
+  border: 1px solid var(--ds-sage);
+  color: var(--ds-sage);
 }
 
 .auth-calendar-actions {
@@ -481,7 +481,7 @@
 
 .auth-calendar-actions button {
   padding-inline: 0.65rem;
-  color: var(--color-terracotta);
+  color: var(--ds-terracotta);
 }
 
 @media (max-width: 360px) {
@@ -509,7 +509,7 @@
 .auth-signup input[type='text'] {
   appearance: none;
   -webkit-appearance: none;
-  color: var(--color-ivory);
+  color: var(--ds-ivory);
 }
 
 .auth-signup-day .auth-signup-card input[type='password'],
@@ -533,7 +533,7 @@
 .auth-signup input:-webkit-autofill:hover,
 .auth-signup input:-webkit-autofill:focus,
 .auth-signup input:-webkit-autofill:active {
-  -webkit-text-fill-color: var(--color-ivory);
+  -webkit-text-fill-color: var(--ds-ivory);
   -webkit-box-shadow: 0 0 0 1000px rgb(36 59 83 / 0.04) inset;
   transition: background-color 9999s ease-in-out 0s;
 }

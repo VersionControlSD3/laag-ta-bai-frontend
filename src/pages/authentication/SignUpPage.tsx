@@ -205,7 +205,8 @@ export default function SignUpPage() {
     `mt-1 h-12 w-full rounded-xl border bg-design-surface px-4 text-ivory text-base outline-none transition focus:border-terracotta focus:ring-2 focus:ring-terracotta/30 ${invalid ? 'border-error' : 'border-design-line'}`
 
   return (
-    <main className={`auth-signup min-h-dvh bg-cover bg-center bg-fixed ${resolvedTheme === 'light' ? 'auth-signup-day' : 'auth-signup-night'}`}>
+    // Pinned to the light palette: its ivory text sits on a photo and a dark card in both themes.
+    <main data-palette="light" className={`auth-signup min-h-dvh bg-cover bg-center bg-fixed ${resolvedTheme === 'light' ? 'auth-signup-day' : 'auth-signup-night'}`}>
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 py-6 sm:px-6">
         {/* Page header */}
         <header className="flex items-center justify-between text-ivory">
