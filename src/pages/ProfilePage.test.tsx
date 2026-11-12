@@ -178,30 +178,86 @@ describe('ProfilePage', () => {
     expect(screen.queryByRole('region', { name: /Edit profile details/i })).not.toBeInTheDocument()
   })
 
-  it('toggles show clear on/off states not by color alone with accessible labels', async () => {
+  it('supports System default, Light, and Dark appearance options', async () => {
     renderPage(<ProfilePage />, '/profile')
 
-    const darkToggle = screen.getByRole('switch', { name: /Dark theme/i })
-    expect(darkToggle).toHaveAttribute('aria-checked', 'false')
-    expect(darkToggle).toHaveAccessibleName('Dark theme, off')
+    const appearanceBtn = screen.getByRole('button', { name: /Appearance, current selection: System default/i })
+    await userEvent.click(appearanceBtn)
 
-    await userEvent.click(darkToggle)
+    const dialog = screen.getByRole('dialog', { name: /Choose appearance/i })
+    await userEvent.click(within(dialog).getByRole('radio', { name: 'Dark' }))
 
-    expect(darkToggle).toHaveAttribute('aria-checked', 'true')
-    expect(darkToggle).toHaveAccessibleName('Dark theme, on')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(document.documentElement.dataset.theme).toBe('dark')
+    expect(screen.getByRole('button', { name: /Appearance, current selection: Dark/i })).toBeInTheDocument()
+
+    // Switch back to System default
+    await userEvent.click(screen.getByRole('button', { name: /Appearance, current selection: Dark/i }))
+    const dialogAgain = screen.getByRole('dialog', { name: /Choose appearance/i })
+    await userEvent.click(within(dialogAgain).getByRole('radio', { name: 'System default' }))
+    expect(screen.getByRole('button', { name: /Appearance, current selection: System default/i })).toBeInTheDocument()
   })
 
-  it('shows supported languages only (English and Cebuano) and updates language via PATCH /v1/me when signed in', async () => {
+  it('keeps the three notification toggles independent with on/off accessible labels', async () => {
+    renderPage(<ProfilePage />, '/profile')
+
+    const proximity = screen.getByRole('switch', { name: /Proximity alerts/i })
+    const streak = screen.getByRole('switch', { name: /Daily streak reminders/i })
+    const quest = screen.getByRole('switch', { name: /Quest completion notices/i })
+
+    expect(proximity).toHaveAccessibleName('Proximity alerts, on')
+    expect(streak).toHaveAccessibleName('Daily streak reminders, on')
+    expect(quest).toHaveAccessibleName('Quest completion notices, on')
+
+    await userEvent.click(proximity)
+
+    expect(proximity).toHaveAttribute('aria-checked', 'false')
+    expect(proximity).toHaveAccessibleName('Proximity alerts, off')
+    expect(streak).toHaveAttribute('aria-checked', 'true')
+    expect(quest).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('closes the language dialog on Escape immediately upon opening and restores focus', async () => {
+    renderPage(<ProfilePage />, '/profile')
+
+    const langBtn = screen.getByRole('button', { name: /Language, current selection: English/i })
+    await userEvent.click(langBtn)
+
+    const dialog = screen.getByRole('dialog', { name: /Choose language/i })
+    expect(dialog).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: /Close language selector/i })).toHaveFocus()
+
+    await userEvent.keyboard('{Escape}')
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(langBtn).toHaveFocus()
+  })
+
+  it('shows supported languages (English and Cebuano), calls PATCH /v1/me when signed in, and displays API errors', async () => {
     signInDevUser()
     const patchCalls: ProfileUpdate[] = []
-    mockFetch((url, init) => {
+    let failPatch = false
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url)
       if (url.pathname.endsWith('/v1/me') && init?.method === 'PATCH') {
         const body = JSON.parse(String(init.body)) as ProfileUpdate
         patchCalls.push(body)
-        return { data: sampleMe().profile }
+        if (failPatch) {
+          return new Response(
+            JSON.stringify({ error: { code: 'server_error', message: 'Could not save language' } }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
+        return new Response(JSON.stringify({ data: sampleMe().profile }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
       }
-      return { data: sampleMe() }
+      return new Response(JSON.stringify({ data: sampleMe() }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
     })
 
     renderPage(<ProfilePage />, '/profile')
@@ -212,12 +268,12 @@ describe('ProfilePage', () => {
     const dialog = screen.getByRole('dialog', { name: /Choose language/i })
     expect(within(dialog).queryByRole('radio', { name: /Filipino/i })).not.toBeInTheDocument()
 
-    const cebBtn = within(dialog).getByRole('radio', { name: /Cebuano/i })
-    await userEvent.click(cebBtn)
+    failPatch = true
+    await userEvent.click(within(dialog).getByRole('radio', { name: /Cebuano/i }))
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Language, current selection: Cebuano/i })).toBeInTheDocument()
     expect(patchCalls).toEqual([{ language: 'ceb' }])
+    expect(await screen.findByText(/Could not save language/i)).toBeInTheDocument()
   })
 
   it('clearly separates the About the developer section from preferences', () => {
@@ -250,7 +306,7 @@ describe('ProfilePage', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('shows real browser permission states (defaulting Location to not enabled) and uses TopNavbar', async () => {
+  it('shows real browser permission states and links Location Allow to /permissions for rationale first', async () => {
     writeJson('location-rationale-accepted', true)
     Object.defineProperty(navigator, 'permissions', {
       configurable: true,
@@ -270,6 +326,9 @@ describe('ProfilePage', () => {
       expect(screen.getByRole('heading', { name: 'Permissions' })).toBeInTheDocument()
       expect(screen.getByText('Allowed')).toBeInTheDocument()
       expect(screen.getByText('Not enabled')).toBeInTheDocument()
+
+      const allowLocLink = screen.getByRole('link', { name: 'Allow Location' })
+      expect(allowLocLink).toHaveAttribute('href', '/permissions')
       expect(screen.getByRole('link', { name: /Open permissions setup/i })).toHaveAttribute('href', '/permissions')
 
       await userEvent.click(screen.getByRole('button', { name: 'Back to profile' }))

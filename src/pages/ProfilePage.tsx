@@ -1,5 +1,5 @@
-import { useEffect, useId, useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMe, useUpdateMe } from '@/api/hooks'
 import type { Me } from '@/api/types'
@@ -8,7 +8,7 @@ import { ErrorMessage, Loading } from '@/components/StateMessage'
 import { TopNavbar } from '@/components/TopNavbar'
 import {
   CameraOutlineIcon,
-  CheckmarkOutlineIcon,
+  CheckmarkIcon,
   ChevronForwardOutlineIcon,
   CloseOutlineIcon,
   CreateOutlineIcon,
@@ -33,7 +33,7 @@ import { levelProgress } from '@/features/mastery/progress'
 import { usePreferences, type ThemeMode } from '@/features/preferences/PreferencesContext'
 import { GRANTED_KEY } from '@/hooks/useGeolocation'
 import { env } from '@/lib/env'
-import { clearOfflineCache, readJson, writeJson } from '@/lib/storage'
+import { clearOfflineCache, readJson } from '@/lib/storage'
 
 type LanguageOption = {
   code: 'en' | 'ceb'
@@ -43,6 +43,17 @@ type LanguageOption = {
 const LANGUAGES: LanguageOption[] = [
   { code: 'en', name: 'English' },
   { code: 'ceb', name: 'Cebuano' },
+]
+
+type AppearanceOption = {
+  mode: ThemeMode
+  name: string
+}
+
+const APPEARANCE_OPTIONS: AppearanceOption[] = [
+  { mode: 'system', name: 'System default' },
+  { mode: 'light', name: 'Light' },
+  { mode: 'dark', name: 'Dark' },
 ]
 
 type PermissionId = 'camera' | 'location'
@@ -86,31 +97,17 @@ async function queryBrowserPermission(id: PermissionId): Promise<PermissionStatu
   return 'prompt'
 }
 
-async function requestBrowserPermission(id: PermissionId): Promise<PermissionStatus> {
-  if (id === 'camera') {
-    if (!navigator.mediaDevices) return 'denied'
-    const ok = await navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((stream) => {
-        stream.getTracks().forEach((track) => track.stop())
-        return true
-      })
-      .catch(() => false)
-    if (ok) return 'granted'
-    return queryBrowserPermission('camera')
-  }
-
-  if (!('geolocation' in navigator)) return 'denied'
-  writeJson(GRANTED_KEY, true)
-  const ok = await new Promise<boolean>((resolve) =>
-    navigator.geolocation.getCurrentPosition(
-      () => resolve(true),
-      () => resolve(false),
-      { timeout: 10_000 },
-    ),
-  )
+async function requestCameraPermission(): Promise<PermissionStatus> {
+  if (!navigator.mediaDevices) return 'denied'
+  const ok = await navigator.mediaDevices
+    .getUserMedia({ video: true })
+    .then((stream) => {
+      stream.getTracks().forEach((track) => track.stop())
+      return true
+    })
+    .catch(() => false)
   if (ok) return 'granted'
-  return queryBrowserPermission('location')
+  return queryBrowserPermission('camera')
 }
 
 export default function ProfilePage() {
@@ -119,22 +116,25 @@ export default function ProfilePage() {
   const updateMe = useUpdateMe()
   const prefs = usePreferences()
   const queryClient = useQueryClient()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // Real browser permission states (Location defaults to 'prompt' until rationale is accepted & browser grants it)
   const [permissionStates, setPermissionStates] = useState<Record<PermissionId, PermissionStatus>>({
     camera: 'prompt',
     location: 'prompt',
   })
-  const [requestingPerm, setRequestingPerm] = useState<PermissionId | null>(null)
+  const [requestingCamera, setRequestingCamera] = useState(false)
 
   useEffect(() => {
     if (!navigator.permissions?.query) return
     let active = true
     Promise.all([queryBrowserPermission('camera'), queryBrowserPermission('location')]).then(
-      ([camera, location]) => {
+      ([camera, loc]) => {
         if (active) {
           setPermissionStates((prev) =>
-            prev.camera === camera && prev.location === location ? prev : { camera, location },
+            prev.camera === camera && prev.location === loc ? prev : { camera, location: loc },
           )
         }
       },
@@ -142,27 +142,29 @@ export default function ProfilePage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [location.pathname, searchParams])
 
-  // Modals & sub-views
-  const [currentView, setCurrentView] = useState<'profile' | 'permissions'>('profile')
+  // Modals
   const [isLanguageOpen, setIsLanguageOpen] = useState(false)
+  const [isAppearanceOpen, setIsAppearanceOpen] = useState(false)
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const [isAboutOpen, setIsAboutOpen] = useState(false)
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
   const [cacheCleared, setCacheCleared] = useState(false)
 
-  const isDarkMode = prefs.resolvedTheme === 'dark'
-  const notificationsEnabled = prefs.questNotices && prefs.streakReminders && prefs.proximityAlerts
+  const isPermissionsView =
+    location.pathname.endsWith('/permissions') || searchParams.get('view') === 'permissions'
 
-  const toggleTheme = () => {
-    const nextTheme: ThemeMode = isDarkMode ? 'light' : 'dark'
-    prefs.update({ theme: nextTheme })
+  const openPermissionsView = () => {
+    setSearchParams({ view: 'permissions' })
   }
 
-  const toggleNotifications = () => {
-    const next = !notificationsEnabled
-    prefs.update({ questNotices: next, streakReminders: next, proximityAlerts: next })
+  const closePermissionsView = () => {
+    if (location.pathname.endsWith('/permissions')) {
+      navigate('/profile')
+    } else {
+      setSearchParams({})
+    }
   }
 
   const handleSelectLanguage = (language: 'en' | 'ceb') => {
@@ -173,11 +175,16 @@ export default function ProfilePage() {
     setIsLanguageOpen(false)
   }
 
-  const handleRequestPermission = async (id: PermissionId) => {
-    setRequestingPerm(id)
-    const next = await requestBrowserPermission(id)
-    setPermissionStates((prev) => ({ ...prev, [id]: next }))
-    setRequestingPerm(null)
+  const handleSelectAppearance = (theme: ThemeMode) => {
+    prefs.update({ theme })
+    setIsAppearanceOpen(false)
+  }
+
+  const handleRequestCamera = async () => {
+    setRequestingCamera(true)
+    const next = await requestCameraPermission()
+    setPermissionStates((prev) => ({ ...prev, camera: next }))
+    setRequestingCamera(false)
   }
 
   const handleClearCache = () => {
@@ -194,15 +201,17 @@ export default function ProfilePage() {
 
   const allowedPermissionsCount = Object.values(permissionStates).filter((s) => s === 'granted').length
   const currentLangLabel = LANGUAGES.find((l) => l.code === prefs.language)?.name ?? 'English'
+  const currentAppearanceLabel =
+    APPEARANCE_OPTIONS.find((a) => a.mode === prefs.theme)?.name ?? 'System default'
 
-  if (currentView === 'permissions') {
+  if (isPermissionsView) {
     return (
       <div className="bleed-under-nav relative min-h-dvh bg-ivory text-ink transition-colors duration-200">
         <PermissionsSubpage
           permissionStates={permissionStates}
-          requestingPerm={requestingPerm}
-          onRequestPermission={handleRequestPermission}
-          onBack={() => setCurrentView('profile')}
+          requestingCamera={requestingCamera}
+          onRequestCamera={handleRequestCamera}
+          onBack={closePermissionsView}
         />
       </div>
     )
@@ -256,6 +265,28 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-2 rounded-3xl border border-ivory-line bg-ivory-surface p-2 shadow-xs">
+            {/* Appearance Row (System default / Light / Dark) */}
+            <button
+              type="button"
+              onClick={() => setIsAppearanceOpen(true)}
+              className="touch-target flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl p-3 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              aria-label={`Appearance, current selection: ${currentAppearanceLabel}`}
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
+                  <MoonOutlineIcon size={18} />
+                </span>
+                <div className="min-w-0">
+                  <span className="block text-sm font-bold text-ink">Appearance</span>
+                  <span className="block truncate text-xs text-ink-muted">System default, light, or dark theme</span>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-ink-body">
+                <span>{currentAppearanceLabel}</span>
+                <ChevronForwardOutlineIcon size={16} className="text-ink-muted" />
+              </div>
+            </button>
+
             {/* Language Row */}
             <button
               type="button"
@@ -281,7 +312,7 @@ export default function ProfilePage() {
             {/* Permissions Row */}
             <button
               type="button"
-              onClick={() => setCurrentView('permissions')}
+              onClick={openPermissionsView}
               className="touch-target flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl p-3 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               aria-label={`Permissions, ${allowedPermissionsCount} allowed`}
             >
@@ -300,41 +331,60 @@ export default function ProfilePage() {
               </div>
             </button>
 
-            {/* Notifications Toggle Row */}
+            {/* Proximity Alerts Toggle Row */}
+            <div className="flex min-h-14 items-center justify-between gap-3 rounded-2xl p-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
+                  <LocationOutlineIcon size={18} />
+                </span>
+                <div className="min-w-0">
+                  <span className="block text-sm font-bold text-ink">Proximity alerts</span>
+                  <span className="block truncate text-xs text-ink-muted">Notify when near heritage landmarks</span>
+                </div>
+              </div>
+              <AccessibleToggle
+                id="proximity-alerts-toggle"
+                label="Proximity alerts"
+                checked={prefs.proximityAlerts}
+                onToggle={() => prefs.update({ proximityAlerts: !prefs.proximityAlerts })}
+              />
+            </div>
+
+            {/* Daily Streak Reminders Toggle Row */}
+            <div className="flex min-h-14 items-center justify-between gap-3 rounded-2xl p-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
+                  <FlameOutlineIcon size={18} />
+                </span>
+                <div className="min-w-0">
+                  <span className="block text-sm font-bold text-ink">Daily streak reminders</span>
+                  <span className="block truncate text-xs text-ink-muted">Keep your exploration streak active</span>
+                </div>
+              </div>
+              <AccessibleToggle
+                id="streak-reminders-toggle"
+                label="Daily streak reminders"
+                checked={prefs.streakReminders}
+                onToggle={() => prefs.update({ streakReminders: !prefs.streakReminders })}
+              />
+            </div>
+
+            {/* Quest Completion Notices Toggle Row */}
             <div className="flex min-h-14 items-center justify-between gap-3 rounded-2xl p-3">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
                   <NotificationsOutlineIcon size={18} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">Notifications</span>
-                  <span className="block truncate text-xs text-ink-muted">Quests, streaks, and nearby places</span>
+                  <span className="block text-sm font-bold text-ink">Quest completion notices</span>
+                  <span className="block truncate text-xs text-ink-muted">Alerts when quests and badges unlock</span>
                 </div>
               </div>
               <AccessibleToggle
-                id="notifications-toggle"
-                label="Notifications"
-                checked={notificationsEnabled}
-                onToggle={toggleNotifications}
-              />
-            </div>
-
-            {/* Dark Mode Toggle Row */}
-            <div className="flex min-h-14 items-center justify-between gap-3 rounded-2xl p-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
-                  <MoonOutlineIcon size={18} />
-                </span>
-                <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">Dark mode</span>
-                  <span className="block truncate text-xs text-ink-muted">Use the dark heritage theme</span>
-                </div>
-              </div>
-              <AccessibleToggle
-                id="dark-theme-toggle"
-                label="Dark theme"
-                checked={isDarkMode}
-                onToggle={toggleTheme}
+                id="quest-notices-toggle"
+                label="Quest completion notices"
+                checked={prefs.questNotices}
+                onToggle={() => prefs.update({ questNotices: !prefs.questNotices })}
               />
             </div>
 
@@ -358,6 +408,12 @@ export default function ProfilePage() {
               </button>
             </div>
           </div>
+
+          {updateMe.isError && (
+            <div className="mt-3">
+              <ErrorMessage error={updateMe.error} />
+            </div>
+          )}
         </section>
 
         {/* ========================================================
@@ -455,6 +511,17 @@ export default function ProfilePage() {
           </section>
         )}
       </main>
+
+      {/* ========================================================
+          MODAL: CHOOSE APPEARANCE
+         ======================================================== */}
+      {isAppearanceOpen && (
+        <ChooseAppearanceModal
+          currentTheme={prefs.theme}
+          onSelectTheme={handleSelectAppearance}
+          onClose={() => setIsAppearanceOpen(false)}
+        />
+      )}
 
       {/* ========================================================
           MODAL: CHOOSE LANGUAGE
@@ -770,7 +837,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 disabled={updateMe.isPending}
                 className="touch-target flex min-h-12 items-center gap-1.5 rounded-xl bg-navy px-5 py-2 text-sm font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60"
               >
-                <CheckmarkOutlineIcon size={16} />
+                <CheckmarkIcon size={16} />
                 <span>{updateMe.isPending ? 'Saving…' : 'Save changes'}</span>
               </button>
             </div>
@@ -808,7 +875,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
       {/* SECTION 3: JOURNEY PROGRESS (LEVEL & XP) */}
       <section
         aria-label="Level progress"
-        className=" rounded-3xl border border-navy/15 bg-navy p-5 text-on-navy shadow-sm"
+        className="rounded-3xl border border-navy/15 bg-navy p-5 text-on-navy shadow-sm"
       >
         <div className="flex items-center justify-between">
           <div>
@@ -849,7 +916,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
 }
 
 /* =========================================================================
-   SUBCOMPONENTS & ACCESSIBLE TOGGLE
+   SUBCOMPONENTS, MODAL DIALOG & ACCESSIBLE TOGGLE
    ========================================================================= */
 
 /** Accessible Toggle switch that indicates on/off by position, label, and accessible state (not color alone) */
@@ -897,6 +964,151 @@ function AccessibleToggle({
   )
 }
 
+/**
+ * Accessible modal dialog that moves focus to the close button on open, traps Tab inside the
+ * dialog, closes on Escape, and restores focus to the trigger element on unmount.
+ */
+function ModalDialog({
+  titleId,
+  eyebrow,
+  title,
+  closeLabel,
+  describedBy,
+  onClose,
+  children,
+}: {
+  titleId: string
+  eyebrow: string
+  title: string
+  closeLabel: string
+  describedBy?: string
+  onClose: () => void
+  children: ReactNode
+}) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const closeBtnRef = useRef<HTMLButtonElement>(null)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
+  useEffect(() => {
+    const previousFocus = document.activeElement as HTMLElement | null
+    closeBtnRef.current?.focus()
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onCloseRef.current()
+        return
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        )
+        if (focusables.length === 0) return
+        const first = focusables[0]
+        const last = focusables[focusables.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      previousFocus?.focus?.()
+    }
+  }, [])
+
+  return (
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={describedBy}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-4 backdrop-blur-xs"
+    >
+      <div className="w-full max-w-sm rounded-3xl border border-ivory-line bg-ivory p-6 text-ink shadow-2xl">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <div className="text-xs font-bold tracking-wider text-terracotta-ink uppercase">
+              {eyebrow}
+            </div>
+            <h2 id={titleId} className="text-xl font-black text-ink">
+              {title}
+            </h2>
+          </div>
+          <button
+            ref={closeBtnRef}
+            type="button"
+            onClick={onClose}
+            aria-label={closeLabel}
+            className="touch-target flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full bg-ivory-surface text-ink-muted transition-colors hover:bg-ivory-line/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+          >
+            <CloseOutlineIcon size={20} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/** Choose Appearance Modal (System default / Light / Dark) */
+function ChooseAppearanceModal({
+  currentTheme,
+  onSelectTheme,
+  onClose,
+}: {
+  currentTheme: ThemeMode
+  onSelectTheme: (theme: ThemeMode) => void
+  onClose: () => void
+}) {
+  return (
+    <ModalDialog
+      titleId="choose-appearance-title"
+      eyebrow="Theme"
+      title="Choose appearance"
+      closeLabel="Close appearance selector"
+      onClose={onClose}
+    >
+      <div role="radiogroup" aria-label="Appearance options" className="space-y-2">
+        {APPEARANCE_OPTIONS.map((opt) => {
+          const isSelected = currentTheme === opt.mode
+          return (
+            <button
+              key={opt.mode}
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              onClick={() => onSelectTheme(opt.mode)}
+              className={`touch-target flex min-h-12 w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
+                isSelected
+                  ? 'border-navy bg-navy-soft text-ink'
+                  : 'border-ivory-line bg-ivory-surface text-ink hover:bg-ivory/60'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <MoonOutlineIcon size={18} className="shrink-0 text-terracotta" />
+                <span>{opt.name}</span>
+              </div>
+              {isSelected && <CheckmarkIcon size={18} className="shrink-0 font-bold text-navy" />}
+            </button>
+          )
+        })}
+      </div>
+    </ModalDialog>
+  )
+}
+
 /** Choose Language Modal */
 function ChooseLanguageModal({
   currentLanguage,
@@ -908,75 +1120,52 @@ function ChooseLanguageModal({
   onClose: () => void
 }) {
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="choose-lang-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-4 backdrop-blur-xs"
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+    <ModalDialog
+      titleId="choose-lang-title"
+      eyebrow="App language"
+      title="Choose language"
+      closeLabel="Close language selector"
+      onClose={onClose}
     >
-      <div className="w-full max-w-sm rounded-3xl border border-ivory-line bg-ivory p-6 text-ink shadow-2xl">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold tracking-wider text-terracotta-ink uppercase">
-              App language
-            </div>
-            <h2 id="choose-lang-title" className="text-xl font-black text-ink">
-              Choose language
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close language selector"
-            className="touch-target flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full bg-ivory-surface text-ink-muted transition-colors hover:bg-ivory-line/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-          >
-            <CloseOutlineIcon size={20} />
-          </button>
-        </div>
-
-        <div role="radiogroup" aria-label="Available app languages" className="space-y-2">
-          {LANGUAGES.map((lang) => {
-            const isSelected = currentLanguage === lang.code
-            return (
-              <button
-                key={lang.code}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                onClick={() => onSelectLanguage(lang.code)}
-                className={`touch-target flex min-h-12 w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
-                  isSelected
-                    ? 'border-navy bg-navy-soft text-ink'
-                    : 'border-ivory-line bg-ivory-surface text-ink hover:bg-ivory/60'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <GlobeOutlineIcon size={18} className="shrink-0 text-terracotta" />
-                  <span>{lang.name}</span>
-                </div>
-                {isSelected && (
-                  <CheckmarkOutlineIcon size={18} className="shrink-0 font-bold text-navy" />
-                )}
-              </button>
-            )
-          })}
-        </div>
+      <div role="radiogroup" aria-label="Available app languages" className="space-y-2">
+        {LANGUAGES.map((lang) => {
+          const isSelected = currentLanguage === lang.code
+          return (
+            <button
+              key={lang.code}
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              onClick={() => onSelectLanguage(lang.code)}
+              className={`touch-target flex min-h-12 w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
+                isSelected
+                  ? 'border-navy bg-navy-soft text-ink'
+                  : 'border-ivory-line bg-ivory-surface text-ink hover:bg-ivory/60'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <GlobeOutlineIcon size={18} className="shrink-0 text-terracotta" />
+                <span>{lang.name}</span>
+              </div>
+              {isSelected && <CheckmarkIcon size={18} className="shrink-0 font-bold text-navy" />}
+            </button>
+          )
+        })}
       </div>
-    </div>
+    </ModalDialog>
   )
 }
 
 /** Permissions Subpage using shared TopNavbar and real navigator.permissions.query() state */
 function PermissionsSubpage({
   permissionStates,
-  requestingPerm,
-  onRequestPermission,
+  requestingCamera,
+  onRequestCamera,
   onBack,
 }: {
   permissionStates: Record<PermissionId, PermissionStatus>
-  requestingPerm: PermissionId | null
-  onRequestPermission: (id: PermissionId) => void
+  requestingCamera: boolean
+  onRequestCamera: () => void
   onBack: () => void
 }) {
   return (
@@ -995,7 +1184,7 @@ function PermissionsSubpage({
             <div className="min-w-0">
               <h2 className="text-base font-bold text-ink">You&apos;re in control</h2>
               <p className="mt-0.5 text-xs leading-relaxed text-ink-muted">
-                See what Laag ta bAI can access on your device. Location is only requested after you choose to allow it.
+                See what Laag ta bAI can access on your device. Location is only requested after you review the in-app rationale.
               </p>
             </div>
           </section>
@@ -1005,7 +1194,6 @@ function PermissionsSubpage({
             {PERMISSION_ITEMS.map((p) => {
               const status = permissionStates[p.id]
               const pill = STATUS_PILL[status]
-              const isAsking = requestingPerm === p.id
               return (
                 <article
                   key={p.id}
@@ -1025,16 +1213,26 @@ function PermissionsSubpage({
                     <span className={`rounded-full px-3 py-1 text-xs font-bold ${pill.className}`}>
                       {pill.label}
                     </span>
-                    {status === 'prompt' && (
+                    {status === 'prompt' && p.id === 'camera' && (
                       <button
                         type="button"
-                        disabled={isAsking}
-                        onClick={() => onRequestPermission(p.id)}
-                        aria-label={`Allow ${p.title}`}
+                        disabled={requestingCamera}
+                        onClick={onRequestCamera}
+                        aria-label="Allow Camera"
                         className="touch-target flex min-h-12 min-w-12 items-center justify-center rounded-xl bg-navy px-3 text-xs font-bold text-on-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60"
                       >
-                        {isAsking ? 'Asking…' : 'Allow'}
+                        {requestingCamera ? 'Asking…' : 'Allow'}
                       </button>
+                    )}
+                    {status === 'prompt' && p.id === 'location' && (
+                      <Link
+                        to="/permissions"
+                        state={{ next: '/profile' }}
+                        aria-label="Allow Location"
+                        className="touch-target flex min-h-12 min-w-12 items-center justify-center rounded-xl bg-navy px-3 text-xs font-bold text-on-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                      >
+                        Allow
+                      </Link>
                     )}
                   </div>
                 </article>
@@ -1049,7 +1247,7 @@ function PermissionsSubpage({
           >
             <LockClosedOutlineIcon size={18} className="mt-0.5 shrink-0 text-terracotta-ink" />
             <p className="leading-relaxed text-ink-body">
-              We use your location only to sort nearby landmarks and verify scans. Coordinates are sent to the API only for those features and are never sold. To revoke an allowed or blocked permission, update it in your browser settings.
+              Your coordinates are sent to the API only to sort nearby landmarks and verify scans. To change an allowed or blocked permission, update it in your browser settings.
             </p>
           </aside>
 
@@ -1090,116 +1288,74 @@ function HelpCenterModal({ onClose }: { onClose: () => void }) {
   ]
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="help-center-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-4 backdrop-blur-xs"
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+    <ModalDialog
+      titleId="help-center-title"
+      eyebrow="Support"
+      title="Help center"
+      closeLabel="Close help center"
+      onClose={onClose}
     >
-      <div className="w-full max-w-sm rounded-3xl border border-ivory-line bg-ivory p-6 text-ink shadow-2xl">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold tracking-wider text-terracotta-ink uppercase">
-              Support
-            </div>
-            <h2 id="help-center-title" className="text-xl font-black text-ink">
-              Help center
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close help center"
-            className="touch-target flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full bg-ivory-surface text-ink-muted transition-colors hover:bg-ivory-line/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-          >
-            <CloseOutlineIcon size={20} />
-          </button>
-        </div>
-
-        <div className="mb-5 space-y-3">
-          {faqs.map((faq) => (
-            <article key={faq.q} className="rounded-2xl border border-sage/30 bg-sage-soft p-3.5">
-              <h3 className="text-xs font-bold text-ink">{faq.q}</h3>
-              <p className="mt-1 text-xs leading-relaxed text-ink-muted">{faq.a}</p>
-            </article>
-          ))}
-        </div>
-
-        <a
-          href="mailto:support@laagtabai.com"
-          className="touch-target flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-navy text-sm font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-        >
-          <MailOutlineIcon size={18} />
-          <span>Contact support</span>
-        </a>
+      <div className="mb-5 space-y-3">
+        {faqs.map((faq) => (
+          <article key={faq.q} className="rounded-2xl border border-sage/30 bg-sage-soft p-3.5">
+            <h3 className="text-xs font-bold text-ink">{faq.q}</h3>
+            <p className="mt-1 text-xs leading-relaxed text-ink-muted">{faq.a}</p>
+          </article>
+        ))}
       </div>
-    </div>
+
+      <a
+        href="mailto:support@laagtabai.com"
+        className="touch-target flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-navy text-sm font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+      >
+        <MailOutlineIcon size={18} />
+        <span>Contact support</span>
+      </a>
+    </ModalDialog>
   )
 }
 
 /** About App Modal */
 function AboutAppModal({ onClose }: { onClose: () => void }) {
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="about-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-4 backdrop-blur-xs"
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+    <ModalDialog
+      titleId="about-dialog-title"
+      eyebrow="About"
+      title="About Laag ta bAI"
+      closeLabel="Close about dialog"
+      onClose={onClose}
     >
-      <div className="w-full max-w-sm rounded-3xl border border-ivory-line bg-ivory p-6 text-ink shadow-2xl">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold tracking-wider text-terracotta-ink uppercase">
-              About
-            </div>
-            <h2 id="about-dialog-title" className="text-xl font-black text-ink">
-              About Laag ta bAI
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close about dialog"
-            className="touch-target flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full bg-ivory-surface text-ink-muted transition-colors hover:bg-ivory-line/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-          >
-            <CloseOutlineIcon size={20} />
-          </button>
-        </div>
-
-        <div className="mb-3 flex items-center gap-1.5 rounded-2xl border border-sage/30 bg-sage-soft p-3">
-          <span className="text-xs font-black tracking-widest text-ink">LAAG TA</span>
-          <span className="text-sm font-black text-terracotta-ink">bAI</span>
-        </div>
-
-        <p className="mb-4 text-xs leading-relaxed text-ink-muted">
-          Laag ta bAI is an AI-powered companion for discovering Cebu&apos;s heritage through places, photos, and local stories.
-        </p>
-
-        <div className="mb-5 space-y-2.5">
-          <div className="rounded-2xl border border-sage/30 bg-sage-soft p-3">
-            <h3 className="text-xs font-bold text-ink">Version</h3>
-            <p className="mt-0.5 text-xs text-ink-muted">v{env.appVersion || '1.0.0'}</p>
-          </div>
-
-          <div className="rounded-2xl border border-sage/30 bg-sage-soft p-3">
-            <h3 className="text-xs font-bold text-ink">Privacy</h3>
-            <p className="mt-0.5 text-xs leading-relaxed text-ink-muted">
-              Your saved discoveries and profile preferences stay private to your account.
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={onClose}
-          className="touch-target flex min-h-12 w-full items-center justify-center rounded-2xl bg-navy text-sm font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-        >
-          Close
-        </button>
+      <div className="mb-3 flex items-center gap-1.5 rounded-2xl border border-sage/30 bg-sage-soft p-3">
+        <span className="text-xs font-black tracking-widest text-ink">LAAG TA</span>
+        <span className="text-sm font-black text-terracotta-ink">bAI</span>
       </div>
-    </div>
+
+      <p className="mb-4 text-xs leading-relaxed text-ink-muted">
+        Laag ta bAI is an AI-powered companion for discovering Cebu&apos;s heritage through places, photos, and local stories.
+      </p>
+
+      <div className="mb-5 space-y-2.5">
+        <div className="rounded-2xl border border-sage/30 bg-sage-soft p-3">
+          <h3 className="text-xs font-bold text-ink">Version</h3>
+          <p className="mt-0.5 text-xs text-ink-muted">v{env.appVersion || '1.0.0'}</p>
+        </div>
+
+        <div className="rounded-2xl border border-sage/30 bg-sage-soft p-3">
+          <h3 className="text-xs font-bold text-ink">Privacy</h3>
+          <p className="mt-0.5 text-xs leading-relaxed text-ink-muted">
+            Bookmarks are stored on this device. Your profile is stored on your account.
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onClose}
+        className="touch-target flex min-h-12 w-full items-center justify-center rounded-2xl bg-navy text-sm font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+      >
+        Close
+      </button>
+    </ModalDialog>
   )
 }
 
@@ -1218,61 +1374,40 @@ function ConfirmActionModal({
   onCancel: () => void
 }) {
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="confirm-modal-title"
-      aria-describedby="confirm-modal-desc"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-4 backdrop-blur-xs"
-      onKeyDown={(e) => e.key === 'Escape' && onCancel()}
+    <ModalDialog
+      titleId="confirm-modal-title"
+      eyebrow="Account"
+      title={title}
+      closeLabel="Close dialog"
+      describedBy="confirm-modal-desc"
+      onClose={onCancel}
     >
-      <div className="w-full max-w-sm rounded-3xl border border-ivory-line bg-ivory p-6 text-ink shadow-2xl">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <div className="text-xs font-bold tracking-wider text-terracotta-ink uppercase">
-              Account
-            </div>
-            <h2 id="confirm-modal-title" className="text-xl font-black text-ink">
-              {title}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label="Close dialog"
-            className="touch-target flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full bg-ivory-surface text-ink-muted transition-colors hover:bg-ivory-line/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-          >
-            <CloseOutlineIcon size={20} />
-          </button>
-        </div>
-
-        <div className="my-3 flex justify-center">
-          <div className="flex size-14 items-center justify-center rounded-full border border-navy/20 bg-navy-soft text-navy">
-            <LogOutOutlineIcon size={24} />
-          </div>
-        </div>
-
-        <p id="confirm-modal-desc" className="mb-6 text-center text-xs leading-relaxed text-ink-muted">
-          {message}
-        </p>
-
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="touch-target flex min-h-12 items-center justify-center rounded-xl border border-ivory-line text-sm font-bold text-ink transition-colors hover:bg-ivory-surface focus-visible:outline-2 focus-visible:outline-navy"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="touch-target flex min-h-12 items-center justify-center rounded-xl bg-navy text-sm font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-          >
-            {confirmLabel}
-          </button>
+      <div className="my-3 flex justify-center">
+        <div className="flex size-14 items-center justify-center rounded-full border border-navy/20 bg-navy-soft text-navy">
+          <LogOutOutlineIcon size={24} />
         </div>
       </div>
-    </div>
+
+      <p id="confirm-modal-desc" className="mb-6 text-center text-xs leading-relaxed text-ink-muted">
+        {message}
+      </p>
+
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="touch-target flex min-h-12 items-center justify-center rounded-xl border border-ivory-line text-sm font-bold text-ink transition-colors hover:bg-ivory-surface focus-visible:outline-2 focus-visible:outline-navy"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          className="touch-target flex min-h-12 items-center justify-center rounded-xl bg-navy text-sm font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+        >
+          {confirmLabel}
+        </button>
+      </div>
+    </ModalDialog>
   )
 }
