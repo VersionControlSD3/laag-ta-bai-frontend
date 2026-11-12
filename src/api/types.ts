@@ -105,3 +105,18 @@ export type LandmarkQuery = {
   radiusKm?: number
   limit?: number
 }
+
+/** `POST /v1/auth/login` (and `/v1/auth/signup`) response. */
+export type AuthSession = {
+  accessToken: string
+  /** Present in Supabase mode; memory mode issues `dev:<id>` tokens with no refresh token. */
+  refreshToken?: string
+  tokenType: string
+  expiresIn: number
+}
+
+export type AuthResult = {
+  user: { id: string; email: string; displayName: string }
+  /** Null when Supabase still needs the email confirmed. */
+  session: AuthSession | null
+}
