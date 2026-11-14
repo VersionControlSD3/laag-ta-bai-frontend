@@ -75,7 +75,7 @@ therefore **public**. Never put a secret key, database password or account login
 
 | Route | Screen |
 |---|---|
-| `/welcome` | First-run welcome |
+| `/onboarding` | First-run onboarding (three slides) |
 | `/login`, `/register` | Supabase sign-in / sign-up (or dev sign-in) |
 | `/` | Explore: search, filters, nearby (5 km), popular landmarks |
 | `/scan` | Scan-to-Story: camera or gallery photo, validation, result or candidates |

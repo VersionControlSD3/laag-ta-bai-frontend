@@ -3,29 +3,29 @@ import { useNavigate } from 'react-router'
 
 export default function SplashScreenPage() {
   const navigate = useNavigate()
-  const goToWelcome = useCallback(() => {
-    navigate('/welcome', { replace: true })
+  const goToOnboarding = useCallback(() => {
+    navigate('/onboarding', { replace: true })
   }, [navigate])
 
   useEffect(() => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      goToWelcome()
+      goToOnboarding()
       return
     }
 
-    const timer = window.setTimeout(goToWelcome, 1500)
+    const timer = window.setTimeout(goToOnboarding, 1500)
     return () => window.clearTimeout(timer)
-  }, [goToWelcome])
+  }, [goToOnboarding])
 
   return (
     <main
       className="artifact-page artifact-splash flex min-h-dvh flex-col items-center justify-center"
       aria-label="Preparing your Cebu journey"
-      onClick={goToWelcome}
+      onClick={goToOnboarding}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault()
-          goToWelcome()
+          goToOnboarding()
         }
       }}
       tabIndex={0}
