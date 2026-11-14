@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router'
 export default function SplashScreenPage() {
   const navigate = useNavigate()
   const goToWelcome = useCallback(() => {
-    navigate('/welcome', { replace: true })
+    navigate('/onboarding', { replace: true })
   }, [navigate])
 
   useEffect(() => {

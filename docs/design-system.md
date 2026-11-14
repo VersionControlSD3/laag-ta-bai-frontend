@@ -209,7 +209,7 @@ Profile`. Implemented in `src/components/BottomNav.tsx`:
 
 **Visibility rules.** The bar is rendered by `AppShell`, so it shows only on the five tab screens
 (`/`, `/archives`, `/scan`, `/mastery`, `/profile`). It's hidden on pushed screens (landmark
-details, chat), auth, splash, welcome, permissions and 404, which use a TopNavbar or nothing. Keep
+details, chat), auth, splash, onboarding, permissions and 404, which use a TopNavbar or nothing. Keep
 new tab-level screens inside `AppShell` and pushed screens outside it. The designer still needs to
 show these rules in the prototype (ticket #27).
 
@@ -228,6 +228,29 @@ tokenized:
   `Unlocked=false` variant plus a lock icon and the word "Locked", so state isn't colour alone.
 - Active quests are ordered nearest to completion first (ClickUp #33); completed quests leave the
   rail, and their badges move to the front of the collection.
+
+### Onboarding (first run)
+
+Built in `src/pages/OnboardingPage.tsx`, route `/onboarding`. The running app is the clickable
+prototype: open `/onboarding` (or clear `laagtabai:preferences` and open `/`).
+
+Flow and transition timing:
+
+| From | Action | To | Transition |
+|---|---|---|---|
+| Splash | after 1500 ms, or tap | Onboarding slide 1 | instant (route replace) |
+| Slide n | Next, swipe left (> 50 px), or tap dot | Slide n + 1 / dot's slide | 300 ms fade + 8 px rise, `ease-out` |
+| Slide n | swipe right (> 50 px) | Slide n − 1 | 300 ms fade + 8 px rise, `ease-out` |
+| Any slide | Page dot | — | dot width 8 → 24 px, 150 ms (Tailwind `transition-all`) |
+| Slide 3 | Start exploring | Permissions, then Login | instant (route replace) |
+| Any slide | Skip | Login | instant (route replace) |
+
+- Both exits replace the history entry, so back on Permissions or Login never returns to the slides.
+- Either exit sets `onboarded: true`, so onboarding shows once.
+- With "reduce motion" on, the fade and dot transitions are off and the splash skips its delay.
+- Tab order: Skip → page dots 1–3 → Next / Start exploring. All controls show a 2 px navy focus
+  ring and are at least 48 × 48 px. Dots are labelled "Page n of 3"; the current one has
+  `aria-current="step"`. Slide text is announced through an `aria-live="polite"` region.
 
 ## Assets
 
