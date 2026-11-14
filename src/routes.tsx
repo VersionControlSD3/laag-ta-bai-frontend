@@ -14,6 +14,7 @@ const LandmarkPage = lazy(() => import('@/pages/LandmarkPage'))
 const ChatPage = lazy(() => import('@/pages/ChatPage'))
 const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
 const PermissionsPage = lazy(() => import('@/pages/PermissionsPage'))
+const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 const LoginPage = lazy(() => import('@/pages/authentication/LoginPage'))
 const RegisterPage = lazy(() => import('@/pages/authentication/SignUpPage'))
@@ -58,6 +59,7 @@ export const routes: RouteObject[] = [
   { path: 'splash', element: page(<SplashScreenPage />) },
   { path: 'welcome', element: page(<WelcomePage />) },
   { path: 'permissions', element: page(<PermissionsPage />) },
+  { path: 'profile/permissions', element: page(<ProfilePage />) },
   { path: 'login', element: page(<LoginPage />) },
   { path: 'register', element: page(<RegisterPage />) },
   // Linked from the sign-up checkboxes (open in a new tab).
