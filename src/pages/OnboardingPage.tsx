@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
 import {
@@ -42,26 +42,27 @@ const SLIDES = [
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy'
 
-/** First-run onboarding: three slides, then Permissions (Start exploring) or Login (Skip). */
+/** First-run onboarding: three slides, then Permissions then Sign up (Start exploring), or Login (Skip). */
 export default function OnboardingPage() {
   const prefs = usePreferences()
   const navigate = useNavigate()
   const [index, setIndex] = useState(0)
-  const [swipeX, setSwipeX] = useState<number | null>(null)
+  const swipeX = useRef<number | null>(null)
   const slide = SLIDES[index]
   const last = index === SLIDES.length - 1
 
   // replace: back from Permissions or Login must not return to the slides.
   const finish = (completed: boolean) => {
     prefs.update({ onboarded: true })
-    if (completed) navigate('/permissions', { replace: true, state: { next: '/login' } })
+    // First-run users have no account yet, so the full path ends on Sign up.
+    if (completed) navigate('/permissions', { replace: true, state: { next: '/register' } })
     else navigate('/login', { replace: true })
   }
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-linear-to-b from-ivory to-ivory-deep px-6">
       <header className="flex items-center justify-between pt-4">
-        <p className="flex items-baseline gap-1.5" aria-label="Laag ta bAI">
+        <p className="flex items-baseline gap-1.5" role="img" aria-label="Laag ta bAI">
           <span className="text-[0.625rem] font-bold tracking-[0.1em] text-ink uppercase">Laag ta</span>
           <span className="text-xl font-extrabold text-terracotta-ink">bAI</span>
         </p>
@@ -75,54 +76,60 @@ export default function OnboardingPage() {
         </button>
       </header>
 
-      {/* key restarts the fade on every slide; motion-reduce turns it off. */}
       <main
-        key={index}
-        className="flex flex-1 touch-pan-y flex-col select-none animate-[fade-in_300ms_ease-out] motion-reduce:animate-none"
-        onPointerDown={(e) => setSwipeX(e.clientX)}
+        className="flex flex-1 touch-pan-y flex-col select-none"
+        onPointerDown={(e) => {
+          swipeX.current = e.clientX
+          // Capture so pointerup still arrives if the finger lifts outside <main>.
+          e.currentTarget.setPointerCapture?.(e.pointerId)
+        }}
+        onPointerCancel={() => (swipeX.current = null)}
         onPointerUp={(e) => {
-          if (swipeX === null) return
-          const dx = e.clientX - swipeX
-          setSwipeX(null)
+          if (swipeX.current === null) return
+          const dx = e.clientX - swipeX.current
+          swipeX.current = null
           // 50px threshold so taps and vertical scrolls don't change slides.
           if (dx < -50 && !last) setIndex(index + 1)
           if (dx > 50 && index > 0) setIndex(index - 1)
         }}
       >
-        <section className="relative mx-auto mt-8 w-full max-w-[320px]" aria-hidden="true">
-          {/* Light palette pinned: the logo artwork is made for light grounds. */}
-          <div data-palette="light" className="-rotate-2 rounded-2xl bg-ivory-surface p-2 shadow-navy">
-            <img src={slide.image} alt="" draggable={false} className={`aspect-square w-full rounded-xl ${slide.imageClass}`} />
-          </div>
-          <span className="absolute -top-3 -right-2 flex size-10 items-center justify-center rounded-full bg-terracotta text-on-navy ring-4 ring-ivory-surface">
-            <SparklesIcon size={20} />
-          </span>
-          {/* Opaque surface so the card stays readable over any part of the photo. */}
-          <div className="absolute inset-x-[-8px] bottom-[-28px] flex items-center gap-3 rounded-xl bg-ivory-surface p-3 shadow-navy">
-            <span className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${slide.card.disc}`}>
-              <slide.card.Icon size={20} />
+        {/* Stays mounted so screen readers announce each slide change. */}
+        <p role="status" className="sr-only">{`Page ${index + 1} of ${SLIDES.length}: ${slide.title}`}</p>
+        {/* key restarts the fade on every slide; motion-reduce turns it off. */}
+        <div key={index} className="flex flex-col animate-[fade-in_300ms_ease-out] motion-reduce:animate-none">
+          <section className="relative mx-auto mt-8 w-full max-w-[320px]" aria-hidden="true">
+            {/* Light palette pinned: the logo artwork is made for light grounds. */}
+            <div data-palette="light" className="-rotate-2 rounded-2xl bg-ivory-surface p-2 shadow-navy">
+              <img src={slide.image} alt="" draggable={false} className={`aspect-square w-full rounded-xl ${slide.imageClass}`} />
+            </div>
+            <span className="absolute -top-3 -right-2 flex size-10 items-center justify-center rounded-full bg-terracotta text-on-navy ring-4 ring-ivory-surface">
+              <SparklesIcon size={20} />
             </span>
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-sm font-bold text-ink">{slide.card.title}</span>
-              <span className="text-xs font-medium text-ink-muted">{slide.card.sub}</span>
-            </span>
-            <CheckmarkIcon size={18} className="text-sage-deep" />
-          </div>
-        </section>
+            {/* Opaque surface so the card stays readable over any part of the photo. */}
+            <div className="absolute inset-x-[-8px] bottom-[-28px] flex items-center gap-3 rounded-xl bg-ivory-surface p-3 shadow-navy">
+              <span className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${slide.card.disc}`}>
+                <slide.card.Icon size={20} />
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-sm font-bold text-ink">{slide.card.title}</span>
+                <span className="text-xs font-medium text-ink-muted">{slide.card.sub}</span>
+              </span>
+              <CheckmarkIcon size={18} className="text-sage-deep" />
+            </div>
+          </section>
 
-        <div className="mt-14 flex flex-col items-center gap-3 text-center" aria-live="polite">
-          <p className="sr-only">{`Page ${index + 1} of ${SLIDES.length}`}</p>
-          <span className={`rounded-full px-3 py-1 text-xs font-bold tracking-[0.1em] uppercase ${slide.tagClass}`}>
-            {slide.tag}
-          </span>
-          <h1 className="text-4xl font-extrabold tracking-tight text-ink">{slide.title}</h1>
-          <p className="text-sm leading-5 text-ink-body">{slide.body}</p>
+          <div className="mt-14 flex flex-col items-center gap-3 text-center">
+            <span className={`rounded-full px-3 py-1 text-xs font-bold tracking-[0.1em] uppercase ${slide.tagClass}`}>
+              {slide.tag}
+            </span>
+            <h1 className="text-4xl font-extrabold tracking-tight text-ink">{slide.title}</h1>
+            <p className="text-sm leading-5 text-ink-body">{slide.body}</p>
+          </div>
         </div>
       </main>
 
       <footer
-        className="flex flex-wrap items-center justify-between gap-2 pt-6"
-        style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}
+        className="flex flex-wrap items-center justify-between gap-2 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
       >
         <div className="-ml-4 flex">
           {SLIDES.map((s, i) => (

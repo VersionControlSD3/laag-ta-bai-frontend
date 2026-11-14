@@ -5,7 +5,7 @@ import { routes } from '@/routes'
 import { renderRoutes } from '@/test/render'
 
 describe('OnboardingPage', () => {
-  it('walks three slides and ends on Permissions', async () => {
+  it('walks three slides and ends on Permissions, then Sign up', async () => {
     renderRoutes(routes, '/onboarding')
     expect(await screen.findByRole('heading', { name: 'Every corner has a story.' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Page 1 of 3' })).toHaveAttribute('aria-current', 'step')
@@ -17,17 +17,37 @@ describe('OnboardingPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /Start exploring/ }))
     expect(await screen.findByRole('heading', { name: 'Ready to explore?' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Maybe later' }))
+    expect(await screen.findByRole('heading', { name: 'Create Account' })).toBeInTheDocument()
+  })
+
+  it('keeps one live region mounted and updates its text on slide change', async () => {
+    renderRoutes(routes, '/onboarding')
+    const status = await screen.findByRole('status')
+    expect(status).toHaveTextContent('Page 1 of 3: Every corner has a story.')
+    await userEvent.click(screen.getByRole('button', { name: /Next/ }))
+    expect(screen.getByRole('status')).toBe(status)
+    expect(status).toHaveTextContent('Page 2 of 3: Point. Scan. Step into history.')
   })
 
   it('swipes between slides', async () => {
     renderRoutes(routes, '/onboarding')
-    const heading = await screen.findByRole('heading', { name: 'Every corner has a story.' })
-    const main = heading.closest('main')!
+    const main = (await screen.findByRole('main'))
     fireEvent.pointerDown(main, { clientX: 300 })
     fireEvent.pointerUp(main, { clientX: 100 })
-    const next = screen.getByRole('heading', { name: 'Point. Scan. Step into history.' })
-    fireEvent.pointerDown(next.closest('main')!, { clientX: 100 })
-    fireEvent.pointerUp(next.closest('main')!, { clientX: 300 })
+    expect(screen.getByRole('heading', { name: 'Point. Scan. Step into history.' })).toBeInTheDocument()
+    fireEvent.pointerDown(main, { clientX: 100 })
+    fireEvent.pointerUp(main, { clientX: 300 })
+    expect(screen.getByRole('heading', { name: 'Every corner has a story.' })).toBeInTheDocument()
+  })
+
+  it('a cancelled pointer leaves no stale swipe start', async () => {
+    renderRoutes(routes, '/onboarding')
+    const main = await screen.findByRole('main')
+    fireEvent.pointerDown(main, { clientX: 300 })
+    fireEvent.pointerCancel(main)
+    // A later pointerup far from the old start must not change slide.
+    fireEvent.pointerUp(main, { clientX: 100 })
     expect(screen.getByRole('heading', { name: 'Every corner has a story.' })).toBeInTheDocument()
   })
 

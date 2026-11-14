@@ -33,7 +33,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,jpg,ico,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,webp,ico,webmanifest}'],
         // Decorative auth backgrounds load on demand instead of adding ~1 MB to
         // every install; they are not needed for the offline shell (PR #17 review).
         globIgnores: ['**/authenticationBG/**'],
