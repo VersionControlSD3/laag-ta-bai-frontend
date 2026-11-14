@@ -90,7 +90,8 @@ export default function OnboardingPage() {
         }}
       >
         <section className="relative mx-auto mt-8 w-full max-w-[320px]" aria-hidden="true">
-          <div className="-rotate-2 rounded-2xl bg-ivory-surface p-2 shadow-navy">
+          {/* Light palette pinned: the logo artwork is made for light grounds. */}
+          <div data-palette="light" className="-rotate-2 rounded-2xl bg-ivory-surface p-2 shadow-navy">
             <img src={slide.image} alt="" draggable={false} className={`aspect-square w-full rounded-xl ${slide.imageClass}`} />
           </div>
           <span className="absolute -top-3 -right-2 flex size-10 items-center justify-center rounded-full bg-terracotta text-on-navy ring-4 ring-ivory-surface">
@@ -120,10 +121,10 @@ export default function OnboardingPage() {
       </main>
 
       <footer
-        className="flex items-center justify-between gap-4 pt-6"
+        className="flex flex-wrap items-center justify-between gap-2 pt-6"
         style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}
       >
-        <div className="-ml-3 flex">
+        <div className="-ml-4 flex">
           {SLIDES.map((s, i) => (
             <button
               key={s.tag}
@@ -145,7 +146,7 @@ export default function OnboardingPage() {
         <button
           type="button"
           onClick={() => (last ? finish(true) : setIndex(index + 1))}
-          className={`flex h-14 shrink-0 items-center gap-3 rounded-full bg-navy px-6 text-base font-bold text-on-navy shadow-navy active:bg-navy-pressed ${focusRing}`}
+          className={`ml-auto flex h-14 shrink-0 items-center gap-2 rounded-full bg-navy px-4 text-base font-bold text-on-navy shadow-navy active:bg-navy-pressed ${focusRing}`}
         >
           {last ? 'Start exploring' : 'Next'}
           <ArrowForwardIcon size={20} />
