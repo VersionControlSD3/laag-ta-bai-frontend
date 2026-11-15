@@ -10,10 +10,10 @@
       "destination": "/index.html"
     }
   ],
-  "git": {
-    "deploymentEnabled": {
-      "staging": true,
-      "*": false
+"git": {
+  "deploymentEnabled": {
+    "staging": true,
+    "**": false
     }
   }
 }
