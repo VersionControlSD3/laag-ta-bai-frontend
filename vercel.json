@@ -4,6 +4,16 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/((?!assets/|landmarks/|brand/|.*\\..*).*)", "destination": "/index.html" }],
-  "git": { "deploymentEnabled": false }
+  "rewrites": [
+    {
+      "source": "/((?!assets/|landmarks/|brand/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "staging": true,
+      "*": false
+    }
+  }
 }
