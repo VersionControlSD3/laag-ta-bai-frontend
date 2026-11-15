@@ -10,7 +10,7 @@ import { usePreferences } from '@/features/preferences/PreferencesContext'
  * The card is navy over a photo in both themes, so the subtree is pinned to the light palette:
  * `navy`, `ivory` and `terracotta` keep their Figma values instead of inverting in dark mode.
  */
-export function AuthScreen({ children }: { children: ReactNode }) {
+export function AuthScreen({ children, centered = false }: { children: ReactNode; centered?: boolean }) {
   const night = usePreferences().resolvedTheme === 'dark'
   return (
     <div
@@ -20,7 +20,11 @@ export function AuthScreen({ children }: { children: ReactNode }) {
       }`}
     >
       <div className="absolute inset-0 bg-linear-to-b from-navy/35 via-navy/15 to-navy/50" aria-hidden />
-      <div className="relative mx-auto w-full max-w-md px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))]">
+      <div
+        className={`relative mx-auto w-full max-w-md px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] ${
+          centered ? 'flex min-h-dvh flex-col' : ''
+        }`}
+      >
         <header className="flex items-center justify-between gap-3">
           <p className="flex items-end gap-1.5 text-ivory">
             <span className="sr-only">Laag ta bAI</span>
@@ -36,16 +40,21 @@ export function AuthScreen({ children }: { children: ReactNode }) {
             Cebu, Philippines
           </p>
         </header>
-        <main className="pt-22">{children}</main>
+        <main className={centered ? 'my-auto py-8' : 'pt-22'}>{children}</main>
       </div>
     </div>
   )
 }
 
 /** The glass navy card ("Section" in Figma): 28px corners, ivory hairline, blurred photo behind. */
-export function AuthCard({ children }: { children: ReactNode }) {
+export function AuthCard({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <section className="rounded-[28px] border border-ivory/30 bg-linear-to-b from-navy/90 to-navy-pressed/80 px-6 py-8 shadow-2xl backdrop-blur-[36px]">
+    <section
+      className={
+        className ??
+        'rounded-[28px] border border-ivory/30 bg-linear-to-b from-navy/90 to-navy-pressed/80 px-6 py-8 shadow-2xl backdrop-blur-[36px]'
+      }
+    >
       {children}
     </section>
   )
