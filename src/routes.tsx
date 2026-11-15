@@ -12,7 +12,7 @@ import SplashScreenPage from '@/pages/SplashScreenPage'
 const tab = (load: () => Promise<{ default: ComponentType }>) => async () => ({ Component: (await load()).default })
 const LandmarkPage = lazy(() => import('@/pages/LandmarkPage'))
 const ChatPage = lazy(() => import('@/pages/ChatPage'))
-const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
+const OnboardingPage = lazy(() => import('@/pages/OnboardingPage'))
 const PermissionsPage = lazy(() => import('@/pages/PermissionsPage'))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
@@ -23,7 +23,7 @@ const PrivacyPage = lazy(() => import('@/pages/LegalPages').then((m) => ({ defau
 
 const page = (element: ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>
 
-/** Sends first-time visitors to the splash, then the welcome screen. */
+/** Sends first-time visitors to the splash, then onboarding. */
 function FirstRun({ children }: { children: ReactNode }) {
   const { onboarded } = usePreferences()
   return onboarded ? children : <Navigate to="/splash" replace />
@@ -57,7 +57,7 @@ export const routes: RouteObject[] = [
   { path: 'landmarks/:id', element: page(<LandmarkPage />) },
   { path: 'landmarks/:id/chat', element: page(<ChatPage />) },
   { path: 'splash', element: page(<SplashScreenPage />) },
-  { path: 'welcome', element: page(<WelcomePage />) },
+  { path: 'onboarding', element: page(<OnboardingPage />) },
   { path: 'permissions', element: page(<PermissionsPage />) },
   { path: 'profile/permissions', element: page(<ProfilePage />) },
   { path: 'login', element: page(<LoginPage />) },
