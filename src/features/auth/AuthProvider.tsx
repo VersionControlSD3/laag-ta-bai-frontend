@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { Session } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { api } from '@/api/client'
 import type { ProfileUpdate } from '@/api/types'
 import { readJson, removeKey, writeJson } from '@/lib/storage'
@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { AuthContext, type AuthState, type AuthUser } from './AuthContext'
 
 const DEV_KEY = 'dev-user'
+const RECOVERY_SESSION_KEY = 'password-recovery-session'
 /** Profile fields captured at sign-up but not yet saved (email confirmation is on). */
 const PENDING_PROFILE_KEY = 'pending-profile'
 
@@ -18,30 +19,58 @@ function fromSession(session: Session | null): AuthUser | null {
   return { id: session.user.id, email: session.user.email ?? null, displayName: meta?.display_name ?? null }
 }
 
+// Supabase keeps the session ID stable when it refreshes the access token.
+function getSessionId(session: Session | null): string | null {
+  const payload = session?.access_token.split('.')[1]
+  if (!payload) return null
+  try {
+    const { session_id } = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+    return typeof session_id === 'string' && session_id ? session_id : null
+  } catch {
+    return null
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
-  const [recoveryUserId, setRecoveryUserId] = useState<string | null>(null)
+  const [recoverySessionId, setRecoverySessionId] = useState<string | null>(null)
   const [devUser, setDevUser] = useState<AuthUser | null>(() => (supabase ? null : readJson<AuthUser | null>(DEV_KEY, null)))
   const [loading, setLoading] = useState(Boolean(supabase))
 
   useEffect(() => {
     if (!supabase) return
+    let active = true
+    let receivedAuthEvent = false
+    let recoveryId = readJson<string | null>(RECOVERY_SESSION_KEY, null)
+
+    const syncSession = (next: Session | null, event?: AuthChangeEvent) => {
+      const sessionId = getSessionId(next)
+      if (event === 'PASSWORD_RECOVERY') {
+        recoveryId = sessionId
+        if (recoveryId) writeJson(RECOVERY_SESSION_KEY, recoveryId)
+        else removeKey(RECOVERY_SESSION_KEY)
+      } else if (event === 'SIGNED_OUT' || event === 'USER_UPDATED' || recoveryId !== sessionId) {
+        if (recoveryId) removeKey(RECOVERY_SESSION_KEY)
+        recoveryId = null
+      }
+      setRecoverySessionId(recoveryId)
+      setSession(next)
+    }
+
     // getSession validates the stored session and refreshes expired tokens (SRS 3.5.2.2).
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+      if (!active) return
+      if (!receivedAuthEvent) syncSession(data.session)
       setLoading(false)
     })
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
-      setSession(next)
-      if (event === 'PASSWORD_RECOVERY') {
-        setRecoveryUserId(next?.user.id ?? null)
-      } else if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-        setRecoveryUserId(null)
-      } else {
-        setRecoveryUserId((current) => (current === next?.user.id ? current : null))
-      }
+      receivedAuthEvent = true
+      syncSession(next, event)
     })
-    return () => data.subscription.unsubscribe()
+    return () => {
+      active = false
+      data.subscription.unsubscribe()
+    }
   }, [])
 
   // nationality/bio are Profile fields (PATCH /v1/me), not auth metadata. Save
@@ -67,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       status: loading ? 'loading' : user ? 'signed-in' : 'signed-out',
       user,
       token: supabase ? (session?.access_token ?? null) : devUser ? `dev:${devUser.id}` : null,
-      isPasswordRecovery: recoveryUserId !== null && recoveryUserId === user?.id,
+      isPasswordRecovery: recoverySessionId !== null && recoverySessionId === getSessionId(session),
       async signIn(email, password) {
         // POST /v1/auth/login (API #7). The API signs in with Supabase, or checks its in-memory
         // accounts in memory mode and issues a `dev:<id>` token.
@@ -131,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setDevUser(null)
       },
     }
-  }, [session, devUser, loading, recoveryUserId])
+  }, [session, devUser, loading, recoverySessionId])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
