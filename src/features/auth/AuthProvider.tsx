@@ -20,6 +20,7 @@ function fromSession(session: Session | null): AuthUser | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
+  const [recoveryUserId, setRecoveryUserId] = useState<string | null>(null)
   const [devUser, setDevUser] = useState<AuthUser | null>(() => (supabase ? null : readJson<AuthUser | null>(DEV_KEY, null)))
   const [loading, setLoading] = useState(Boolean(supabase))
 
@@ -30,7 +31,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session)
       setLoading(false)
     })
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next))
+    const { data } = supabase.auth.onAuthStateChange((event, next) => {
+      setSession(next)
+      if (event === 'PASSWORD_RECOVERY') {
+        setRecoveryUserId(next?.user.id ?? null)
+      } else if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        setRecoveryUserId(null)
+      } else {
+        setRecoveryUserId((current) => (current === next?.user.id ? current : null))
+      }
+    })
     return () => data.subscription.unsubscribe()
   }, [])
 
@@ -57,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       status: loading ? 'loading' : user ? 'signed-in' : 'signed-out',
       user,
       token: supabase ? (session?.access_token ?? null) : devUser ? `dev:${devUser.id}` : null,
+      isPasswordRecovery: recoveryUserId !== null && recoveryUserId === user?.id,
       async signIn(email, password) {
         // POST /v1/auth/login (API #7). The API signs in with Supabase, or checks its in-memory
         // accounts in memory mode and issues a `dev:<id>` token.
@@ -120,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setDevUser(null)
       },
     }
-  }, [session, devUser, loading])
+  }, [session, devUser, loading, recoveryUserId])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

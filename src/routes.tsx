@@ -19,6 +19,7 @@ const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 const LoginPage = lazy(() => import('@/pages/authentication/LoginPage'))
 const RegisterPage = lazy(() => import('@/pages/authentication/SignUpPage'))
 const ForgotPasswordPage = lazy(() => import('@/pages/authentication/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('@/pages/authentication/ResetPasswordPage'))
 const TermsPage = lazy(() => import('@/pages/LegalPages').then((m) => ({ default: m.TermsPage })))
 const PrivacyPage = lazy(() => import('@/pages/LegalPages').then((m) => ({ default: m.PrivacyPage })))
 
@@ -64,6 +65,7 @@ export const routes: RouteObject[] = [
   { path: 'login', element: page(<LoginPage />) },
   { path: 'register', element: page(<RegisterPage />) },
   { path: 'forgot-password', element: page(<ForgotPasswordPage />) },
+  { path: 'reset-password', element: page(<ResetPasswordPage />) },
   // Linked from the sign-up checkboxes (open in a new tab).
   { path: 'terms', element: page(<TermsPage />) },
   { path: 'privacy', element: page(<PrivacyPage />) },
