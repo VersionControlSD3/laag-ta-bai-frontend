@@ -125,6 +125,13 @@ export default function LoginPage() {
             )}
           </Field>
 
+          <Link
+            to="/forgot-password"
+            className={`-mt-2 flex min-h-11 items-center self-end rounded-lg text-sm font-bold text-terracotta-light underline underline-offset-4 ${focus}`}
+          >
+            Forgot password?
+          </Link>
+
           {error && (
             <p role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-semibold text-danger">
               {error}

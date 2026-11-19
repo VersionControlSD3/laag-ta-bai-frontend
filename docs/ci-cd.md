@@ -35,7 +35,9 @@ CI still runs and nothing is deployed.
    `VITE_` values are bundled into the browser app, so never put a secret in one.
    `vercel.json` disables Vercel's own Git auto-deploys so GitHub Actions is the only deployer.
 2. **Supabase Auth URLs**: in each Supabase project → Authentication → URL Configuration, set the
-   Site URL to that environment's frontend URL and add it to the redirect allow list.
+   Site URL to that environment's frontend URL. Add both the frontend origin and its full
+   `/reset-password` URL to the redirect allow list. Include the staging alias and any
+   preview origins where you test password recovery.
 3. **GitHub Environments**: Settings → Environments → create `staging` and `production`.
    Add a required reviewer to `production`.
 4. **Secrets** (add to each environment): `VERCEL_TOKEN` (Vercel → Account Settings → Tokens),
