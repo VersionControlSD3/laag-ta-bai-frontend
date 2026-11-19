@@ -1,9 +1,11 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { AuthContext, type AuthState } from '@/features/auth/AuthContext'
 import { writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
-import { renderRoutes } from '@/test/render'
+import { renderPage, renderRoutes } from '@/test/render'
+import SignUpPage from './SignUpPage'
 
 async function openRegister() {
   renderRoutes(routes, '/register')
@@ -11,6 +13,37 @@ async function openRegister() {
 }
 
 describe('sign-up page', () => {
+  it('requires current terms acceptance before starting Google sign-up', async () => {
+    const user = userEvent.setup()
+    const auth: AuthState = {
+      mode: 'supabase',
+      status: 'signed-out',
+      user: null,
+      token: null,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      signInWithGoogle: vi.fn().mockResolvedValue(undefined),
+      signInAsDev: vi.fn(),
+      signOut: vi.fn(),
+    }
+    renderPage(<AuthContext.Provider value={auth}><SignUpPage /></AuthContext.Provider>)
+
+    const googleButton = screen.getByRole('button', { name: 'Continue with Google' })
+    const terms = screen.getByRole('checkbox', { name: /I agree to the Terms and Privacy Policy/i })
+
+    expect(googleButton).toBeDisabled()
+    await user.click(googleButton)
+    expect(auth.signInWithGoogle).not.toHaveBeenCalled()
+
+    await user.click(terms)
+    expect(googleButton).toBeEnabled()
+    await user.click(googleButton)
+    expect(auth.signInWithGoogle).toHaveBeenCalledOnce()
+
+    await user.click(terms)
+    expect(googleButton).toBeDisabled()
+  })
+
   it('shows the required-field errors when the empty form is submitted', async () => {
     const user = userEvent.setup()
     await openRegister()
