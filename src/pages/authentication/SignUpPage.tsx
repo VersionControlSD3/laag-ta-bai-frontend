@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, MapPin, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -159,8 +159,16 @@ export default function SignUpPage() {
   const [busy, setBusy] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [submitCount, setSubmitCount] = useState(0)
   const [oauthError, setOauthError] = useState<string | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const submitted = submitCount > 0
+
+  useLayoutEffect(() => {
+    const firstInvalid = formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')
+    firstInvalid?.focus({ preventScroll: true })
+    firstInvalid?.scrollIntoView?.({ block: 'center' })
+  }, [submitCount])
 
   const maxBirthDate = (() => {
     const now = new Date()
@@ -175,18 +183,17 @@ export default function SignUpPage() {
   const confirmValid = form.confirmPassword.length > 0 && form.password === form.confirmPassword
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
   const isUnderage = Boolean(form.dateOfBirth) && new Date(`${form.dateOfBirth}T00:00:00`) > maxBirthDate
-  const fieldError = (message: string) => <span className="auth-field-error" role="alert">{message}</span>
+  const fieldError = (message: string, id?: string) => <span id={id} className="auth-field-error" role="alert">{message}</span>
   const update = (field: keyof typeof form, value: string | boolean) => setForm((current) => ({ ...current, [field]: value }))
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    setSubmitted(true)
-    setBusy(true)
+    setSubmitCount((count) => count + 1)
     setError(null)
     if (!form.displayName || !emailValid || !form.dateOfBirth || isUnderage || !form.nationality || !passwordValid || !confirmValid || !form.acceptedTerms) {
-      setBusy(false)
       return
     }
+    setBusy(true)
     try {
       const { needsConfirmation } = await auth.signUp({
         email: form.email, password: form.password, displayName: form.displayName,
@@ -227,7 +234,7 @@ export default function SignUpPage() {
               {auth.mode === 'dev' && <div className="mt-4"><DevSignIn tone="notice" /></div>}
 
               {/* Registration form */}
-              <form onSubmit={submit} noValidate className="mt-7 space-y-4">
+              <form ref={formRef} onSubmit={submit} noValidate className="mt-7 space-y-4">
                 <label className="auth-label block">Full name <span aria-hidden="true">*</span>
                   <input required maxLength={60} autoComplete="name" value={form.displayName} onChange={(e) => update('displayName', e.target.value)} className={inputClass(submitted && !form.displayName)} aria-invalid={submitted && !form.displayName} />
                   {submitted && !form.displayName && fieldError('Full name is required.')}
@@ -257,18 +264,22 @@ export default function SignUpPage() {
                     {passwordRules.map(([label, valid]) => <span key={label} className={valid ? 'text-success' : 'text-ivory'}>{valid ? <Check size={14} className="mr-1 inline" /> : <X size={14} className="mr-1 inline" />}{label}</span>)}
                   </span>
                 </label>
-                <label className="auth-label block">Confirm password <span aria-hidden="true">*</span>
-                  <span className="relative block">
-                    <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${inputClass(submitted && !confirmValid)} ${form.confirmPassword ? (confirmValid ? 'border-success' : 'border-error') : ''} pr-12`} aria-invalid={submitted && !confirmValid} />
-                    <button type="button" className="touch-target absolute right-0 top-1 flex items-center px-3" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}</button>
-                  </span>
-                  {form.confirmPassword && <span className={`auth-password-status mt-1 block ${confirmValid ? 'text-success' : 'text-error'}`}>{confirmValid ? 'Passwords match' : 'Passwords do not match'}</span>}
-                </label>
+                <div>
+                  <label className="auth-label block">Confirm password <span aria-hidden="true">*</span>
+                    <span className="relative block">
+                      <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${inputClass(submitted && !confirmValid)} ${form.confirmPassword ? (confirmValid ? 'border-success' : 'border-error') : ''} pr-12`} aria-invalid={submitted && !confirmValid} aria-describedby={submitted && !confirmValid ? 'signup-confirm-password-message' : undefined} />
+                      <button type="button" className="touch-target absolute right-0 top-1 flex items-center px-3" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}</button>
+                    </span>
+                  </label>
+                  {form.confirmPassword ? (
+                    <span id="signup-confirm-password-message" className={`auth-password-status mt-1 block ${confirmValid ? 'text-success' : 'text-error'}`}>{confirmValid ? 'Passwords match' : 'Passwords do not match'}</span>
+                  ) : submitted && fieldError('Please confirm your password.', 'signup-confirm-password-message')}
+                </div>
                 <label className="auth-label block">Bio <span className="text-ivory">(optional)</span>
                   <textarea maxLength={240} value={form.bio} onChange={(e) => update('bio', e.target.value)} className="mt-1 min-h-16 w-full rounded-xl border border-design-line bg-design-surface p-3 text-ivory text-base outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/30" />
                 </label>
                 <label className="flex min-h-12 items-center gap-3 text-sm text-terracotta">
-                  <input type="checkbox" checked={form.acceptedTerms} onChange={(e) => update('acceptedTerms', e.target.checked)} className={`auth-terms-checkbox h-5 w-5 accent-primary ${submitted && !form.acceptedTerms ? 'auth-terms-checkbox-invalid' : ''}`} />
+                  <input type="checkbox" checked={form.acceptedTerms} onChange={(e) => update('acceptedTerms', e.target.checked)} aria-invalid={submitted && !form.acceptedTerms} className={`auth-terms-checkbox h-5 w-5 accent-primary ${submitted && !form.acceptedTerms ? 'auth-terms-checkbox-invalid' : ''}`} />
                   <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold underline">Terms</a> and <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold underline">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
                 </label>
                 {submitted && !form.acceptedTerms && <p className="text-xs text-error" role="alert">You must accept the Terms and Privacy Policy.</p>}
