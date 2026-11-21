@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMe, useUpdateMe } from '@/api/hooks'
 import type { Me } from '@/api/types'
+import { NationalitySelect } from '@/components/NationalitySelect'
 import { SignInPrompt } from '@/components/SignInPrompt'
 import { ErrorMessage, Loading } from '@/components/StateMessage'
 import { TopNavbar } from '@/components/TopNavbar'
@@ -33,6 +34,7 @@ import { levelProgress } from '@/features/mastery/progress'
 import { usePreferences, type ThemeMode } from '@/features/preferences/PreferencesContext'
 import { GRANTED_KEY } from '@/hooks/useGeolocation'
 import { env } from '@/lib/env'
+import { nationalityOptions } from '@/lib/nationality'
 import { clearOfflineCache, readJson } from '@/lib/storage'
 
 type LanguageOption = {
@@ -623,11 +625,17 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
       setValidationError('Display name is required.')
       return
     }
+    const nationality = editFormData.nationality
+    const nationalityChanged = nationality !== (me.profile.nationality ?? '')
+    if (nationalityChanged && nationality && !nationalityOptions.includes(nationality)) {
+      setValidationError('Select a nationality from the list.')
+      return
+    }
     setValidationError(null)
     updateMe.mutate(
       {
         displayName: trimmedName,
-        nationality: editFormData.nationality.trim() || null,
+        ...(nationalityChanged && { nationality: nationality || null }),
         bio: editFormData.bio.trim() || null,
       },
       {
@@ -784,15 +792,14 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 <span className="pointer-events-none absolute left-3.5 text-terracotta">
                   <GlobeOutlineIcon size={18} />
                 </span>
-                <input
+                <NationalitySelect
                   id="edit-nationality"
-                  name="nationality"
-                  type="text"
-                  maxLength={60}
                   value={editFormData.nationality}
-                  onChange={(e) => setEditFormData((prev) => ({ ...prev, nationality: e.target.value }))}
-                  placeholder="e.g. Filipino"
-                  className="h-12 w-full rounded-2xl border border-line-strong bg-ivory pr-4 pl-10 text-sm font-semibold text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-navy"
+                  onValueChange={(nationality) => {
+                    setValidationError(null)
+                    setEditFormData((prev) => ({ ...prev, nationality }))
+                  }}
+                  className="h-12 w-full min-w-0 rounded-2xl border border-line-strong bg-ivory pr-4 pl-10 text-sm font-semibold text-ink focus-visible:outline-2 focus-visible:outline-navy"
                 />
               </div>
             </div>

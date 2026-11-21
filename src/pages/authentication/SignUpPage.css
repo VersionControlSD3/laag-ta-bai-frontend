@@ -44,7 +44,7 @@
   color: var(--ds-terracotta);
 }
 
-.auth-signup-day .auth-signup-card input,
+.auth-signup-day .auth-signup-card :is(input, select),
 .auth-signup-day .auth-signup-card textarea,
 .auth-signup-day .auth-signup-card .auth-date-field {
   border-color: rgb(250 245 236 / 0.28);
@@ -57,7 +57,7 @@
   color: var(--ds-ink-muted);
 }
 
-.auth-signup-day .auth-signup-card input.border-error,
+.auth-signup-day .auth-signup-card :is(input, select).border-error,
 .auth-signup-day .auth-signup-card .auth-date-field-invalid {
   border-color: var(--color-error);
 }
@@ -67,14 +67,13 @@
 }
 
 .auth-signup-day .auth-signup-card .auth-date-field:focus-visible,
-.auth-signup-day .auth-signup-card input:focus,
+.auth-signup-day .auth-signup-card :is(input, select):focus,
 .auth-signup-day .auth-signup-card textarea:focus {
   border-color: var(--color-gold);
   box-shadow: 0 0 0 3px rgb(255 193 7 / 0.2);
 }
 
-.auth-signup-day .auth-signup-card input.border-error:focus,
-.auth-signup-day .auth-signup-card input.border-error:focus-visible {
+.auth-signup-day .auth-signup-card :is(input, select).border-error:focus {
   border-color: var(--color-error);
   box-shadow: 0 0 0 3px rgb(255 123 114 / 0.2);
 }
@@ -113,14 +112,14 @@
   box-shadow: 0 24px 60px rgb(36 59 83 / 0.42);
 }
 
-.auth-signup-night .auth-signup-card input,
+.auth-signup-night .auth-signup-card :is(input, select),
 .auth-signup-night .auth-signup-card textarea,
 .auth-signup-night .auth-signup-card .auth-date-field {
   border-color: rgb(250 245 236 / 0.28);
   background: rgb(36 59 83 / 0.34);
 }
 
-.auth-signup-night .auth-signup-card input.border-error,
+.auth-signup-night .auth-signup-card :is(input, select).border-error,
 .auth-signup-night .auth-signup-card .auth-date-field-invalid {
   border-color: var(--color-error);
 }
@@ -130,14 +129,13 @@
 }
 
 .auth-signup-night .auth-signup-card .auth-date-field:focus-visible,
-.auth-signup-night .auth-signup-card input:focus,
+.auth-signup-night .auth-signup-card :is(input, select):focus,
 .auth-signup-night .auth-signup-card textarea:focus {
   border-color: var(--ds-terracotta);
   box-shadow: 0 0 0 3px rgb(198 107 78 / 0.2);
 }
 
-.auth-signup-night .auth-signup-card input.border-error:focus,
-.auth-signup-night .auth-signup-card input.border-error:focus-visible {
+.auth-signup-night .auth-signup-card :is(input, select).border-error:focus {
   border-color: var(--color-error);
   box-shadow: 0 0 0 3px rgb(255 123 114 / 0.2);
 }
@@ -166,6 +164,10 @@
 
 .auth-signup-night .auth-signup-card > .rounded-2xl {
   background: rgb(36 59 83 / 0.28);
+}
+
+.auth-nationality-select {
+  color-scheme: dark;
 }
 
 .auth-label {

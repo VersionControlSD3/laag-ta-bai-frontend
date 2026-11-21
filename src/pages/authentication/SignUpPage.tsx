@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, MapPin, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
+import { NationalitySelect } from '@/components/NationalitySelect'
 import { useAuth } from '@/features/auth/AuthContext'
 import { DevSignIn } from '@/features/auth/DevSignIn'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
+import { nationalityOptions } from '@/lib/nationality'
 import './SignUpPage.css'
 
 // Custom calendar controls keep the date picker consistent across browsers.
@@ -174,6 +176,8 @@ export default function SignUpPage() {
   const passwordValid = passwordRules.every(([, valid]) => valid)
   const confirmValid = form.confirmPassword.length > 0 && form.password === form.confirmPassword
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+  const nationalityValid = nationalityOptions.includes(form.nationality)
+  const nationalityInvalid = submitted && !nationalityValid
   const isUnderage = Boolean(form.dateOfBirth) && new Date(`${form.dateOfBirth}T00:00:00`) > maxBirthDate
   const fieldError = (message: string) => <span className="auth-field-error" role="alert">{message}</span>
   const update = (field: keyof typeof form, value: string | boolean) => setForm((current) => ({ ...current, [field]: value }))
@@ -183,7 +187,7 @@ export default function SignUpPage() {
     setSubmitted(true)
     setBusy(true)
     setError(null)
-    if (!form.displayName || !emailValid || !form.dateOfBirth || isUnderage || !form.nationality || !passwordValid || !confirmValid || !form.acceptedTerms) {
+    if (!form.displayName || !emailValid || !form.dateOfBirth || isUnderage || !nationalityValid || !passwordValid || !confirmValid || !form.acceptedTerms) {
       setBusy(false)
       return
     }
@@ -243,10 +247,21 @@ export default function SignUpPage() {
                     {submitted && !form.dateOfBirth && fieldError('Date of birth is required.')}
                     {submitted && isUnderage && fieldError('You must be at least 18 to create an account.')}
                   </label>
-                  <label className="auth-label block">Nationality <span aria-hidden="true">*</span>
-                    <input required autoComplete="country-name" value={form.nationality} onChange={(e) => update('nationality', e.target.value)} className={inputClass(submitted && !form.nationality)} aria-invalid={submitted && !form.nationality} />
-                    {submitted && !form.nationality && fieldError('Nationality is required.')}
-                  </label>
+                  <div className="min-w-0">
+                    <label htmlFor="signup-nationality" className="auth-label block">Nationality <span aria-hidden="true">*</span></label>
+                    <NationalitySelect
+                      id="signup-nationality"
+                      required
+                      value={form.nationality}
+                      onValueChange={(value) => update('nationality', value)}
+                      className={`${inputClass(nationalityInvalid)} auth-nationality-select`}
+                      aria-invalid={nationalityInvalid}
+                      aria-describedby={nationalityInvalid ? 'signup-nationality-error' : undefined}
+                    />
+                    {nationalityInvalid && (
+                      <span id="signup-nationality-error" className="auth-field-error" role="alert">Nationality is required.</span>
+                    )}
+                  </div>
                 </div>
                 <label className="auth-label block">Password <span aria-hidden="true">*</span>
                   <span className="relative block">
