@@ -1,27 +1,60 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
 import { renderRoutes } from '@/test/render'
 
 async function openRegister() {
   renderRoutes(routes, '/register')
-  return await screen.findByRole('heading', { name: 'Create Account' })
+  return await screen.findByRole('heading', { name: 'Create Account' }, { timeout: 3000 })
 }
 
 describe('sign-up page', () => {
   it('shows the required-field errors when the empty form is submitted', async () => {
     const user = userEvent.setup()
     await openRegister()
+    const fullName = screen.getByRole('textbox', { name: 'Full name' })
+    const scrollIntoView = vi.fn()
+    Object.defineProperty(fullName, 'scrollIntoView', { value: scrollIntoView })
 
     await user.click(screen.getByRole('button', { name: 'Create account' }))
 
+    expect(fullName).toHaveFocus()
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' })
     expect(await screen.findByText('Full name is required.')).toBeInTheDocument()
     expect(screen.getByText('Email is required.')).toBeInTheDocument()
     expect(screen.getByText('Date of birth is required.')).toBeInTheDocument()
     expect(screen.getByText('Nationality is required.')).toBeInTheDocument()
+    expect(screen.getByText('Please confirm your password.')).toBeInTheDocument()
     expect(screen.getByText('You must accept the Terms and Privacy Policy.')).toBeInTheDocument()
+  })
+
+  it('focuses the first remaining invalid control on each submit', async () => {
+    const user = userEvent.setup()
+    await openRegister()
+    const submit = screen.getByRole('button', { name: 'Create account' })
+    const datePicker = screen.getByRole('button', { name: 'Choose date of birth' })
+    const [password, confirmation] = document.querySelectorAll<HTMLInputElement>('input[autocomplete="new-password"]')
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Full name' }), { target: { value: 'Test Traveler' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), { target: { value: 'traveler@example.com' } })
+    await user.click(submit)
+    expect(datePicker).toHaveFocus()
+
+    await user.click(datePicker)
+    const dialog = screen.getByRole('dialog', { name: 'Choose date of birth' })
+    await user.click(within(dialog).getByRole('gridcell', { name: '1' }))
+    fireEvent.change(screen.getByRole('textbox', { name: /Nationality/ }), { target: { value: 'Filipino' } })
+    fireEvent.change(password, { target: { value: 'Secret123' } })
+    await user.click(submit)
+    expect(confirmation).toHaveFocus()
+    expect(confirmation).toHaveAccessibleDescription('Please confirm your password.')
+
+    fireEvent.change(confirmation, { target: { value: 'Secret123' } })
+    expect(screen.queryByText('Please confirm your password.')).not.toBeInTheDocument()
+    await user.click(submit)
+    expect(screen.getByRole('checkbox')).toHaveFocus()
   })
 
   it('tracks password rules and the confirmation match as you type', async () => {
