@@ -24,6 +24,30 @@ describe('sign-up page', () => {
     expect(screen.getByText('You must accept the Terms and Privacy Policy.')).toBeInTheDocument()
   })
 
+  it('suggests countries and rejects an unlisted nationality', async () => {
+    const user = userEvent.setup()
+    await openRegister()
+
+    const nationality = screen.getByRole('combobox', { name: 'Nationality' })
+    await user.type(nationality, '12345')
+    await user.click(screen.getByRole('button', { name: 'Create account' }))
+    expect(nationality).toHaveAccessibleDescription('Choose a country from the suggestions.')
+
+    await user.clear(nationality)
+    await user.type(nationality, 'philip')
+    const option = within(screen.getByRole('listbox')).getByRole('option', { name: 'Philippines' })
+    await user.keyboard('{ArrowDown}')
+    expect(nationality).toHaveAttribute('aria-activedescendant', option.id)
+    await user.keyboard('{Enter}')
+    expect(nationality).toHaveValue('Philippines')
+    expect(nationality).toHaveAttribute('aria-expanded', 'false')
+    await user.click(nationality)
+    expect(within(screen.getByRole('listbox')).getByRole('option', { name: 'Philippines', selected: true })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(nationality).toHaveAttribute('aria-expanded', 'false')
+    expect(nationality).toHaveAttribute('aria-invalid', 'false')
+  })
+
   it('tracks password rules and the confirmation match as you type', async () => {
     const user = userEvent.setup()
     await openRegister()

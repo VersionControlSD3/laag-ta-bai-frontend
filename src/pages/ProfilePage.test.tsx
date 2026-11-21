@@ -159,7 +159,13 @@ describe('ProfilePage', () => {
 
     await userEvent.type(nameInput, 'Maria Santos')
     await userEvent.clear(nationalityInput)
-    await userEvent.type(nationalityInput, 'Cebuana')
+    await userEvent.type(nationalityInput, '12345')
+    await userEvent.click(within(editSection).getByRole('button', { name: /Save changes/i }))
+    expect(nationalityInput).toHaveAccessibleDescription('Choose a country from the suggestions.')
+    expect(patchCalls).toHaveLength(0)
+
+    await userEvent.clear(nationalityInput)
+    await userEvent.type(nationalityInput, 'japan')
     await userEvent.clear(bioInput)
 
     await userEvent.click(within(editSection).getByRole('button', { name: /Save changes/i }))
@@ -167,13 +173,13 @@ describe('ProfilePage', () => {
     expect(patchCalls).toEqual([
       {
         displayName: 'Maria Santos',
-        nationality: 'Cebuana',
+        nationality: 'Japan',
         bio: null,
       },
     ])
 
     expect(await screen.findByRole('heading', { name: 'Maria Santos' })).toBeInTheDocument()
-    expect(screen.getByText('Cebuana')).toBeInTheDocument()
+    expect(screen.getByText('Japan')).toBeInTheDocument()
     expect(screen.getByText(/No travel bio yet/i)).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: /Edit profile details/i })).not.toBeInTheDocument()
   })

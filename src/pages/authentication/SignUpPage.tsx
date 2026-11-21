@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, MapPin, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
+import { NationalityInput } from '@/components/NationalityInput'
+import { invalidNationalityMessage, normalizeNationality } from '@/lib/nationality'
 import { useAuth } from '@/features/auth/AuthContext'
 import { DevSignIn } from '@/features/auth/DevSignIn'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
@@ -174,6 +176,7 @@ export default function SignUpPage() {
   const passwordValid = passwordRules.every(([, valid]) => valid)
   const confirmValid = form.confirmPassword.length > 0 && form.password === form.confirmPassword
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+  const nationality = normalizeNationality(form.nationality)
   const isUnderage = Boolean(form.dateOfBirth) && new Date(`${form.dateOfBirth}T00:00:00`) > maxBirthDate
   const fieldError = (message: string) => <span className="auth-field-error" role="alert">{message}</span>
   const update = (field: keyof typeof form, value: string | boolean) => setForm((current) => ({ ...current, [field]: value }))
@@ -183,14 +186,14 @@ export default function SignUpPage() {
     setSubmitted(true)
     setBusy(true)
     setError(null)
-    if (!form.displayName || !emailValid || !form.dateOfBirth || isUnderage || !form.nationality || !passwordValid || !confirmValid || !form.acceptedTerms) {
+    if (!form.displayName || !emailValid || !form.dateOfBirth || isUnderage || !nationality || !passwordValid || !confirmValid || !form.acceptedTerms) {
       setBusy(false)
       return
     }
     try {
       const { needsConfirmation } = await auth.signUp({
         email: form.email, password: form.password, displayName: form.displayName,
-        nationality: form.nationality, bio: form.bio,
+        nationality, bio: form.bio,
       })
       if (needsConfirmation) setConfirmEmail(true)
       else navigate('/')
@@ -243,10 +246,22 @@ export default function SignUpPage() {
                     {submitted && !form.dateOfBirth && fieldError('Date of birth is required.')}
                     {submitted && isUnderage && fieldError('You must be at least 18 to create an account.')}
                   </label>
-                  <label className="auth-label block">Nationality <span aria-hidden="true">*</span>
-                    <input required autoComplete="country-name" value={form.nationality} onChange={(e) => update('nationality', e.target.value)} className={inputClass(submitted && !form.nationality)} aria-invalid={submitted && !form.nationality} />
-                    {submitted && !form.nationality && fieldError('Nationality is required.')}
-                  </label>
+                  <div>
+                    <label htmlFor="signup-nationality" className="auth-label mb-1.5 block">Nationality <span aria-hidden="true">*</span></label>
+                    <NationalityInput
+                      id="signup-nationality"
+                      required
+                      value={form.nationality}
+                      onValueChange={(value) => update('nationality', value)}
+                      aria-invalid={submitted && !nationality}
+                      aria-describedby={submitted && !nationality ? 'signup-nationality-error' : undefined}
+                    />
+                    {submitted && !nationality && (
+                      <span id="signup-nationality-error" className="auth-field-error" role="alert">
+                        {form.nationality.trim() ? invalidNationalityMessage : 'Nationality is required.'}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <label className="auth-label block">Password <span aria-hidden="true">*</span>
                   <span className="relative block">

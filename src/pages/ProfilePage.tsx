@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMe, useUpdateMe } from '@/api/hooks'
 import type { Me } from '@/api/types'
+import { NationalityInput } from '@/components/NationalityInput'
 import { SignInPrompt } from '@/components/SignInPrompt'
 import { ErrorMessage, Loading } from '@/components/StateMessage'
 import { TopNavbar } from '@/components/TopNavbar'
@@ -33,6 +34,7 @@ import { levelProgress } from '@/features/mastery/progress'
 import { usePreferences, type ThemeMode } from '@/features/preferences/PreferencesContext'
 import { GRANTED_KEY } from '@/hooks/useGeolocation'
 import { env } from '@/lib/env'
+import { invalidNationalityMessage, normalizeNationality } from '@/lib/nationality'
 import { clearOfflineCache, readJson } from '@/lib/storage'
 
 type LanguageOption = {
@@ -573,6 +575,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
     bio: me.profile.bio ?? '',
   })
   const [validationError, setValidationError] = useState<string | null>(null)
+  const nationalityInvalid = validationError === invalidNationalityMessage
 
   const displayName = me.profile.displayName.trim() || 'Unnamed traveler'
   const initials =
@@ -623,11 +626,18 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
       setValidationError('Display name is required.')
       return
     }
+    const nationalityChanged = editFormData.nationality !== (me.profile.nationality ?? '')
+    const nationalityInput = editFormData.nationality.trim()
+    const nationality = normalizeNationality(nationalityInput)
+    if (nationalityChanged && nationalityInput && !nationality) {
+      setValidationError(invalidNationalityMessage)
+      return
+    }
     setValidationError(null)
     updateMe.mutate(
       {
         displayName: trimmedName,
-        nationality: editFormData.nationality.trim() || null,
+        ...(nationalityChanged ? { nationality: nationality ?? null } : {}),
         bio: editFormData.bio.trim() || null,
       },
       {
@@ -724,7 +734,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
         <section
           id="edit-profile-section"
           aria-label="Edit profile details"
-          className="mb-4 overflow-hidden rounded-3xl border border-terracotta/30 bg-ivory-surface p-5 shadow-xs transition-all"
+          className="mb-4 rounded-3xl border border-terracotta/30 bg-ivory-surface p-5 shadow-xs transition-all"
         >
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -780,21 +790,22 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
               >
                 Nationality
               </label>
-              <div className="relative flex items-center">
-                <span className="pointer-events-none absolute left-3.5 text-terracotta">
-                  <GlobeOutlineIcon size={18} />
-                </span>
-                <input
-                  id="edit-nationality"
-                  name="nationality"
-                  type="text"
-                  maxLength={60}
-                  value={editFormData.nationality}
-                  onChange={(e) => setEditFormData((prev) => ({ ...prev, nationality: e.target.value }))}
-                  placeholder="e.g. Filipino"
-                  className="h-12 w-full rounded-2xl border border-line-strong bg-ivory pr-4 pl-10 text-sm font-semibold text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-navy"
-                />
-              </div>
+              <NationalityInput
+                id="edit-nationality"
+                compact
+                value={editFormData.nationality}
+                onValueChange={(value) => {
+                  setEditFormData((prev) => ({ ...prev, nationality: value }))
+                  if (nationalityInvalid) setValidationError(null)
+                }}
+                aria-invalid={nationalityInvalid}
+                aria-describedby={nationalityInvalid ? 'edit-nationality-error' : undefined}
+              />
+              {nationalityInvalid && (
+                <p id="edit-nationality-error" role="alert" className="mt-1.5 text-xs font-semibold text-danger">
+                  {validationError}
+                </p>
+              )}
             </div>
 
             <div>
@@ -816,7 +827,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
               />
             </div>
 
-            {validationError && (
+            {validationError && !nationalityInvalid && (
               <p role="alert" className="text-xs font-semibold text-danger">
                 {validationError}
               </p>
