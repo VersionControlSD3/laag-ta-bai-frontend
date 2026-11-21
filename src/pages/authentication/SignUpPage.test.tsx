@@ -41,9 +41,19 @@ describe('sign-up page', () => {
 
     await user.type(confirmation, 'Secret124')
     expect(await screen.findByText('Passwords do not match')).toBeInTheDocument()
+    expect(password).toHaveClass('border-design-line')
+    expect(password).not.toHaveClass('border-error')
+    expect(confirmation).toHaveClass('border-error')
+
+    await user.click(screen.getByRole('button', { name: 'Create account' }))
+    expect(password).not.toHaveClass('border-error')
+    expect(confirmation).toHaveClass('border-error')
+
     await user.clear(confirmation)
     await user.type(confirmation, 'Secret123')
     expect(await screen.findByText('Passwords match')).toBeInTheDocument()
+    expect(password).not.toHaveClass('border-success')
+    expect(confirmation).toHaveClass('border-success')
   })
 
   it('opens the calendar on the 18-years-ago default with unique weekday headers', async () => {

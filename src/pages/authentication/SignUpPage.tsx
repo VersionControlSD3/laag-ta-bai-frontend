@@ -250,7 +250,7 @@ export default function SignUpPage() {
                 </div>
                 <label className="auth-label block">Password <span aria-hidden="true">*</span>
                   <span className="relative block">
-                    <input type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.password} onChange={(e) => update('password', e.target.value)} className={`${inputClass(submitted && !passwordValid)} ${form.confirmPassword ? (confirmValid ? 'border-success' : 'border-error') : ''} pr-12`} aria-invalid={submitted && !passwordValid} />
+                    <input type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.password} onChange={(e) => update('password', e.target.value)} className={`${inputClass(submitted && !passwordValid)} pr-12`} aria-invalid={submitted && !passwordValid} />
                     <button type="button" className="touch-target absolute right-0 top-1 flex items-center px-3" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}</button>
                   </span>
                   <span className="mt-2 grid gap-1 text-xs" aria-live="polite">
