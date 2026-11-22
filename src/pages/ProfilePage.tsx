@@ -11,21 +11,24 @@ import {
   CheckmarkIcon,
   ChevronForwardOutlineIcon,
   CloseOutlineIcon,
+  CloudOfflineOutlineIcon,
   CreateOutlineIcon,
-  FlameOutlineIcon,
+  FlameIcon,
   GlobeOutlineIcon,
   HelpCircleOutlineIcon,
   InformationCircleOutlineIcon,
+  LocationIcon,
   LocationOutlineIcon,
   LockClosedOutlineIcon,
   LogOutOutlineIcon,
   MailOutlineIcon,
+  MoonIcon,
   MoonOutlineIcon,
-  NotificationsOutlineIcon,
+  NotificationsIcon,
   PersonOutlineIcon,
+  RibbonIcon,
   RibbonOutlineIcon,
-  ShieldCheckmarkOutlineIcon,
-  TrashOutlineIcon,
+  ShieldCheckmarkIcon,
 } from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { resetBookmarksCache } from '@/features/bookmarks/useBookmarks'
@@ -219,19 +222,13 @@ export default function ProfilePage() {
 
   return (
     <div className="bleed-under-nav relative min-h-dvh bg-ivory text-ink transition-colors duration-200">
-      {/* Decorative ambient washes, drawn with palette tokens so they follow the theme. */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-sage-soft/40 blur-3xl" />
-        <div className="absolute -right-24 top-1/3 h-72 w-72 rounded-full bg-terracotta-soft/40 blur-3xl" />
-      </div>
-
-      <main className="relative z-10 mx-auto max-w-md px-4 pt-6 focus:outline-none">
+      <main className="relative z-10 mx-auto max-w-md px-5 pt-[max(3.25rem,env(safe-area-inset-top))] focus:outline-none">
         {/* Header Section */}
-        <header className="mb-6">
-          <div className="mb-1 text-xs font-bold tracking-[0.1em] text-terracotta-ink uppercase">
+        <header className="mb-4">
+          <div className="mb-1 text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
             Your account
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-ink">
+          <h1 className="text-3xl leading-9 font-extrabold tracking-tight text-ink">
             Profile
           </h1>
         </header>
@@ -239,7 +236,7 @@ export default function ProfilePage() {
         {/* ========================================================
             SECTIONS 1–3: AUTHENTICATED TRAVELER PROFILE
            ======================================================== */}
-        <div className="mb-6">
+        <div className="mb-5">
           {auth.status !== 'signed-in' ? (
             <SignInPrompt message="Sign in to set up your traveler profile." />
           ) : me.isPending ? (
@@ -254,34 +251,34 @@ export default function ProfilePage() {
         {/* ========================================================
             SECTION 4: PREFERENCES & SETTINGS CARD
            ======================================================== */}
-        <section aria-labelledby="preferences-title" className="mb-6">
-          <div className="mb-2">
-            <h2 id="preferences-title" className="text-xs font-bold tracking-wider text-terracotta-ink uppercase">
+        <section aria-labelledby="preferences-title" className="mb-5">
+          <div className="mb-2.5">
+            <h2 id="preferences-title" className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
               Preferences
             </h2>
-            <p className="mt-0.5 text-xs text-ink-muted">
+            <p className="mt-0.5 text-xs leading-4 font-medium text-ink-muted">
               Personalize your Laag ta bAI experience.
             </p>
           </div>
 
-          <div className="space-y-2 rounded-3xl border border-ivory-line bg-ivory-surface p-2 shadow-xs">
+          <div className="space-y-1.5 rounded-3xl border border-ivory-line bg-ivory-surface px-3 py-2.5">
             {/* Appearance Row (System default / Light / Dark) */}
             <button
               type="button"
               onClick={() => setIsAppearanceOpen(true)}
-              className="touch-target flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl p-3 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              className="touch-target flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl px-1.5 py-2 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               aria-label={`Appearance, current selection: ${currentAppearanceLabel}`}
             >
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
-                  <MoonOutlineIcon size={18} />
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-terracotta-soft text-terracotta-ink">
+                  <MoonIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">Appearance</span>
-                  <span className="block truncate text-xs text-ink-muted">System default, light, or dark theme</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Appearance</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">System default, light, or dark theme</span>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-ink-body">
+              <div className="flex shrink-0 items-center gap-1.5 text-xs leading-4 font-bold text-ink-muted">
                 <span>{currentAppearanceLabel}</span>
                 <ChevronForwardOutlineIcon size={16} className="text-ink-muted" />
               </div>
@@ -291,19 +288,19 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => setIsLanguageOpen(true)}
-              className="touch-target flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl p-3 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              className="touch-target flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl px-1.5 py-2 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               aria-label={`Language, current selection: ${currentLangLabel}`}
             >
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
-                  <GlobeOutlineIcon size={18} />
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-terracotta-soft text-terracotta-ink">
+                  <GlobeOutlineIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">Language</span>
-                  <span className="block truncate text-xs text-ink-muted">App language and translations</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Language</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">App language and translations</span>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-ink-body">
+              <div className="flex shrink-0 items-center gap-1.5 text-xs leading-4 font-bold text-ink-muted">
                 <span>{currentLangLabel}</span>
                 <ChevronForwardOutlineIcon size={16} className="text-ink-muted" />
               </div>
@@ -313,33 +310,33 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={openPermissionsView}
-              className="touch-target flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl p-3 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              className="touch-target flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl px-1.5 py-2 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               aria-label={`Permissions, ${allowedPermissionsCount} allowed`}
             >
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
-                  <ShieldCheckmarkOutlineIcon size={18} />
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-terracotta-soft text-terracotta-ink">
+                  <ShieldCheckmarkIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">Permissions</span>
-                  <span className="block truncate text-xs text-ink-muted">Camera and location access</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Permissions</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">Camera and location access</span>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-ink-body">
+              <div className="flex shrink-0 items-center gap-1.5 text-xs leading-4 font-bold text-ink-muted">
                 <span>{allowedPermissionsCount} allowed</span>
                 <ChevronForwardOutlineIcon size={16} className="text-ink-muted" />
               </div>
             </button>
 
             {/* Proximity Alerts Toggle Row */}
-            <div className="flex min-h-14 items-center justify-between gap-3 rounded-2xl p-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
-                  <LocationOutlineIcon size={18} />
+            <div className="flex min-h-12 items-center justify-between gap-3 rounded-2xl px-1.5 py-1">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-terracotta-soft text-terracotta-ink">
+                  <LocationIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">Proximity alerts</span>
-                  <span className="block truncate text-xs text-ink-muted">Notify when near heritage landmarks</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Proximity alerts</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">Notify when near heritage landmarks</span>
                 </div>
               </div>
               <AccessibleToggle
@@ -351,14 +348,14 @@ export default function ProfilePage() {
             </div>
 
             {/* Daily Streak Reminders Toggle Row */}
-            <div className="flex min-h-14 items-center justify-between gap-3 rounded-2xl p-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
-                  <FlameOutlineIcon size={18} />
+            <div className="flex min-h-12 items-center justify-between gap-3 rounded-2xl px-1.5 py-1">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-terracotta-soft text-terracotta-ink">
+                  <FlameIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">Daily streak reminders</span>
-                  <span className="block truncate text-xs text-ink-muted">Keep your exploration streak active</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Daily streak reminders</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">Keep your exploration streak active</span>
                 </div>
               </div>
               <AccessibleToggle
@@ -370,14 +367,14 @@ export default function ProfilePage() {
             </div>
 
             {/* Quest Completion Notices Toggle Row */}
-            <div className="flex min-h-14 items-center justify-between gap-3 rounded-2xl p-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
-                  <NotificationsOutlineIcon size={18} />
+            <div className="flex min-h-12 items-center justify-between gap-3 rounded-2xl px-1.5 py-1">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-terracotta-soft text-terracotta-ink">
+                  <NotificationsIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">Quest completion notices</span>
-                  <span className="block truncate text-xs text-ink-muted">Alerts when quests and badges unlock</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Quest completion notices</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">Alerts when quests and badges unlock</span>
                 </div>
               </div>
               <AccessibleToggle
@@ -389,20 +386,20 @@ export default function ProfilePage() {
             </div>
 
             {/* Offline Storage Row */}
-            <div className="flex min-h-14 items-center justify-between gap-3 rounded-2xl p-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sage-soft text-sage-deep">
-                  <TrashOutlineIcon size={18} />
+            <div className="flex min-h-12 items-center justify-between gap-3 rounded-2xl px-1.5 py-1">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-sage-soft text-sage-deep">
+                  <CloudOfflineOutlineIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">Offline storage</span>
-                  <span className="block truncate text-xs text-ink-muted">Cached landmarks and saved data</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Offline storage</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">Cached landmarks and saved data</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleClearCache}
-                className="touch-target flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-xl px-3 text-xs font-bold text-terracotta-ink transition-colors hover:bg-terracotta-soft/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                className="touch-target flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-xl px-2.5 text-xs leading-4 font-bold text-terracotta-ink transition-colors hover:bg-terracotta-soft/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               >
                 {cacheCleared ? 'Cleared' : 'Clear cache'}
               </button>
@@ -419,27 +416,27 @@ export default function ProfilePage() {
         {/* ========================================================
             SECTION 5: SUPPORT & ABOUT
            ======================================================== */}
-        <section aria-labelledby="support-title" className="mb-6">
-          <div className="mb-2">
-            <h2 id="support-title" className="text-xs font-bold tracking-wider text-terracotta-ink uppercase">
+        <section aria-labelledby="support-title" className="mb-5">
+          <div className="mb-2.5">
+            <h2 id="support-title" className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
               Support & about
             </h2>
           </div>
 
-          <div className="space-y-2 rounded-3xl border border-ivory-line bg-ivory-surface p-2 shadow-xs">
+          <div className="space-y-1.5 rounded-3xl border border-ivory-line bg-ivory-surface px-3 py-2.5">
             {/* Help Center */}
             <button
               type="button"
               onClick={() => setIsHelpOpen(true)}
-              className="touch-target flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl p-3 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              className="touch-target flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl px-1.5 py-2 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sage-soft text-sage-deep">
-                  <HelpCircleOutlineIcon size={18} />
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-sage-soft text-sage-deep">
+                  <HelpCircleOutlineIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">Help center</span>
-                  <span className="block truncate text-xs text-ink-muted">FAQs, permissions, and support</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Help center</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">FAQs, permissions, and support</span>
                 </div>
               </div>
               <ChevronForwardOutlineIcon size={16} className="text-ink-muted" />
@@ -449,18 +446,18 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => setIsAboutOpen(true)}
-              className="touch-target flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl p-3 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              className="touch-target flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl px-1.5 py-2 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sage-soft text-sage-deep">
-                  <InformationCircleOutlineIcon size={18} />
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-sage-soft text-sage-deep">
+                  <InformationCircleOutlineIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-sm font-bold text-ink">About the app</span>
-                  <span className="block truncate text-xs text-ink-muted">Privacy, terms, and acknowledgements</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">About the app</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">Privacy, terms, and acknowledgements</span>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-ink-body">
+              <div className="flex shrink-0 items-center gap-1.5 text-xs leading-4 font-bold text-ink-muted">
                 <span>v{env.appVersion || '1.0.0'}</span>
                 <ChevronForwardOutlineIcon size={16} className="text-ink-muted" />
               </div>
@@ -471,24 +468,17 @@ export default function ProfilePage() {
         {/* ========================================================
             SECTION 6: ABOUT THE DEVELOPER (CLEARLY SEPARATED)
            ======================================================== */}
-        <section aria-labelledby="developer-title" className="mb-6">
-          <div className="mb-2">
-            <h2 id="developer-title" className="text-xs font-bold tracking-wider text-terracotta-ink uppercase">
-              About the developer
-            </h2>
-          </div>
-
-          <div className="relative overflow-hidden rounded-3xl border border-ivory-line bg-ivory-surface p-5 shadow-xs">
-            <div className="absolute inset-y-0 left-0 w-1.5 bg-terracotta" aria-hidden="true" />
-            <div className="pl-2">
-              <div className="mb-2 flex items-center gap-1">
-                <span className="text-xs font-black tracking-widest text-ink">LAAG TA</span>
-                <span className="text-base font-black text-terracotta-ink">bAI</span>
-              </div>
-              <p className="text-xs leading-relaxed font-medium text-ink-body">
+        <section aria-labelledby="developer-title" className="mb-4">
+          <div className="flex items-stretch gap-3 rounded-[20px] border border-ivory-line bg-ivory-surface py-3.5 pr-4 pl-3.5">
+            <div className="w-[5px] shrink-0 rounded-full bg-terracotta" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <h2 id="developer-title" className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
+                About the developer · Laag ta bAI
+              </h2>
+              <p className="mt-1 text-xs leading-4 font-medium text-ink-body">
                 Your AI-powered companion for discovering the stories, places, and culture of Cebu.
               </p>
-              <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+              <p className="mt-1 text-xs leading-4 text-ink-muted">
                 Crafted by student developers and Cebuano heritage enthusiasts to preserve local history through modern agentic mobile technology.
               </p>
             </div>
@@ -503,7 +493,7 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={() => setIsLogoutConfirmOpen(true)}
-              className="touch-target flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-ivory-line bg-ivory-surface px-4 py-2.5 text-xs font-bold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              className="touch-target flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-ivory-line bg-ivory-surface px-4 py-3.5 text-[0.9375rem] leading-[1.375rem] font-bold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               <LogOutOutlineIcon size={18} />
               <span>Log out</span>
@@ -641,22 +631,22 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
       {/* SECTION 1: PROFILE CARD */}
       <section
         aria-label="Profile information"
-        className="mb-4 rounded-3xl border border-ivory-line bg-ivory-surface p-5 shadow-xs"
+        className="mb-4 rounded-3xl border border-ivory-line bg-ivory-surface p-[18px]"
       >
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center justify-between gap-3.5">
           {/* Avatar */}
           <div className="relative shrink-0">
             {me.profile.avatarUrl ? (
               <img
                 src={me.profile.avatarUrl}
                 alt={`Profile picture of ${displayName}`}
-                className="size-20 rounded-full border-2 border-terracotta object-cover"
+                className="size-16 rounded-full border-2 border-terracotta object-cover"
               />
             ) : (
               <div
                 role="img"
                 aria-label={`Avatar for ${displayName}: initials ${initials}`}
-                className="flex size-20 items-center justify-center rounded-full bg-terracotta text-2xl font-black text-on-navy shadow-xs select-none"
+                className="flex size-16 items-center justify-center rounded-full bg-terracotta text-[1.375rem] leading-7 font-bold tracking-[0.01em] text-on-navy select-none"
               >
                 {initials}
               </div>
@@ -664,24 +654,24 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
           </div>
 
           {/* Profile Name & Rank Details */}
-          <div className="min-w-0 flex-1 pl-1">
-            <span className="block truncate text-xs font-bold tracking-wider text-terracotta-ink uppercase">
+          <div className="min-w-0 flex-1">
+            <span className="block truncate text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
               {me.rank.title} · LEVEL {me.rank.level}
             </span>
-            <h2 className="mt-0.5 truncate text-xl font-black break-words text-ink">
+            <h2 className="mt-0.5 truncate text-lg leading-6 font-bold break-words text-ink">
               {displayName}
             </h2>
             {me.email && (
-              <p className="mt-0.5 truncate text-xs break-words text-ink-muted">
+              <p className="mt-0.5 truncate text-xs leading-4 font-medium break-words text-ink-muted">
                 {me.email}
               </p>
             )}
             {me.profile.nationality && (
-              <p className="mt-0.5 truncate text-xs break-words text-ink-muted">
+              <p className="mt-0.5 truncate text-xs leading-4 font-medium break-words text-ink-muted">
                 {me.profile.nationality}
               </p>
             )}
-            <p className="mt-1 line-clamp-2 text-xs break-words text-ink-muted">
+            <p className="mt-1 line-clamp-2 text-xs leading-4 break-words text-ink-muted">
               {me.profile.bio ? me.profile.bio : <span className="italic">No travel bio yet.</span>}
             </p>
           </div>
@@ -692,14 +682,14 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
             onClick={handleToggleEdit}
             aria-expanded={isEditOpen}
             aria-controls="edit-profile-section"
-            className={`touch-target flex min-h-12 min-w-12 shrink-0 items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
+            className={`touch-target flex min-h-12 min-w-12 shrink-0 items-center justify-center gap-1.5 rounded-[10px] border px-3 py-2 text-xs leading-4 font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
               isEditOpen
-                ? 'border-terracotta bg-terracotta-soft text-terracotta-ink shadow-2xs'
-                : 'border-ivory-line bg-ivory/60 text-ink hover:bg-ivory'
+                ? 'border-terracotta bg-terracotta-soft text-terracotta-ink'
+                : 'border-ivory-line bg-ivory text-ink hover:bg-ivory-deep'
             }`}
             aria-label={isEditOpen ? 'Editing profile details' : 'Edit profile details'}
           >
-            <CreateOutlineIcon size={16} />
+            <CreateOutlineIcon size={15} />
             <span>{isEditOpen ? 'Editing' : 'Edit'}</span>
           </button>
         </div>
@@ -724,14 +714,14 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
         <section
           id="edit-profile-section"
           aria-label="Edit profile details"
-          className="mb-4 overflow-hidden rounded-3xl border border-terracotta/30 bg-ivory-surface p-5 shadow-xs transition-all"
+          className="mb-4 overflow-hidden rounded-3xl border border-terracotta bg-ivory-surface p-5 transition-all"
         >
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <div className="text-xs font-bold tracking-wider text-terracotta-ink uppercase">
+              <div className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
                 Personal details
               </div>
-              <h3 className="mt-0.5 text-lg font-black text-ink">
+              <h3 className="mt-0.5 text-lg leading-6 font-bold text-ink">
                 Edit profile
               </h3>
             </div>
@@ -739,17 +729,17 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
               type="button"
               onClick={handleCancelEdit}
               aria-label="Close profile editor"
-              className="touch-target flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full bg-ivory-surface text-ink-muted transition-colors hover:bg-ivory-line/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              className="touch-target flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full bg-ivory text-ink-muted transition-colors hover:bg-ivory-line/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               <CloseOutlineIcon size={20} />
             </button>
           </div>
 
-          <form onSubmit={handleSaveProfile} noValidate className="space-y-4">
+          <form onSubmit={handleSaveProfile} noValidate className="space-y-3.5">
             <div>
               <label
                 htmlFor="edit-display-name"
-                className="mb-1.5 block text-xs font-bold tracking-wider text-terracotta-ink uppercase"
+                className="mb-1.5 block text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase"
               >
                 Display name
               </label>
@@ -768,7 +758,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                     setValidationError(null)
                     setEditFormData((prev) => ({ ...prev, displayName: e.target.value }))
                   }}
-                  className="h-12 w-full rounded-2xl border border-line-strong bg-ivory pr-4 pl-10 text-sm font-semibold text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-navy"
+                  className="h-12 w-full rounded-[14px] border border-line-strong bg-ivory pr-3.5 pl-10 text-sm leading-5 font-normal text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-navy"
                 />
               </div>
             </div>
@@ -776,7 +766,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
             <div>
               <label
                 htmlFor="edit-nationality"
-                className="mb-1.5 block text-xs font-bold tracking-wider text-terracotta-ink uppercase"
+                className="mb-1.5 block text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase"
               >
                 Nationality
               </label>
@@ -792,7 +782,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                   value={editFormData.nationality}
                   onChange={(e) => setEditFormData((prev) => ({ ...prev, nationality: e.target.value }))}
                   placeholder="e.g. Filipino"
-                  className="h-12 w-full rounded-2xl border border-line-strong bg-ivory pr-4 pl-10 text-sm font-semibold text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-navy"
+                  className="h-12 w-full rounded-[14px] border border-line-strong bg-ivory pr-3.5 pl-10 text-sm leading-5 font-normal text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-navy"
                 />
               </div>
             </div>
@@ -800,7 +790,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
             <div>
               <label
                 htmlFor="edit-travel-bio"
-                className="mb-1.5 block text-xs font-bold tracking-wider text-terracotta-ink uppercase"
+                className="mb-1.5 block text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase"
               >
                 Travel bio
               </label>
@@ -812,7 +802,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 value={editFormData.bio}
                 onChange={(e) => setEditFormData((prev) => ({ ...prev, bio: e.target.value }))}
                 placeholder="Tell others about your travels in Cebu..."
-                className="w-full resize-none rounded-2xl border border-line-strong bg-ivory p-3 text-sm font-semibold text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-navy"
+                className="w-full resize-none rounded-[14px] border border-line-strong bg-ivory px-3.5 py-3 text-sm leading-5 font-normal text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-navy"
               />
             </div>
 
@@ -828,14 +818,14 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="touch-target flex min-h-12 items-center justify-center rounded-xl border border-ivory-line px-5 py-2 text-sm font-bold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-navy"
+                className="touch-target flex min-h-12 items-center justify-center rounded-xl border border-ivory-line bg-ivory-surface px-[18px] py-3 text-[0.9375rem] leading-[1.375rem] font-bold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-navy"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={updateMe.isPending}
-                className="touch-target flex min-h-12 items-center gap-1.5 rounded-xl bg-navy px-5 py-2 text-sm font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60"
+                className="touch-target flex min-h-12 items-center gap-1.5 rounded-xl bg-navy px-[18px] py-3 text-[0.9375rem] leading-[1.375rem] font-bold text-on-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60"
               >
                 <CheckmarkIcon size={16} />
                 <span>{updateMe.isPending ? 'Saving…' : 'Save changes'}</span>
@@ -847,46 +837,46 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
 
       {/* SECTION 2: STATS SUMMARY (VISITED, BADGES, STREAK) */}
       <section aria-label="Exploration statistics" className="mb-4 grid grid-cols-3 gap-2.5">
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-ivory-line bg-ivory-surface p-3 text-center shadow-2xs">
-          <span className="text-xl font-black text-ink">{me.stats.visitedCount}</span>
-          <div className="mt-1 flex items-center gap-1 text-xs font-semibold text-ink-muted">
-            <LocationOutlineIcon size={14} className="shrink-0 text-terracotta" />
-            <span className="truncate">Places visited</span>
-          </div>
+        <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-ivory-line bg-ivory-surface px-2 py-3 text-center">
+          <LocationIcon size={18} className="shrink-0 text-terracotta" />
+          <span className="text-lg leading-6 font-bold text-ink">{me.stats.visitedCount}</span>
+          <span className="text-[0.6875rem] leading-[0.875rem] font-bold tracking-[0.02em] text-ink-muted">
+            Places visited
+          </span>
         </div>
 
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-ivory-line bg-ivory-surface p-3 text-center shadow-2xs">
-          <span className="text-xl font-black text-ink">{me.badges.length}</span>
-          <div className="mt-1 flex items-center gap-1 text-xs font-semibold text-ink-muted">
-            <RibbonOutlineIcon size={14} className="shrink-0 text-sage-deep" />
-            <span className="truncate">Badges earned</span>
-          </div>
+        <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-ivory-line bg-ivory-surface px-2 py-3 text-center">
+          <RibbonIcon size={18} className="shrink-0 text-sage-deep" />
+          <span className="text-lg leading-6 font-bold text-ink">{me.badges.length}</span>
+          <span className="text-[0.6875rem] leading-[0.875rem] font-bold tracking-[0.02em] text-ink-muted">
+            Badges earned
+          </span>
         </div>
 
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-ivory-line bg-ivory-surface p-3 text-center shadow-2xs">
-          <span className="text-xl font-black text-ink">{me.stats.streakCount}</span>
-          <div className="mt-1 flex items-center gap-1 text-xs font-semibold text-ink-muted">
-            <FlameOutlineIcon size={14} className="shrink-0 text-terracotta" />
-            <span className="truncate">Day streak</span>
-          </div>
+        <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-ivory-line bg-ivory-surface px-2 py-3 text-center">
+          <FlameIcon size={18} className="shrink-0 text-terracotta" />
+          <span className="text-lg leading-6 font-bold text-ink">{me.stats.streakCount}</span>
+          <span className="text-[0.6875rem] leading-[0.875rem] font-bold tracking-[0.02em] text-ink-muted">
+            Day streak
+          </span>
         </div>
       </section>
 
       {/* SECTION 3: JOURNEY PROGRESS (LEVEL & XP) */}
       <section
         aria-label="Level progress"
-        className="rounded-3xl border border-navy/15 bg-navy p-5 text-on-navy shadow-sm"
+        className="rounded-3xl bg-navy p-[18px] text-on-navy"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between gap-2">
           <div>
-            <span className="text-xs font-bold tracking-wider text-on-navy/80 uppercase">
+            <span className="text-xs leading-4 font-bold tracking-[0.1em] text-on-navy/80 uppercase">
               Your journey
             </span>
-            <h2 className="mt-0.5 text-lg font-black tracking-tight text-on-navy">
+            <h2 className="mt-0.5 text-lg leading-6 font-bold text-on-navy">
               Level {me.rank.level} progress
             </h2>
           </div>
-          <span className="text-sm font-extrabold text-on-navy">
+          <span className="font-mono text-xs leading-4 font-bold tabular-nums text-on-navy">
             {me.rank.xp.toLocaleString()} XP
           </span>
         </div>
@@ -897,7 +887,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label={`Progress to level ${me.rank.level + 1}`}
-          className="mt-3.5 h-3 w-full overflow-hidden rounded-full bg-navy-soft"
+          className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-navy-soft"
         >
           <div
             className="h-full rounded-full bg-terracotta transition-all duration-500 ease-out"
@@ -905,7 +895,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
           />
         </div>
 
-        <p className="mt-2 text-xs font-medium text-on-navy/80">
+        <p className="mt-2.5 text-xs leading-4 font-medium text-on-navy/90">
           {me.rank.nextLevelXp !== null
             ? `${xpRemaining.toLocaleString()} XP to reach Level ${me.rank.level + 1}`
             : 'You reached the top rank.'}
@@ -1034,15 +1024,15 @@ function ModalDialog({
       aria-modal="true"
       aria-labelledby={titleId}
       aria-describedby={describedBy}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#061318]/60 p-4 backdrop-blur-xs"
     >
-      <div className="w-full max-w-sm rounded-3xl border border-ivory-line bg-ivory p-6 text-ink shadow-2xl">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="w-full max-w-sm rounded-3xl border border-ivory-line bg-ivory-surface px-5 py-[18px] text-ink shadow-modal">
+        <div className="mb-3.5 flex items-center justify-between">
           <div>
-            <div className="text-xs font-bold tracking-wider text-terracotta-ink uppercase">
+            <div className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
               {eyebrow}
             </div>
-            <h2 id={titleId} className="text-xl font-black text-ink">
+            <h2 id={titleId} className="mt-0.5 text-lg leading-6 font-bold text-ink">
               {title}
             </h2>
           </div>
@@ -1051,7 +1041,7 @@ function ModalDialog({
             type="button"
             onClick={onClose}
             aria-label={closeLabel}
-            className="touch-target flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full bg-ivory-surface text-ink-muted transition-colors hover:bg-ivory-line/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+            className="touch-target flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full bg-ivory text-ink-muted transition-colors hover:bg-ivory-line/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
           >
             <CloseOutlineIcon size={20} />
           </button>
@@ -1090,10 +1080,10 @@ function ChooseAppearanceModal({
               role="radio"
               aria-checked={isSelected}
               onClick={() => onSelectTheme(opt.mode)}
-              className={`touch-target flex min-h-12 w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
+              className={`touch-target flex min-h-12 w-full items-center justify-between rounded-xl border px-3.5 py-2.5 text-xs leading-4 font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
                 isSelected
                   ? 'border-navy bg-navy-soft text-ink'
-                  : 'border-ivory-line bg-ivory-surface text-ink hover:bg-ivory/60'
+                  : 'border-ivory-line bg-ivory text-ink hover:bg-ivory-deep'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -1137,10 +1127,10 @@ function ChooseLanguageModal({
               role="radio"
               aria-checked={isSelected}
               onClick={() => onSelectLanguage(lang.code)}
-              className={`touch-target flex min-h-12 w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
+              className={`touch-target flex min-h-12 w-full items-center justify-between rounded-xl border px-3.5 py-2.5 text-xs leading-4 font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
                 isSelected
                   ? 'border-navy bg-navy-soft text-ink'
-                  : 'border-ivory-line bg-ivory-surface text-ink hover:bg-ivory/60'
+                  : 'border-ivory-line bg-ivory text-ink hover:bg-ivory-deep'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -1171,19 +1161,19 @@ function PermissionsSubpage({
   return (
     <div>
       <TopNavbar title="Permissions" titleAs="h1" backLabel="Back to profile" onBack={onBack} />
-      <main className="relative z-10 mx-auto max-w-md px-4 pt-6 pb-8 focus:outline-none">
-        <div className="space-y-3.5">
+      <main className="relative z-10 mx-auto max-w-md px-5 pt-5 pb-8 focus:outline-none">
+        <div className="space-y-4">
           {/* You're in control banner */}
           <section
             aria-label="Privacy control"
-            className="flex items-center gap-3.5 rounded-3xl border border-sage/40 bg-sage-soft p-4.5"
+            className="flex items-center gap-3 rounded-3xl border border-sage bg-sage-soft p-4"
           >
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-sage-deep text-ivory-surface shadow-2xs">
-              <ShieldCheckmarkOutlineIcon size={22} />
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-sage-deep text-on-navy">
+              <ShieldCheckmarkIcon size={20} />
             </div>
             <div className="min-w-0">
-              <h2 className="text-base font-bold text-ink">You&apos;re in control</h2>
-              <p className="mt-0.5 text-xs leading-relaxed text-ink-muted">
+              <h2 className="text-lg leading-6 font-bold text-ink">You&apos;re in control</h2>
+              <p className="mt-0.5 text-xs leading-4 font-medium text-ink-muted">
                 See what Laag ta bAI can access on your device. Location is only requested after you review the in-app rationale.
               </p>
             </div>
@@ -1197,20 +1187,20 @@ function PermissionsSubpage({
               return (
                 <article
                   key={p.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-ivory-line bg-ivory-surface p-4 shadow-2xs"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-ivory-line bg-ivory-surface px-4 py-3.5"
                 >
-                  <div className="flex min-w-0 items-center gap-3.5">
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-terracotta-soft text-terracotta-ink">
-                      {p.id === 'location' && <LocationOutlineIcon size={20} />}
-                      {p.id === 'camera' && <CameraOutlineIcon size={20} />}
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
+                      {p.id === 'location' && <LocationOutlineIcon size={18} />}
+                      {p.id === 'camera' && <CameraOutlineIcon size={18} />}
                     </span>
                     <div className="min-w-0">
-                      <h3 className="text-sm font-bold text-ink">{p.title}</h3>
-                      <p className="mt-0.5 truncate text-xs text-ink-muted">{p.description}</p>
+                      <h3 className="text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.title}</h3>
+                      <p className="mt-0.5 truncate text-xs leading-4 font-medium text-ink-muted">{p.description}</p>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${pill.className}`}>
+                    <span className={`rounded-full px-3 py-1.5 text-xs leading-4 font-bold ${pill.className}`}>
                       {pill.label}
                     </span>
                     {status === 'prompt' && p.id === 'camera' && (
