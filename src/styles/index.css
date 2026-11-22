@@ -244,19 +244,6 @@ body {
   list-style: revert;
 }
 
-/*
- * Leftovers from the earlier "artifact" design layer, still used by the sign-up screen. Don't
- * use them in new UI; they go when sign-up is rebuilt (UI Redesign #4).
- */
-@theme {
-  --color-design-surface: #faf5ec;
-  --color-design-line: #d8d1c5;
-  /* Navy darkened for the night-mode card base (navy 72% + black 28%). */
-  --color-navy-deep: #1a2a3c;
-  --color-error: #ff7b72;
-  --color-success: #6fcf75;
-}
-
 /* Splash loading bar (UI Redesign #1). */
 @keyframes splash-progress {
   from {
