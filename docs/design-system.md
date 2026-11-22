@@ -253,6 +253,15 @@ Built in `src/pages/ProfilePage.tsx` (routes `/profile`, `/profile/permissions`)
 - **Preferences, Support & Developer.** `34 px` duotone icon badges (`terracotta-soft` with filled `MoonIcon`, `GlobeOutlineIcon`, `ShieldCheckmarkIcon`, `LocationIcon`, `FlameIcon`, `NotificationsIcon`; `sage-soft` with `CloudOfflineOutlineIcon` for Offline storage), accessible `role="switch"` toggles, and the `terracotta` accent-bar `About the developer` card.
 - **Permissions subpage & Modals.** `TopNavbar` + `sage-soft` `You're in control` banner (`ShieldCheckmarkIcon`), permission status pills (`Allowed`, `Not enabled`, `Blocked`), and `bg-ivory-surface` dialogs with `shadow-modal` and `navy-soft`/`border-navy` active radio rows for Appearance, Language, and Log out.
 
+### Global Statuses, Overlays & Errors (UI Redesign #9: Light & Dark)
+
+Built in `src/pages/NotFoundPage.tsx`, `src/features/progress/CelebrationProvider.tsx`, `src/components/PwaUpdatePrompt.tsx`, `src/components/AppShell.tsx`, `src/components/StateMessage.tsx` and `src/components/SignInPrompt.tsx` from Figma `09 · Global Statuses, Overlays & Errors (Light & Dark)`:
+
+- **404 Not Found (`*`).** Flat `bg-ivory` surface, `48 px` coral `404` display numeral (`text-terracotta`), `18 px` bold `Na-laag ka, bai! This page doesn't exist.` copy, and a lagoon `Back to Explore` CTA (`bg-navy text-on-navy`).
+- **Celebration & XP Toast.** Gold pill toast (`bg-gold text-[#0b2e36]`, `RibbonIcon`) for `+XP`, and a `28 px`-radius `bg-ivory-surface` modal (`shadow-modal`, `#061318/60` scrim) with a `64 px` gold `TrophyIcon` disc, `30 px` `Level N!` heading, `terracotta-soft` badge unlocked pill (`RibbonIcon`), and `Padayon! (Continue)` lagoon CTA.
+- **PWA Update & Landscape Guard.** `bg-ivory-surface` update banner (`New version of Laag ta bAI ready.` + `Later` / lagoon `Reload` buttons) and full-screen lagoon `LandscapeGuard` (`bg-navy text-on-navy`, `CompassOutlineIcon`, `Please rotate your phone to portrait`).
+- **State Messages & Sign-In Prompt.** Migrated `Loading`, `ErrorMessage` (`danger-soft` / `danger-line` / `danger`), `EmptyState` and `SignInPrompt` off the old maroon/crimson scaffold onto Lagoon & Coral tokens and Ionicons.
+
 ### Onboarding (first run)
 
 Built in `src/pages/OnboardingPage.tsx`, route `/onboarding`, from the UI Redesign #2 screenshots.

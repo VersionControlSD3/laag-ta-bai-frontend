@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import { Award, PartyPopper, Sparkles } from 'lucide-react'
 import type { ProgressUpdate } from '@/api/types'
+import { RibbonIcon, TrophyIcon } from '@/components/icons/ionicons'
 import { CelebrationContext } from './CelebrationContext'
 
 /**
@@ -31,31 +31,45 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
       {toast && (
         <div
           role="status"
-          className="fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-gold px-5 py-2 font-bold text-maroon shadow-lg"
+          className="fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-[0.9375rem] leading-5 font-bold tracking-[0.04em] text-[#0b2e36] shadow-modal"
         >
-          <Sparkles size={18} aria-hidden /> {toast}
+          <RibbonIcon size={16} aria-hidden />
+          <span>{toast}</span>
         </div>
       )}
       {dialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6" role="dialog" aria-modal="true" aria-labelledby="celebrate-title">
-          <div className="w-full max-w-sm animate-[pulse_1s_ease-in-out_1] rounded-3xl bg-cream p-6 text-center text-maroon shadow-2xl">
-            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gold">
-              {dialog.newBadges.length ? <Award size={32} aria-hidden /> : <PartyPopper size={32} aria-hidden />}
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#061318]/60 p-6 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="celebrate-title"
+        >
+          <div className="flex w-full max-w-sm animate-[pulse_1s_ease-in-out_1] flex-col items-center gap-3 rounded-[28px] border border-ivory-line bg-ivory-surface px-6 py-7 text-center text-ink shadow-modal motion-reduce:animate-none">
+            <div className="flex size-16 items-center justify-center rounded-full bg-gold text-[#0b2e36]">
+              <TrophyIcon size={30} aria-hidden />
             </div>
-            <h2 id="celebrate-title" className="text-2xl font-extrabold">
+            <h2 id="celebrate-title" className="text-3xl leading-9 font-extrabold tracking-tight text-ink">
               {dialog.leveledUp ? `Level ${dialog.rank.level}!` : 'Badge unlocked!'}
             </h2>
-            {dialog.leveledUp && <p className="mt-1 font-semibold">You are now a {dialog.rank.title}.</p>}
+            {dialog.leveledUp && (
+              <p className="text-[0.9375rem] leading-[1.375rem] font-bold text-ink-body">
+                You are now a {dialog.rank.title}.
+              </p>
+            )}
             {dialog.newBadges.map((badge) => (
-              <p key={badge} className="mt-2 rounded-xl bg-maroon/10 px-3 py-2 font-bold">
-                🏅 {badge}
+              <p
+                key={badge}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-terracotta-soft px-4 py-2 text-xs leading-4 font-bold text-terracotta-ink"
+              >
+                <RibbonIcon size={14} aria-hidden />
+                <span>{badge} Unlocked</span>
               </p>
             ))}
-            {dialog.xpAwarded > 0 && <p className="mt-2 text-sm">+{dialog.xpAwarded} XP</p>}
+            {dialog.xpAwarded > 0 && <p className="font-mono text-xs leading-4 font-bold text-ink-muted">+{dialog.xpAwarded} XP</p>}
             <button
               type="button"
               onClick={() => setDialog(null)}
-              className="touch-target mt-5 w-full rounded-2xl bg-maroon px-4 font-bold text-cream"
+              className="touch-target mt-2 flex min-h-12 w-full items-center justify-center rounded-2xl bg-navy px-4 py-3.5 text-[0.9375rem] leading-5 font-bold tracking-[0.04em] text-on-navy shadow-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               Padayon! (Continue)
             </button>
