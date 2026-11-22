@@ -196,12 +196,39 @@ describe('ProfilePage', () => {
     const editor = within(screen.getByRole('region', { name: 'Edit profile details' }))
     const nationality = editor.getByRole('combobox', { name: 'Nationality' })
     expect(nationality).toHaveValue('Japan')
-    expect(within(nationality).getByRole('option', { name: 'Japan' })).toBeDisabled()
+    await userEvent.selectOptions(nationality, 'Japanese')
+    expect(nationality).toHaveValue('Japanese')
+    await userEvent.selectOptions(nationality, 'Japan')
+    expect(nationality).toHaveValue('Japan')
 
     await userEvent.type(editor.getByRole('textbox', { name: 'Display name' }), ' Jr.')
     await userEvent.click(editor.getByRole('button', { name: 'Save changes' }))
     expect(patchCalls).toHaveLength(1)
     expect(patchCalls[0]).not.toHaveProperty('nationality')
+  })
+
+  it.each(['filipino', 'Filipino ', 'Philippines'])('saves the listed nationality for %j', async (savedNationality) => {
+    signInDevUser()
+    const me = sampleMe()
+    me.profile.nationality = savedNationality
+    const patchCalls: ProfileUpdate[] = []
+    mockFetch((url, init) => {
+      if (url.pathname.endsWith('/v1/me') && init?.method === 'PATCH') {
+        const body = JSON.parse(String(init.body)) as ProfileUpdate
+        patchCalls.push(body)
+        return { data: { ...me.profile, ...body } }
+      }
+      return { data: me }
+    })
+
+    renderPage(<ProfilePage />, '/profile')
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit profile details' }))
+    const editor = within(screen.getByRole('region', { name: 'Edit profile details' }))
+    expect(editor.getByRole('combobox', { name: 'Nationality' })).toHaveValue('Filipino')
+
+    await userEvent.click(editor.getByRole('button', { name: 'Save changes' }))
+    expect(patchCalls).toHaveLength(1)
+    expect(patchCalls[0]).toHaveProperty('nationality', 'Filipino')
   })
 
   it('supports System default, Light, and Dark appearance options', async () => {

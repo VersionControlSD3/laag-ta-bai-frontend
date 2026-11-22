@@ -205,8 +205,8 @@ export default function SignUpPage() {
     }
   }
 
-  const inputClass = (invalid: boolean) =>
-    `mt-1 h-12 w-full rounded-xl border bg-design-surface px-4 text-ivory text-base outline-none transition focus:border-terracotta focus:ring-2 focus:ring-terracotta/30 ${invalid ? 'border-error' : 'border-design-line'}`
+  const inputClass = (invalid: boolean, spacing = 'mt-1 px-4') =>
+    `${spacing} h-12 w-full rounded-xl border bg-design-surface text-ivory text-base outline-none transition focus:border-terracotta focus:ring-2 focus:ring-terracotta/30 ${invalid ? 'border-error' : 'border-design-line'}`
 
   return (
     // Pinned to the light palette: its ivory text sits on a photo and a dark card in both themes.
@@ -248,13 +248,13 @@ export default function SignUpPage() {
                     {submitted && isUnderage && fieldError('You must be at least 18 to create an account.')}
                   </label>
                   <div className="min-w-0">
-                    <label htmlFor="signup-nationality" className="auth-label block">Nationality <span aria-hidden="true">*</span></label>
+                    <label htmlFor="signup-nationality" className="auth-label mb-1 block">Nationality <span aria-hidden="true">*</span></label>
                     <NationalitySelect
                       id="signup-nationality"
                       required
                       value={form.nationality}
                       onValueChange={(value) => update('nationality', value)}
-                      className={`${inputClass(nationalityInvalid)} auth-nationality-select`}
+                      className={`${inputClass(nationalityInvalid, 'pl-4')} auth-nationality-select`}
                       aria-invalid={nationalityInvalid}
                       aria-describedby={nationalityInvalid ? 'signup-nationality-error' : undefined}
                     />

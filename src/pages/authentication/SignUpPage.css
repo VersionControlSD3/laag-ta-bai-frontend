@@ -170,6 +170,10 @@
   color-scheme: dark;
 }
 
+.auth-signup .auth-signup-card .auth-nationality-select[data-empty='true'] {
+  color: color-mix(in srgb, var(--ds-ivory) 75%, transparent);
+}
+
 .auth-label {
   color: var(--ds-terracotta);
   font-size: 0.75rem;

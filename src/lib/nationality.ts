@@ -225,3 +225,9 @@ Yemeni
 Zambian
 Zimbabwean
 `.trim().split('\n')
+
+export function normalizeSavedNationality(value: string): string {
+  const key = value.trim().replace(/\s+/g, ' ').toLowerCase()
+  if (key === 'philippines') return 'Filipino'
+  return nationalityOptions.find((name) => name.toLowerCase() === key) ?? value
+}

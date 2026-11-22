@@ -34,7 +34,7 @@ import { levelProgress } from '@/features/mastery/progress'
 import { usePreferences, type ThemeMode } from '@/features/preferences/PreferencesContext'
 import { GRANTED_KEY } from '@/hooks/useGeolocation'
 import { env } from '@/lib/env'
-import { nationalityOptions } from '@/lib/nationality'
+import { normalizeSavedNationality } from '@/lib/nationality'
 import { clearOfflineCache, readJson } from '@/lib/storage'
 
 type LanguageOption = {
@@ -569,11 +569,12 @@ export default function ProfilePage() {
 function AuthenticatedProfileContent({ me }: { me: Me }) {
   const updateMe = useUpdateMe()
   const [isEditOpen, setIsEditOpen] = useState(false)
-  const [editFormData, setEditFormData] = useState({
-    displayName: me.profile.displayName,
-    nationality: me.profile.nationality ?? '',
-    bio: me.profile.bio ?? '',
-  })
+  const getEditFormData = () => {
+    const savedNationality = me.profile.nationality ?? ''
+    const nationality = normalizeSavedNationality(savedNationality)
+    return { displayName: me.profile.displayName, savedNationality, nationality, bio: me.profile.bio ?? '' }
+  }
+  const [editFormData, setEditFormData] = useState(getEditFormData)
   const [validationError, setValidationError] = useState<string | null>(null)
 
   const displayName = me.profile.displayName.trim() || 'Unnamed traveler'
@@ -595,26 +596,12 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
 
   const handleToggleEdit = () => {
     setValidationError(null)
-    setIsEditOpen((prev) => {
-      const next = !prev
-      if (next) {
-        setEditFormData({
-          displayName: me.profile.displayName,
-          nationality: me.profile.nationality ?? '',
-          bio: me.profile.bio ?? '',
-        })
-      }
-      return next
-    })
+    if (!isEditOpen) setEditFormData(getEditFormData())
+    setIsEditOpen(!isEditOpen)
   }
 
   const handleCancelEdit = () => {
     setValidationError(null)
-    setEditFormData({
-      displayName: me.profile.displayName,
-      nationality: me.profile.nationality ?? '',
-      bio: me.profile.bio ?? '',
-    })
     setIsEditOpen(false)
   }
 
@@ -625,12 +612,8 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
       setValidationError('Display name is required.')
       return
     }
-    const nationality = editFormData.nationality
-    const nationalityChanged = nationality !== (me.profile.nationality ?? '')
-    if (nationalityChanged && nationality && !nationalityOptions.includes(nationality)) {
-      setValidationError('Select a nationality from the list.')
-      return
-    }
+    const { nationality, savedNationality } = editFormData
+    const nationalityChanged = nationality !== savedNationality
     setValidationError(null)
     updateMe.mutate(
       {
@@ -789,17 +772,18 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 Nationality
               </label>
               <div className="relative flex items-center">
-                <span className="pointer-events-none absolute left-3.5 text-terracotta">
+                <span className="pointer-events-none absolute left-3.5 z-10 text-terracotta">
                   <GlobeOutlineIcon size={18} />
                 </span>
                 <NationalitySelect
                   id="edit-nationality"
                   value={editFormData.nationality}
+                  savedValue={normalizeSavedNationality(editFormData.savedNationality)}
                   onValueChange={(nationality) => {
                     setValidationError(null)
                     setEditFormData((prev) => ({ ...prev, nationality }))
                   }}
-                  className="h-12 w-full min-w-0 rounded-2xl border border-line-strong bg-ivory pr-4 pl-10 text-sm font-semibold text-ink focus-visible:outline-2 focus-visible:outline-navy"
+                  className="h-12 w-full min-w-0 rounded-2xl border border-line-strong bg-ivory pl-10 text-sm font-semibold text-ink scheme-light focus-visible:outline-2 focus-visible:outline-navy dark:scheme-dark"
                 />
               </div>
             </div>
