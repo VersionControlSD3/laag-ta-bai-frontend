@@ -245,8 +245,8 @@ body {
 }
 
 /*
- * Leftovers from the earlier "artifact" design layer, still used by the sign-up and dev sign-in
- * screens. Don't use them in new UI; they go when those screens are rebuilt (UI Redesign #3, #4).
+ * Leftovers from the earlier "artifact" design layer, still used by the sign-up screen. Don't
+ * use them in new UI; they go when sign-up is rebuilt (UI Redesign #4).
  */
 @theme {
   --color-design-surface: #faf5ec;

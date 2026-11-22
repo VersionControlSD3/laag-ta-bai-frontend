@@ -292,6 +292,27 @@ Flow and transition timing:
   ring and are at least 48 × 48 px. Dots are labelled "Page n of 3"; the current one has
   `aria-current="step"`. A `role="status"` region outside the animated slide stays mounted and announces "Page n of 3: <headline>" on every change.
 
+### Login (UI Redesign #3)
+
+Built in `src/pages/authentication/LoginPage.tsx` on `src/components/AuthScreen.tsx`, from the
+ClickUp #3 screenshot.
+
+- **Photo band.** `AuthScreen` is a short photo band, `clamp(14rem, 32dvh, 17rem)`: `LoginDay.webp`
+  in light, `LoginNight.webp` in dark, with a lagoon tint and ink scrims.
+  - It shows `EN`, the "Laag ta *bAI*" wordmark and "Cebu, PH", then the `font-display` tagline
+    "Go where the map *runs out.*"
+  - Only the band pins the light palette; the sheet below follows the theme.
+- **Sheet.** An `ivory-surface` sheet with `rounded-t-[2rem]` overlaps the band by 32 px. It holds:
+  - the italic `font-display` greeting "Maayong pagbalik" (`lang="ceb"`) and the `font-display`
+    title "Log In";
+  - text fields with a sentence-case label, a 56 px `ivory-deep` (sand) well, an `ivory-line`
+    border (`danger` when invalid, plus the error text) and an `ink-muted` outline icon;
+  - a full-width lagoon `Log in` button;
+  - an outlined `Continue as Guest`;
+  - the Google button (Supabase mode) and "New here? Create Account".
+- **Dev mode.** Without Supabase keys, `DevSignIn tone="notice"` shows the sand box with a dashed
+  coral border and a lagoon "Continue as dev traveler" button.
+
 ## Assets
 
 Export from the **Assets** page: `Placeholder` (landmark photos: Basilica, Casa, Fort, Heritage,

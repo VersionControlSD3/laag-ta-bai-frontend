@@ -140,7 +140,7 @@ describe('sign-up page', () => {
   it('renders the dev sign-in notice with an explicit text colour', async () => {
     await openRegister()
     const notice = await screen.findByText("Supabase isn't configured.")
-    expect(notice.closest('div')).toHaveClass('text-navy')
+    expect(notice.closest('div')).toHaveClass('text-ink')
     expect(screen.getByRole('button', { name: 'Continue as dev traveler' })).toBeInTheDocument()
   })
 
