@@ -433,3 +433,20 @@ export const RibbonOutlineIcon = icon(
     <path {...stroke} d="M176 256l-32 208 112-64 112 64-32-208" />
   </>,
 )
+
+export const ChevronBackOutlineIcon = icon(<path {...stroke} d="M328 112L184 256l144 144" />)
+
+export const ChevronDownOutlineIcon = icon(<path {...stroke} d="M112 184l144 144 144-144" />)
+
+export const CalendarOutlineIcon = icon(
+  <>
+    <rect {...stroke} x="48" y="80" width="416" height="384" rx="48" />
+    {[
+      [296, 232], [376, 232], [296, 312], [376, 312], [136, 312],
+      [216, 312], [136, 392], [216, 392], [296, 392],
+    ].map(([cx, cy]) => (
+      <circle key={`${cx}-${cy}`} fill="currentColor" cx={cx} cy={cy} r="24" />
+    ))}
+    <path {...stroke} d="M128 48v32M384 48v32M464 160H48" />
+  </>,
+)

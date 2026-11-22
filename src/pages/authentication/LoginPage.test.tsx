@@ -124,12 +124,24 @@ describe('login page', () => {
     expect(await screen.findByRole('heading', { name: 'Explore' })).toBeInTheDocument()
   })
 
-  it('uses the night photo and darker field wells in dark mode', () => {
+  it('uses the night photo in dark mode and keeps only the photo band on the light palette', () => {
     writeJson('preferences', { theme: 'dark' })
     renderLogin()
-    const screenRoot = screen.getByRole('heading', { name: 'Log In' }).closest('[data-theme="light"]')
-    expect(screenRoot?.className).toContain('LoginNight.webp')
-    expect(screen.getByLabelText('Email').parentElement).toHaveClass('bg-navy-pressed/70')
+    const photo = document.querySelector('img')
+    expect(photo).toHaveAttribute('src', '/authenticationBG/LoginNight.webp')
+    expect(photo).toHaveAttribute('alt', '')
+    expect(photo?.closest('[data-palette="light"]')).not.toBeNull()
+    // The form sheet follows the theme instead of being pinned to light.
+    expect(screen.getByRole('heading', { name: 'Log In' }).closest('[data-palette="light"]')).toBeNull()
+  })
+
+  it('shows the redesign header, tagline and sand field wells', () => {
+    renderLogin()
+    expect(screen.getByRole('img', { name: 'Laag ta bAI' })).toBeInTheDocument()
+    expect(screen.getByText('Language: English')).toBeInTheDocument()
+    expect(screen.getByText('Cebu, PH')).toBeInTheDocument()
+    expect(screen.getByText('Maayong pagbalik')).toHaveAttribute('lang', 'ceb')
+    expect(screen.getByLabelText('Email').parentElement).toHaveClass('bg-ivory-deep')
   })
 })
 
