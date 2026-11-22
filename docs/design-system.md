@@ -6,7 +6,7 @@ is in it (read on 2026-10-27) and how it maps to code, so you can build a screen
 When Figma and this page disagree, Figma wins: update this page in the same PR.
 
 > **Status.** The maroon / gold scaffold (`bg`, `fg`, `surface`, `primary`, `maroon`, `gold`, ...) is
-> **not** the final design. The target is the **Ivory + Sage** palette below. Migrate screens one at
+> **not** the final design. The target is the **Lagoon & Coral** palette below (token names from Ivory + Sage). Migrate screens one at
 > a time; don't add new scaffold colours, and don't mix the two palettes inside one component.
 
 ## Where things are in Figma
@@ -32,61 +32,76 @@ Figma's Dev Mode / MCP server works too. Never edit the file from a script.
 
 ## Colour
 
-Four brand colours (ivory, sage, navy, terracotta) plus derived ink, line, soft-fill, status and
-overlay tokens. Use the Tailwind class names in the second column; they switch with the theme.
+> **Palette change (UI Redesign, ClickUp #1).** The team replaced the Figma **Ivory + Sage** colours
+> with the **Tropical Lagoon & Coral** palette from the redesign screenshots and brand assets
+> (lagoon teal `#0D5C63`, coral `#E76F51`, teal `#2A9D8F`, warm ivory `#FFFBF4`). The **token
+> names did not change**: they are roles now, so every screen switched palette at once. Read
+> `navy` as "lagoon primary", `terracotta` as "coral accent" and `sage` as "teal secondary".
+> Figma's Foundations page still shows Ivory + Sage until the designer updates it; for colour,
+> this table wins over Figma.
 
-| Figma variable | Tailwind name | Light (Figma) | Dark (provisional) | Use for |
+Use the Tailwind class names in the second column; they switch with the theme. Values were taken
+from the redesign screenshots and logo files, then checked for WCAG AA.
+
+| Role (Ivory + Sage name) | Tailwind name | Light | Dark (provisional) | Use for |
 |---|---|---|---|---|
-| `color/ivory` | `ivory` | `#FAF5EC` | `#121A24` | App background (gradient top) |
-| `color/ivory-deep` | `ivory-deep` | `#F2EBDD` | `#0C121A` | Gradient bottom; locked and empty fills |
-| `color/surface` | `ivory-surface` | `#FFFDF8` | `#1B2633` | Cards, sheets, tab bar, top bar |
-| `color/line` | `ivory-line` | `#E3DCCD` | `#2C3A4A` | Hairline borders, list dividers |
-| `color/line-strong` | `line-strong` | `#8F8878` | `#7F8C9A` | Borders that mark a control (≥ 3:1) |
-| `color/navy` | `navy` | `#243B53` | `#DBE5EF` | Primary buttons, headings, active navigation |
-| `color/navy-pressed` | `navy-pressed` | `#1A2C3F` | `#C2D0DE` | Pressed navy fills |
-| `color/navy-soft` | `navy-soft` | `#E5E2DD` | `#26364A` | Navy tint behind navy text |
-| `color/on-navy` | `on-navy` | → ivory | `#121A24` | Text and icons on navy |
-| `color/ink` | `ink` | → navy | `#FAF5EC` | Headings and titles |
-| `color/ink-body` | `ink-body` | `#3D5166` | `#D3DBE3` | Body copy |
-| `color/ink-muted` | `ink-muted` | `#536170` | `#A7B2BD` | Metadata, placeholders, inactive tabs |
-| `color/ink-faint` | `ink-faint` | `#8A96A1` | `#6B7885` | Locked / disabled **icons only, never text** |
-| `color/sage` | `sage` | `#9BAF9A` | `#9BAF9A` | Secondary surfaces, supporting accents |
-| `color/sage-soft` | `sage-soft` | `#DEE0D3` | `#2B3A31` | Insets, icon discs, tracks |
-| `color/sage-deep` | `sage-deep` | `#4D654D` | `#B9CDB8` | Text and icons on sage-soft |
-| `color/terracotta` | `terracotta` | `#C66B4E` | `#D98A6E` | Heritage accents; **icons and 24 px+ only** |
-| `color/terracotta-ink` | `terracotta-ink` | `#9F4B31` | `#ECA88F` | Terracotta for text |
-| `color/terracotta-soft` | `terracotta-soft` | `#F3E2D6` | `#3A2A22` | Callouts, heritage tags, unlocked badges |
-| none (raw `#EFAE97`) | `terracotta-light` | `#EFAE97` | `#EFAE97` | Labels, icons and links on the navy auth card only (code token; not a Figma variable yet) |
+| `color/ivory` | `ivory` | `#FFFBF4` | `#0B1F24` | App background |
+| `color/ivory-deep` | `ivory-deep` | `#F4EBD9` | `#071619` | Sand input wells; locked and empty fills |
+| `color/surface` | `ivory-surface` | `#FFFFFF` | `#11292F` | Cards, sheets, tab bar, top bar |
+| `color/line` | `ivory-line` | `#E5D9C3` | `#21424A` | Hairline borders, list dividers |
+| `color/line-strong` | `line-strong` | `#8A7D66` | `#7D989C` | Borders that mark a control (≥ 3:1) |
+| `color/navy` | `navy` | `#0D5C63` lagoon | `#8FD3CF` | Primary buttons, active navigation, lagoon accents |
+| `color/navy-pressed` | `navy-pressed` | `#09454C` | `#74C3BE` | Pressed primary fills |
+| `color/navy-soft` | `navy-soft` | `#DDF2F0` | `#173B40` | Lagoon tint (chips, location pills) |
+| `color/on-navy` | `on-navy` | → ivory | `#0B1F24` | Text and icons on lagoon fills |
+| `color/ink` | `ink` | `#0B2E36` | `#F5EFE4` | Headings and titles |
+| `color/ink-body` | `ink-body` | `#2D4A51` | `#D2DFDF` | Body copy |
+| `color/ink-muted` | `ink-muted` | `#4E6E75` | `#A3B9BB` | Metadata, placeholders, inactive tabs |
+| `color/ink-faint` | `ink-faint` | `#7A9295` | `#5F7A7E` | Locked / disabled **icons only, never text** |
+| `color/sage` | `sage` | `#2A9D8F` teal | `#4FBFB0` | Secondary accents, logo steps; **icons and large text only** |
+| `color/sage-soft` | `sage-soft` | `#DCF5EE` mint | `#14362F` | Insets, icon discs, tracks, PWA icon background |
+| `color/sage-deep` | `sage-deep` | `#16655A` | `#9FE3D6` | Text and icons on sage-soft |
+| `color/terracotta` | `terracotta` | `#E46B4D` coral | `#F08A6F` | Accents, Scan button, active dots; **icons and 24 px+ only** |
+| `color/terracotta-ink` | `terracotta-ink` | `#B54124` | `#FFAB93` | Coral for text; coral **filled buttons with white text** |
+| `color/terracotta-soft` | `terracotta-soft` | `#FFE8DF` | `#3B241D` | Category tags, AI Mode chip, callouts |
+| none | `terracotta-light` | `#F9C4B4` | `#F9C4B4` | Labels, icons and links on lagoon fills only |
 | `color/danger` | `danger` | `#A8322A` | `#F2958A` | Destructive text |
 | `color/danger-soft` | `danger-soft` | `#F7E1DC` | `#3A1F1C` | Destructive button fill |
 | `color/danger-line` | `danger-line` | `#E3B3AA` | `#7A3B34` | Destructive button border |
 
-Overlays in Figma (not yet tokens in code; add them when a screen needs them):
-`scrim-photo` navy 55 % over full-bleed photos, `scrim-modal` navy 45 % behind modals,
-`panel-glass` ivory 90 % (blurred auth panel), `camera-control` navy 50 % over the camera feed,
-`on-photo` surface 92 % for chips on photos.
+**Contrast rules.**
+- Coral (`terracotta`) is a shade darker than the brand `#E76F51` so coral icons reach 3:1 on
+  ivory. The logo files keep the exact brand colour.
+- White text on coral is only 3.1:1, so coral **buttons with text** use `terracotta-ink` as the fill
+  (5.6:1), or `ink` text on `terracotta` (4.7:1). The redesign screenshots show white on brand
+  coral; don't copy that.
+- Lowest checked text pairs: light `ink-muted` on `ivory-deep` 4.65:1, dark `ink-muted` on
+  `navy-soft` 5.9:1. `ink-faint` stays icons-only.
 
-Rules from Foundations: one navy primary button per screen; terracotta is decoration and accents,
-use `terracotta-ink` for terracotta text; `ink-faint` is never used for text. All light pairs above
-pass WCAG AA (`ink-muted` on `surface` 6.2:1, `line-strong` on `surface` 3.5:1).
+Overlays (not yet tokens in code; add them when a screen needs them): photo scrim, modal scrim,
+glass panel, camera control, chip on photo.
 
-**Naming.** Figma `color/surface` and `color/line` are `ivory-surface` and `ivory-line` in code
-because the scaffold already owns `surface` and `line`. Rename them once the scaffold is gone.
+Rules: one lagoon primary button per screen; coral is for accents, icons and the Scan action; use
+`terracotta-ink` for coral text; `ink-faint` is never used for text.
+
+**Naming.** `ivory-surface` and `ivory-line` keep the `ivory-` prefix because the scaffold already
+owns `surface` and `line`. Renaming the roles to `lagoon-*` / `coral-*` is a separate refactor.
 
 ### Dark mode
 
-Figma has **no dark mode** for Ivory + Sage. (Themes → *06 · Dark Theme* is a separate direction
-with a gold accent, not a dark version of this palette.) The project still requires dark mode, so
-`src/styles/index.css` ships **provisional** dark values derived from the same hues. Each text pair
-was checked for WCAG AA (lowest: `ink-muted` on `surface` 7.1:1). Navy fills invert to a light navy
-with dark text. Ask the designer for real dark values and replace them in one place.
+The redesign has **no dark mode** yet, so `src/styles/index.css` ships **provisional** dark values
+derived from the same hues and checked for WCAG AA. Lagoon fills invert to a light teal with dark
+text. Ask the designer for real dark values and replace them in one place.
+
+The **splash** stays ivory in both themes (`data-theme="light"`): the installed PWA's launch screen
+uses the manifest's ivory `background_color`, and the logo artwork is lagoon on transparent.
 
 Define each colour **once**, through `--ds-*`: a second `--color-ivory: #...` elsewhere overrides the
 theme and breaks dark mode. To keep light text on a photo in both themes, put `data-palette="light"`
 on the wrapper (it pins these tokens only), and read `var(--ds-*)` rather than `var(--color-*)` in
 custom CSS, because `--color-*` is resolved once at the root.
 
-### How colours are used on the Final Pages
+### How colours were used on the Final Pages (Ivory + Sage, before the redesign)
 
 Counted across all 31 Final Pages frames:
 
@@ -113,10 +128,18 @@ Counted across all 31 Final Pages frames:
 
 ## Typography
 
-Figma says the app uses the **platform system face** (SF Pro on iOS, Roboto on Android) and that
-Inter only stands in for it in the file. In code, `--font-sans` lists Inter first but Inter is not
-loaded, so the system face is what renders. Use these styles; sizes are in `rem` so they follow
-the OS font size.
+**UI Redesign fonts (ClickUp #2).** The redesign uses two self-hosted web fonts (OFL, from
+`@fontsource-variable`, imported in `src/main.tsx`):
+
+- **Plus Jakarta Sans** is `--font-sans`, the default text face (Tailwind `font-sans`, so every
+  screen uses it).
+- **Playfair Display** is `--font-display` (Tailwind `font-display`) for editorial headlines, such
+  as onboarding headlines and screen titles. Italic is loaded for the `bAI` in the wordmark.
+
+Only the Latin subsets are precached (about 104 KB, `vite.config.ts`); other subsets load on demand.
+The system face is the fallback. This replaces Figma's "platform system face" rule.
+
+Use these styles; sizes are in `rem` so they follow the OS font size.
 
 | Figma style | Size / line, weight, tracking | Tailwind |
 |---|---|---|
@@ -231,8 +254,25 @@ tokenized:
 
 ### Onboarding (first run)
 
-Built in `src/pages/OnboardingPage.tsx`, route `/onboarding`. The running app is the clickable
-prototype: open `/onboarding` (or clear `laagtabai:preferences` and open `/`).
+Built in `src/pages/OnboardingPage.tsx`, route `/onboarding`, from the UI Redesign #2 screenshots.
+The running app is the clickable prototype: open `/onboarding` (or clear `laagtabai:preferences`
+and open `/`).
+
+Layout:
+- **Photo.** A full-bleed photo fills the top 56 % of the screen (46 % on screens 680 px tall or
+  less). Slide 1 uses `authenticationBG/LoginDay.webp`, slide 2 `landmarks/magellan.jpg` and slide
+  3 `onboarding/bridge.webp`.
+  - The photo has a lagoon tint plus top and bottom `ink` scrims.
+  - The header shows `EN`, the "Laag ta *bAI*" wordmark and Skip; the photo headline is set in
+    `font-display`.
+  - The photo area pins the light palette, so the white text stays white in dark mode.
+- **Sheet.** An `ivory-surface` sheet with `rounded-t-[2rem]` overlaps the photo by 32 px. It holds
+  the slide title (`font-display`, the slide's `h1`) and the body text.
+- **Footer.**
+  - The active dot is 28 px coral; inactive dots are 8 px `line-strong`, so they keep 3:1 as
+    controls. The target's sand dots are only 1.4:1.
+  - The CTA is a lagoon `rounded-xl` button. Below 400 px wide it uses tighter padding, so "Start
+    exploring" fits next to the dots at 360 px; on narrower screens it wraps onto its own row.
 
 Flow and transition timing:
 
@@ -241,7 +281,7 @@ Flow and transition timing:
 | Splash | after 1500 ms, or tap | Onboarding slide 1 | instant (route replace) |
 | Slide n | Next, swipe left (> 50 px), or tap dot | Slide n + 1 / dot's slide | 300 ms fade + 8 px rise, `ease-out` |
 | Slide n | swipe right (> 50 px) | Slide n − 1 | 300 ms fade + 8 px rise, `ease-out` |
-| Any slide | Page dot | — | dot width 8 → 24 px, 150 ms (Tailwind `transition-all`) |
+| Any slide | Page dot | — | dot width 8 → 28 px, 150 ms (Tailwind `transition-all`) |
 | Slide 3 | Start exploring | Permissions, then Sign up (`/register`) | instant (route replace) |
 | Any slide | Skip | Login | instant (route replace) |
 
@@ -251,6 +291,27 @@ Flow and transition timing:
 - Tab order: Skip → page dots 1–3 → Next / Start exploring. All controls show a 2 px navy focus
   ring and are at least 48 × 48 px. Dots are labelled "Page n of 3"; the current one has
   `aria-current="step"`. A `role="status"` region outside the animated slide stays mounted and announces "Page n of 3: <headline>" on every change.
+
+### Login (UI Redesign #3)
+
+Built in `src/pages/authentication/LoginPage.tsx` on `src/components/AuthScreen.tsx`, from the
+ClickUp #3 screenshot.
+
+- **Photo band.** `AuthScreen` is a short photo band, `clamp(14rem, 32dvh, 17rem)`: `LoginDay.webp`
+  in light, `LoginNight.webp` in dark, with a lagoon tint and ink scrims.
+  - It shows `EN`, the "Laag ta *bAI*" wordmark and "Cebu, PH", then the `font-display` tagline
+    "Go where the map *runs out.*"
+  - Only the band pins the light palette; the sheet below follows the theme.
+- **Sheet.** An `ivory-surface` sheet with `rounded-t-[2rem]` overlaps the band by 32 px. It holds:
+  - the italic `font-display` greeting "Maayong pagbalik" (`lang="ceb"`) and the `font-display`
+    title "Log In";
+  - text fields with a sentence-case label, a 56 px `ivory-deep` (sand) well, an `ivory-line`
+    border (`danger` when invalid, plus the error text) and an `ink-muted` outline icon;
+  - a full-width lagoon `Log in` button;
+  - an outlined `Continue as Guest`;
+  - the Google button (Supabase mode) and "New here? Create Account".
+- **Dev mode.** Without Supabase keys, `DevSignIn tone="notice"` shows the sand box with a dashed
+  coral border and a lagoon "Continue as dev traveler" button.
 
 ## Assets
 
@@ -262,7 +323,7 @@ precache (see `vite.config.ts`).
 
 ## Open questions for the designer
 
-1. Dark-mode values for Ivory + Sage (the code uses provisional ones).
+1. Dark-mode values for Lagoon & Coral (the code uses provisional ones), and updating Foundations to the new palette.
 2. Which token each raw colour on the Final Pages should be (table above).
 3. Lato / Roboto / Archivo Black on the Final Pages versus the system-face rule.
 4. Partial and denied states for permissions, which aren't in Figma yet.

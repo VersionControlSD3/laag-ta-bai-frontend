@@ -1,46 +1,32 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
-import {
-  ArrowForwardIcon,
-  CameraOutlineIcon,
-  CheckmarkIcon,
-  LocationOutlineIcon,
-  SparklesIcon,
-  TrophyOutlineIcon,
-} from '@/components/icons/ionicons'
+import { ArrowForwardIcon } from '@/components/icons/ionicons'
 
+/** UI Redesign #2: full-bleed Cebu photo with an editorial headline, then a rounded white sheet. */
 const SLIDES = [
   {
-    tag: 'Discover',
-    tagClass: 'bg-terracotta-soft text-terracotta-ink',
+    headline: 'Go where the map runs out.',
     title: 'Every corner has a story.',
-    body: 'Find heritage landmarks, local favorites, and hidden gems across Cebu—curated for curious travelers.',
-    image: '/landmarks/heritage.jpg',
-    imageClass: 'object-cover',
-    card: { title: 'Nearby heritage', sub: 'Stories around you', Icon: LocationOutlineIcon, disc: 'bg-terracotta text-on-navy' },
+    body: 'Discover heritage landmarks, ancestral homes, and coastal stories across Cebu.',
+    image: '/authenticationBG/LoginDay.webp',
   },
   {
-    tag: 'Scan to story',
-    tagClass: 'bg-navy-soft text-navy',
+    headline: 'Point, snap, and ask bAI.',
     title: 'Point. Scan. Step into history.',
-    body: 'Use your camera at a landmark and let bAI reveal the people, moments, and legends that shaped it.',
-    image: '/brand/NewLogo.png',
-    imageClass: 'object-contain p-8 bg-sage-soft',
-    card: { title: 'Landmark recognized', sub: 'Story ready to explore', Icon: CameraOutlineIcon, disc: 'bg-navy text-on-navy' },
+    body: 'Take or upload a photo of any landmark and ask bAI where it is or what shaped it.',
+    image: '/landmarks/magellan.jpg',
   },
   {
-    tag: 'Make it yours',
-    tagClass: 'bg-sage-soft text-sage-deep',
+    headline: 'Explore Cebu at your own pace.',
     title: 'Learn more with every laag.',
-    body: 'Complete cultural quests, collect heritage badges, and save every story you want to return to.',
+    body: 'Save places for offline reading, follow walking trails, and collect heritage badges.',
     image: '/onboarding/bridge.webp',
-    imageClass: 'object-cover',
-    card: { title: 'Cebu Explorer', sub: 'Your first badge awaits', Icon: TrophyOutlineIcon, disc: 'bg-sage-deep text-on-navy' },
   },
 ] as const
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy'
+const focusRingOnPhoto = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ivory'
 
 /** First-run onboarding: three slides, then Permissions then Sign up (Start exploring), or Login (Skip). */
 export default function OnboardingPage() {
@@ -60,17 +46,24 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-linear-to-b from-ivory to-ivory-deep px-6">
-      <header className="flex items-center justify-between pt-4">
-        <p className="flex items-baseline gap-1.5" role="img" aria-label="Laag ta bAI">
-          <span className="text-[0.625rem] font-bold tracking-[0.1em] text-ink uppercase">Laag ta</span>
-          <span className="text-xl font-extrabold text-terracotta-ink">bAI</span>
+    <div className="relative mx-auto flex min-h-dvh max-w-md flex-col bg-ivory-surface">
+      {/* Over the photo in both themes, so the light palette is pinned for the white text. */}
+      <header
+        data-palette="light"
+        className="absolute inset-x-0 top-0 z-20 grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-[max(0.5rem,env(safe-area-inset-top))] text-ivory"
+      >
+        <span className="pl-2 font-mono text-xs font-bold tracking-[0.15em]">
+          <span aria-hidden="true">EN</span>
+          <span className="sr-only">Language: English</span>
+        </span>
+        <p className="font-display text-xl font-semibold tracking-tight" role="img" aria-label="Laag ta bAI">
+          Laag ta <span className="font-bold italic">bAI</span>
         </p>
         <button
           type="button"
           onClick={() => finish(false)}
           aria-label="Skip onboarding"
-          className={`touch-target rounded-full bg-ivory-surface px-4 text-sm font-bold text-ink-muted ${focusRing}`}
+          className={`touch-target justify-self-end rounded-full px-3 text-sm font-bold ${focusRingOnPhoto}`}
         >
           Skip
         </button>
@@ -95,56 +88,50 @@ export default function OnboardingPage() {
       >
         {/* Stays mounted so screen readers announce each slide change. */}
         <p role="status" className="sr-only">{`Page ${index + 1} of ${SLIDES.length}: ${slide.title}`}</p>
-        {/* key restarts the fade on every slide; motion-reduce turns it off. */}
-        <div key={index} className="flex flex-col animate-[fade-in_300ms_ease-out] motion-reduce:animate-none">
-          <section className="relative mx-auto mt-8 w-full max-w-[320px]" aria-hidden="true">
-            {/* Light palette pinned: the logo artwork is made for light grounds. */}
-            <div data-palette="light" className="-rotate-2 rounded-2xl bg-ivory-surface p-2 shadow-navy">
-              <img src={slide.image} alt="" draggable={false} className={`aspect-square w-full rounded-xl ${slide.imageClass}`} />
-            </div>
-            <span className="absolute -top-3 -right-2 flex size-10 items-center justify-center rounded-full bg-terracotta text-on-navy ring-4 ring-ivory-surface">
-              <SparklesIcon size={20} />
-            </span>
-            {/* Opaque surface so the card stays readable over any part of the photo. */}
-            <div className="absolute inset-x-[-8px] bottom-[-28px] flex items-center gap-3 rounded-xl bg-ivory-surface p-3 shadow-navy">
-              <span className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${slide.card.disc}`}>
-                <slide.card.Icon size={20} />
-              </span>
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="text-sm font-bold text-ink">{slide.card.title}</span>
-                <span className="text-xs font-medium text-ink-muted">{slide.card.sub}</span>
-              </span>
-              <CheckmarkIcon size={18} className="text-sage-deep" />
-            </div>
-          </section>
 
-          <div className="mt-14 flex flex-col items-center gap-3 text-center">
-            <span className={`rounded-full px-3 py-1 text-xs font-bold tracking-[0.1em] uppercase ${slide.tagClass}`}>
-              {slide.tag}
-            </span>
-            <h1 className="text-4xl font-extrabold tracking-tight text-ink">{slide.title}</h1>
-            <p className="text-sm leading-5 text-ink-body">{slide.body}</p>
+        <section data-palette="light" className="relative flex min-h-[56dvh] flex-col justify-end overflow-hidden bg-navy [@media(max-height:680px)]:min-h-[46dvh]">
+          {/* key restarts the fade on every slide; motion-reduce turns it off. */}
+          <img
+            key={slide.image}
+            src={slide.image}
+            alt=""
+            draggable={false}
+            className="absolute inset-0 size-full animate-[fade-in_300ms_ease-out] object-cover motion-reduce:animate-none"
+          />
+          {/* Lagoon tint plus top and bottom scrims keep the white header and headline readable. */}
+          <div className="absolute inset-0 bg-navy/20" aria-hidden="true" />
+          <div className="absolute inset-0 bg-linear-to-b from-ink/45 via-ink/0 via-35% to-ink/65" aria-hidden="true" />
+          <p
+            key={slide.headline}
+            className="relative px-6 pb-14 font-display text-[2.375rem] leading-[1.08] font-bold tracking-tight text-ivory animate-[fade-in_300ms_ease-out] motion-reduce:animate-none"
+          >
+            {slide.headline}
+          </p>
+        </section>
+
+        <div className="relative z-10 -mt-8 flex flex-1 flex-col justify-center rounded-t-[2rem] bg-ivory-surface px-6 pt-10 pb-6 [@media(max-height:680px)]:pt-8">
+          <div key={index} className="flex flex-col gap-3 animate-[fade-in_300ms_ease-out] motion-reduce:animate-none">
+            <h1 className="font-display text-[2rem] leading-[1.15] font-bold tracking-tight text-ink">{slide.title}</h1>
+            <p className="text-[0.9375rem] leading-7 text-ink-body">{slide.body}</p>
           </div>
         </div>
       </main>
 
-      <footer
-        className="flex flex-wrap items-center justify-between gap-2 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
-      >
+      <footer className="flex flex-wrap items-center justify-between gap-x-2 gap-y-3 bg-ivory-surface px-6 pt-2 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
         <div className="-ml-4 flex">
           {SLIDES.map((s, i) => (
             <button
-              key={s.tag}
+              key={s.title}
               type="button"
               onClick={() => setIndex(i)}
               aria-label={`Page ${i + 1} of ${SLIDES.length}`}
               aria-current={i === index ? 'step' : undefined}
               className={`touch-target flex items-center justify-center rounded-full ${focusRing}`}
             >
-              {/* Active dot is wider (24 vs 8 px), not only a different colour. */}
+              {/* Active dot is wider (28 vs 8 px), not only a different colour; inactive dots keep 3:1 as controls. */}
               <span
                 className={`block h-2 rounded-full transition-all motion-reduce:transition-none ${
-                  i === index ? 'w-6 bg-terracotta' : 'w-2 bg-sage'
+                  i === index ? 'w-7 bg-terracotta' : 'w-2 bg-line-strong'
                 }`}
               />
             </button>
@@ -153,7 +140,7 @@ export default function OnboardingPage() {
         <button
           type="button"
           onClick={() => (last ? finish(true) : setIndex(index + 1))}
-          className={`ml-auto flex h-14 shrink-0 items-center gap-2 rounded-full bg-navy px-4 text-base font-bold text-on-navy shadow-navy active:bg-navy-pressed ${focusRing}`}
+          className={`ml-auto flex h-14 shrink-0 items-center gap-2 rounded-xl bg-navy px-4 text-[0.9375rem] font-bold min-[400px]:px-7 min-[400px]:text-base text-on-navy shadow-navy active:bg-navy-pressed ${focusRing}`}
         >
           {last ? 'Start exploring' : 'Next'}
           <ArrowForwardIcon size={20} />
