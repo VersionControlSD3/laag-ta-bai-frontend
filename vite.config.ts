@@ -75,5 +75,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Keep unit tests deterministic regardless of local .env.local credentials.
+    env: {
+      VITE_SUPABASE_URL: '',
+      VITE_SUPABASE_PUBLISHABLE_KEY: '',
+      VITE_GOOGLE_MAPS_API_KEY: '',
+    },
   },
 })

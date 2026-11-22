@@ -14,21 +14,21 @@ function TopBar({ title }: { title: string }) {
         aria-label="Back to Mastery"
         className="flex size-12 items-center justify-center rounded-full text-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
       >
-        <ArrowBackIcon size={24} />
+        <ArrowBackIcon size={22} />
       </Link>
-      <h1 className="flex h-topbar items-center justify-center text-2xl font-bold text-navy">{title}</h1>
+      <h1 className="flex h-topbar items-center justify-center text-[1.375rem] leading-7 font-bold tracking-[0.01em] text-navy">{title}</h1>
     </div>
   )
 }
 
 function Intro({ eyebrow, title, body }: { eyebrow: string; title: string; body: string }) {
   return (
-    <header className="flex flex-col gap-1">
-      <p className="text-[0.625rem] leading-[0.875rem] font-bold tracking-[0.1em] text-terracotta-ink uppercase">{eyebrow}</p>
-      <p className="text-2xl font-extrabold tracking-tight text-ink" aria-live="polite">
+    <header className="flex flex-col gap-1.5">
+      <p className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">{eyebrow}</p>
+      <p className="text-3xl leading-9 font-extrabold tracking-tight text-ink" aria-live="polite">
         {title}
       </p>
-      <p className="text-sm text-ink-body">{body}</p>
+      <p className="text-sm leading-5 text-ink-body">{body}</p>
     </header>
   )
 }
