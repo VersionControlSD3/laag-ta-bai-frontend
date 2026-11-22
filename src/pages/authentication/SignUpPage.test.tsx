@@ -29,31 +29,41 @@ describe('sign-up page', () => {
     await openRegister()
 
     const [password, confirmation] = document.querySelectorAll<HTMLInputElement>('input[autocomplete="new-password"]')
+    expect(confirmation).toHaveClass('border-ivory-line')
+
     await user.type(password, 'Secret')
 
-    expect(screen.getByText('At least 8 characters')).not.toHaveClass('text-success')
-    expect(screen.getByText('One uppercase letter')).toHaveClass('text-success')
-    expect(screen.getByText('One number')).not.toHaveClass('text-success')
+    expect(screen.getByText('At least 8 characters')).not.toHaveClass('text-sage-deep')
+    expect(screen.getByText('One uppercase letter')).toHaveClass('text-sage-deep')
+    expect(screen.getByText('One number')).not.toHaveClass('text-sage-deep')
 
     await user.type(password, '123')
-    expect(screen.getByText('At least 8 characters')).toHaveClass('text-success')
-    expect(screen.getByText('One number')).toHaveClass('text-success')
+    expect(screen.getByText('At least 8 characters')).toHaveClass('text-sage-deep')
+    expect(screen.getByText('One number')).toHaveClass('text-sage-deep')
 
     await user.type(confirmation, 'Secret124')
     expect(await screen.findByText('Passwords do not match')).toBeInTheDocument()
-    expect(password).toHaveClass('border-design-line')
-    expect(password).not.toHaveClass('border-error')
-    expect(confirmation).toHaveClass('border-error')
+    expect(password).toHaveClass('border-ivory-line')
+    expect(password).not.toHaveClass('border-danger')
+    expect(confirmation).toHaveClass('border-danger')
+    expect(confirmation).not.toHaveClass('border-ivory-line')
 
     await user.click(screen.getByRole('button', { name: 'Create account' }))
-    expect(password).not.toHaveClass('border-error')
-    expect(confirmation).toHaveClass('border-error')
+    expect(password).toHaveClass('border-ivory-line')
+    expect(password).not.toHaveClass('border-danger')
+    expect(confirmation).toHaveClass('border-danger')
+    expect(confirmation).not.toHaveClass('border-ivory-line')
 
     await user.clear(confirmation)
+    expect(confirmation).toHaveClass('border-danger')
+    expect(confirmation).not.toHaveClass('border-ivory-line')
+
     await user.type(confirmation, 'Secret123')
     expect(await screen.findByText('Passwords match')).toBeInTheDocument()
-    expect(password).not.toHaveClass('border-success')
-    expect(confirmation).toHaveClass('border-success')
+    expect(password).toHaveClass('border-ivory-line')
+    expect(confirmation).toHaveClass('border-sage-deep')
+    expect(confirmation).not.toHaveClass('border-ivory-line')
+    expect(confirmation).not.toHaveClass('border-danger')
   })
 
   it('opens the calendar on the 18-years-ago default with unique weekday headers', async () => {
@@ -133,24 +143,24 @@ describe('sign-up page', () => {
     expect(within(dialog).getByRole('button', { name: 'Year' })).toHaveTextContent(String(now.getFullYear() - 19))
   })
 
-  it('uses the night background when the Dark preference is on', async () => {
+  it('uses the night photo when the Dark preference is on', async () => {
     writeJson('preferences', { theme: 'dark' })
     const { container } = renderRoutes(routes, '/register')
     expect(await screen.findByRole('heading', { name: 'Create Account' })).toBeInTheDocument()
-    expect(container.querySelector('main')).toHaveClass('auth-signup-night')
+    expect(container.querySelector('img')).toHaveAttribute('src', '/authenticationBG/LoginNight.webp')
   })
 
-  it('uses the day background when the Light preference is on', async () => {
+  it('uses the day photo when the Light preference is on', async () => {
     writeJson('preferences', { theme: 'light' })
     const { container } = renderRoutes(routes, '/register')
     expect(await screen.findByRole('heading', { name: 'Create Account' })).toBeInTheDocument()
-    expect(container.querySelector('main')).toHaveClass('auth-signup-day')
+    expect(container.querySelector('img')).toHaveAttribute('src', '/authenticationBG/LoginDay.webp')
   })
 
   it('renders the dev sign-in notice with an explicit text colour', async () => {
     await openRegister()
     const notice = await screen.findByText("Supabase isn't configured.")
-    expect(notice.closest('div')).toHaveClass('text-navy')
+    expect(notice.closest('div')).toHaveClass('text-ink')
     expect(screen.getByRole('button', { name: 'Continue as dev traveler' })).toBeInTheDocument()
   })
 

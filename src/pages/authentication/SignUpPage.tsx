@@ -1,9 +1,18 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, MapPin, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
+import { AuthScreen } from '@/components/AuthScreen'
+import {
+  CalendarOutlineIcon,
+  CheckmarkIcon,
+  ChevronBackOutlineIcon,
+  ChevronDownOutlineIcon,
+  ChevronForwardOutlineIcon,
+  CloseOutlineIcon,
+  EyeOffOutlineIcon,
+  EyeOutlineIcon,
+} from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { DevSignIn } from '@/features/auth/DevSignIn'
-import { usePreferences } from '@/features/preferences/PreferencesContext'
 import './SignUpPage.css'
 
 // Custom calendar controls keep the date picker consistent across browsers.
@@ -22,7 +31,7 @@ function CalendarSelect({ label, value, options, open, onToggle, onChange, isDis
     <div className="auth-calendar-select">
       <button type="button" aria-haspopup="listbox" aria-expanded={open} aria-label={label} onClick={onToggle} className="auth-calendar-select-button">
         <span>{options[value]}</span>
-        <ChevronDown size={14} aria-hidden="true" />
+        <ChevronDownOutlineIcon size={14} />
       </button>
       {open && (
         <div className={`auth-calendar-select-menu ${label === 'Month' ? 'auth-calendar-select-menu-month' : 'auth-calendar-select-menu-year'}`}>
@@ -123,16 +132,16 @@ function CustomDatePicker({ value, onChange, invalid }: { value: string; onChang
         }}
         className={`auth-date-field ${invalid ? 'auth-date-field-invalid' : ''}`}
       >
-        <span className={value ? 'text-ivory' : 'text-ivory'}>{formatDate(value) || 'mm/dd/yyyy'}</span>
-        <CalendarDays size={19} aria-hidden="true" />
+        <span className={value ? 'text-ink' : 'text-ink-muted'}>{formatDate(value) || 'mm/dd/yyyy'}</span>
+        <CalendarOutlineIcon size={20} />
       </button>
       {open && (
         <div ref={calendarRef} className={`auth-calendar ${openAbove ? 'auth-calendar-above' : ''}`} role="dialog" aria-label="Choose date of birth">
           <div className="auth-calendar-toolbar">
             <CalendarSelect label="Month" value={viewDate.getMonth()} options={MONTHS} open={openSelect === 'month'} onToggle={() => setOpenSelect((current) => current === 'month' ? null : 'month')} isDisabled={isUnderageMonth} onChange={(month) => { setViewDate(clampViewDate(new Date(viewDate.getFullYear(), month, 1))); setOpenSelect(null) }} />
             <CalendarSelect label="Year" value={years.indexOf(viewDate.getFullYear())} options={years.map(String)} open={openSelect === 'year'} onToggle={() => setOpenSelect((current) => current === 'year' ? null : 'year')} onChange={(yearIndex) => { setViewDate(clampViewDate(new Date(years[yearIndex], viewDate.getMonth(), 1))); setOpenSelect(null) }} />
-            <button type="button" aria-label="Previous month" disabled={atMinMonth} onClick={() => setViewDate(clampViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)))}><ChevronLeft size={18} /></button>
-            <button type="button" aria-label="Next month" disabled={atMaxMonth} onClick={() => setViewDate(clampViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)))}><ChevronRight size={18} /></button>
+            <button type="button" aria-label="Previous month" disabled={atMinMonth} onClick={() => setViewDate(clampViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)))}><ChevronBackOutlineIcon size={18} /></button>
+            <button type="button" aria-label="Next month" disabled={atMaxMonth} onClick={() => setViewDate(clampViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)))}><ChevronForwardOutlineIcon size={18} /></button>
           </div>
           <div className="auth-calendar-grid" role="grid">
             {WEEKDAYS.map((weekday) => <span key={weekday} className="auth-calendar-weekday">{weekday}</span>)}
@@ -152,7 +161,6 @@ function CustomDatePicker({ value, onChange, invalid }: { value: string; onChang
 export default function SignUpPage() {
   const auth = useAuth()
   const navigate = useNavigate()
-  const { resolvedTheme } = usePreferences()
   const [form, setForm] = useState({ displayName: '', email: '', dateOfBirth: '', nationality: '', password: '', confirmPassword: '', bio: '', acceptedTerms: false })
   const [error, setError] = useState<string | null>(null)
   const [confirmEmail, setConfirmEmail] = useState(false)
@@ -201,29 +209,25 @@ export default function SignUpPage() {
     }
   }
 
-  const inputClass = (invalid: boolean) =>
-    `mt-1 h-12 w-full rounded-xl border bg-design-surface px-4 text-ivory text-base outline-none transition focus:border-terracotta focus:ring-2 focus:ring-terracotta/30 ${invalid ? 'border-error' : 'border-design-line'}`
+  // One border state per field, so error/success never compete with the neutral border.
+  type FieldState = 'error' | 'success' | 'neutral'
+  const border: Record<FieldState, string> = { error: 'border-danger', success: 'border-sage-deep', neutral: 'border-ivory-line' }
+  const fieldClass = (state: FieldState) =>
+    `mt-2 h-14 w-full rounded-xl border bg-ivory-deep px-4 text-base text-ink outline-none placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${border[state]}`
+  const inputClass = (invalid: boolean) => fieldClass(invalid ? 'error' : 'neutral')
+  const confirmationState: FieldState = confirmValid ? 'success' : (submitted || form.confirmPassword) ? 'error' : 'neutral'
 
   return (
-    // Pinned to the light palette: its ivory text sits on a photo and a dark card in both themes.
-    <main data-palette="light" className={`auth-signup min-h-dvh bg-cover bg-center bg-fixed ${resolvedTheme === 'light' ? 'auth-signup-day' : 'auth-signup-night'}`}>
-      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 py-6 sm:px-6">
-        {/* Page header */}
-        <header className="flex items-center justify-between text-ivory">
-          <Link to="/" className="text-sm font-bold tracking-[0.2em]">Laag ta b<span className="text-terracotta">AI</span></Link>
-          <span className="flex items-center gap-1 rounded-full border border-ivory/30 bg-navy/30 px-3 py-2 text-xs font-semibold"><MapPin size={14} /> Cebu, Philippines</span>
-        </header>
-        <section className="auth-signup-card my-8 flex-1 rounded-[2rem] p-6 sm:p-8">
+    // UI Redesign #4: same photo band and theme-following sheet as Login.
+    <AuthScreen>
+      <div className="auth-signup">
           {confirmEmail ? (
-            // Direct child of the card, so the unlayered `.auth-signup-card > .rounded-2xl`
-            // override gives it a dark surface (it beats the layered `bg-design-surface`
-            // utility) — keep the text explicitly ivory for contrast in both themes.
-            <p role="status" className="rounded-2xl border border-design-line bg-design-surface p-4 text-center text-ivory">Check <strong>{form.email}</strong> for a confirmation link, then sign in.</p>
+            <p role="status" className="rounded-2xl border border-ivory-line bg-sage-soft p-4 text-center text-ink">Check <strong>{form.email}</strong> for a confirmation link, then sign in.</p>
           ) : (
             <>
               {/* Form header */}
-              <h1 className="auth-signup-heading text-center text-3xl font-extrabold">Create Account</h1>
-              <p className="mt-2 text-center text-ivory">Get started.</p>
+              <h1 className="text-center font-display text-[2.25rem] leading-[1.15] font-bold tracking-tight text-ink">Create Account</h1>
+              <p className="mt-1 text-center text-ink-muted">Get started.</p>
               {auth.mode === 'dev' && <div className="mt-4"><DevSignIn tone="notice" /></div>}
 
               {/* Registration form */}
@@ -251,48 +255,47 @@ export default function SignUpPage() {
                 <label className="auth-label block">Password <span aria-hidden="true">*</span>
                   <span className="relative block">
                     <input type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.password} onChange={(e) => update('password', e.target.value)} className={`${inputClass(submitted && !passwordValid)} pr-12`} aria-invalid={submitted && !passwordValid} />
-                    <button type="button" className="touch-target absolute right-0 top-1 flex items-center px-3" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}</button>
+                    <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
                   </span>
                   <span className="mt-2 grid gap-1 text-xs" aria-live="polite">
-                    {passwordRules.map(([label, valid]) => <span key={label} className={valid ? 'text-success' : 'text-ivory'}>{valid ? <Check size={14} className="mr-1 inline" /> : <X size={14} className="mr-1 inline" />}{label}</span>)}
+                    {passwordRules.map(([label, valid]) => <span key={label} className={`flex items-center gap-1 ${valid ? 'font-semibold text-sage-deep' : 'text-ink-muted'}`}>{valid ? <CheckmarkIcon size={14} /> : <CloseOutlineIcon size={14} />}{label}</span>)}
                   </span>
                 </label>
                 <label className="auth-label block">Confirm password <span aria-hidden="true">*</span>
                   <span className="relative block">
-                    <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${inputClass(submitted && !confirmValid)} ${form.confirmPassword ? (confirmValid ? 'border-success' : 'border-error') : ''} pr-12`} aria-invalid={submitted && !confirmValid} />
-                    <button type="button" className="touch-target absolute right-0 top-1 flex items-center px-3" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}</button>
+                    <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${fieldClass(confirmationState)} pr-12`} aria-invalid={submitted && !confirmValid} />
+                    <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
                   </span>
-                  {form.confirmPassword && <span className={`auth-password-status mt-1 block ${confirmValid ? 'text-success' : 'text-error'}`}>{confirmValid ? 'Passwords match' : 'Passwords do not match'}</span>}
+                  {form.confirmPassword && <span className={`auth-password-status mt-1 block ${confirmValid ? 'text-sage-deep' : 'text-danger'}`}>{confirmValid ? 'Passwords match' : 'Passwords do not match'}</span>}
                 </label>
-                <label className="auth-label block">Bio <span className="text-ivory">(optional)</span>
-                  <textarea maxLength={240} value={form.bio} onChange={(e) => update('bio', e.target.value)} className="mt-1 min-h-16 w-full rounded-xl border border-design-line bg-design-surface p-3 text-ivory text-base outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/30" />
+                <label className="auth-label block">Bio <span className="font-normal text-ink-muted">(optional)</span>
+                  <textarea maxLength={240} value={form.bio} onChange={(e) => update('bio', e.target.value)} className="mt-2 min-h-20 w-full rounded-xl border border-ivory-line bg-ivory-deep p-4 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy" />
                 </label>
-                <label className="flex min-h-12 items-center gap-3 text-sm text-terracotta">
-                  <input type="checkbox" checked={form.acceptedTerms} onChange={(e) => update('acceptedTerms', e.target.checked)} className={`auth-terms-checkbox h-5 w-5 accent-primary ${submitted && !form.acceptedTerms ? 'auth-terms-checkbox-invalid' : ''}`} />
-                  <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold underline">Terms</a> and <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold underline">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
+                <label className="flex min-h-12 items-center gap-3 text-sm text-ink-body">
+                  <input type="checkbox" checked={form.acceptedTerms} onChange={(e) => update('acceptedTerms', e.target.checked)} className={`auth-terms-checkbox size-5 shrink-0 accent-navy ${submitted && !form.acceptedTerms ? 'auth-terms-checkbox-invalid' : ''}`} />
+                  <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Terms</a> and <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
                 </label>
-                {submitted && !form.acceptedTerms && <p className="text-xs text-error" role="alert">You must accept the Terms and Privacy Policy.</p>}
-                {error && <p role="alert" className="text-sm font-semibold text-error">{error}</p>}
+                {submitted && !form.acceptedTerms && <p className="text-sm font-semibold text-danger" role="alert">You must accept the Terms and Privacy Policy.</p>}
+                {error && <p role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-semibold text-danger">{error}</p>}
 
                 {/* Primary action */}
-                <button type="submit" disabled={busy} className="touch-target w-full rounded-xl bg-terracotta font-bold tracking-wide text-ivory disabled:opacity-60">{busy ? 'Creating account…' : 'Create account'}</button>
+                <button type="submit" disabled={busy} className="min-h-14 w-full rounded-xl bg-navy text-base font-bold text-on-navy shadow-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">{busy ? 'Creating account…' : 'Create account'}</button>
               </form>
 
               {/* Secondary authentication option */}
-              <div className="my-5 flex items-center gap-3 text-xs text-ivory"><span className="h-px flex-1 bg-design-line" />OR<span className="h-px flex-1 bg-design-line" /></div>
-              <button type="button" disabled={auth.mode === 'dev' || busy} onClick={() => { setOauthError(null); void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.')) }} className="auth-google-button touch-target flex w-full items-center justify-center gap-3 rounded-lg font-semibold disabled:opacity-60">
+              <div className="my-5 flex items-center gap-3 text-xs font-semibold text-ink-muted"><span className="h-px flex-1 bg-ivory-line" />OR<span className="h-px flex-1 bg-ivory-line" /></div>
+              <button type="button" disabled={auth.mode === 'dev' || busy} onClick={() => { setOauthError(null); void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.')) }} className="flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-ivory-line bg-ivory-surface font-semibold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">
                 <GoogleIcon />
                 Continue with Google
               </button>
-              {oauthError && <p role="alert" className="mt-2 text-center text-xs text-error">{oauthError}</p>}
+              {oauthError && <p role="alert" className="mt-2 text-center text-sm font-semibold text-danger">{oauthError}</p>}
             </>
           )}
 
           {/* Sign-in footer */}
-          <p className="mt-6 text-center text-sm text-ivory">Already have an account? <Link to="/login" className="font-bold text-terracotta underline">Sign in</Link></p>
-        </section>
+          <p className="mt-4 flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-ink-muted">Already have an account? <Link to="/login" className="flex min-h-12 items-center rounded-lg font-bold text-navy underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-navy">Sign in</Link></p>
       </div>
-    </main>
+    </AuthScreen>
   )
 }
 
