@@ -21,8 +21,8 @@ export default defineConfig({
         name: 'Laag ta bAI',
         short_name: 'Laag ta bAI',
         description: 'Your AI travel buddy for Cebu heritage: scan landmarks, hear their stories, and explore.',
-        theme_color: '#2B0E0E',
-        background_color: '#2B0E0E',
+        theme_color: '#FFFBF4',
+        background_color: '#FFFBF4',
         display: 'standalone',
         orientation: 'portrait', // SRS 3.6.1: portrait-only PWA
         start_url: '/',
