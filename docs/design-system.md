@@ -313,11 +313,35 @@ ClickUp #3 screenshot.
 - **Dev mode.** Without Supabase keys, `DevSignIn tone="notice"` shows the sand box with a dashed
   coral border and a lagoon "Continue as dev traveler" button.
 
+### Sign up (UI Redesign #4)
+
+Built in `src/pages/authentication/SignUpPage.tsx` on the same `AuthScreen` as Login, from the
+ClickUp #4 screenshot. The task's `RegisterDay` / `RegisterNight` photos are byte-for-byte the
+Login photos, so the separate register images were deleted.
+
+- **Header.** `font-display` "Create Account" plus "Get started.". The dev notice is the same
+  `DevSignIn` box as Login.
+- **Fields.** Each field has a sentence-case label with `*` and a 56 px `ivory-deep` (sand) well.
+  - Every field has exactly **one** border state: `ivory-line` (neutral), `danger` (error) or
+    `sage-deep` (passwords match). This avoids the old neutral-plus-error class conflict.
+  - Errors are text in `danger`.
+  - The password rules show a check or a cross icon plus `sage-deep` / `ink-muted` text, so the
+    state isn't colour alone.
+- **Date of birth.** A custom 18+ picker (`SignUpPage.css`, tokens only) with a coral
+  `calendar-outline` icon.
+  - The popover is an `ivory-surface` card with lagoon selection and `terracotta-ink` weekday
+    labels.
+  - Underage days are disabled, faded **and** struck through.
+- **Actions.** A lagoon `Create account` button, an "OR" divider and an outlined `Continue with
+  Google` (Google's own multicolour "G"), then "Already have an account? Sign in".
+- **Removed tokens.** The leftover `design-surface`, `design-line`, `navy-deep`, `error` and
+  `success` tokens are gone from `index.css`.
+
 ## Assets
 
 Export from the **Assets** page: `Placeholder` (landmark photos: Basilica, Casa, Fort, Heritage,
-Magellan, Museo, Temple, Yap), `Oboarding` (Onboarding 1–4, Welcome), `Authentication` (Login,
-Register), `Laag ta bAI — Logos & Backgrounds`, and `Logo` (don't resize the logo). Export photos
+Magellan, Museo, Temple, Yap), `Oboarding` (Onboarding 1–4, Welcome), `Authentication` (Login; the
+redesign reuses the Login photos for Register), `Laag ta bAI — Logos & Backgrounds`, and `Logo` (don't resize the logo). Export photos
 as WebP around 1080 px wide and under 250 KB, and keep large decorative images out of the PWA
 precache (see `vite.config.ts`).
 
