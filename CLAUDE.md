@@ -41,9 +41,14 @@ and **Components**; tokens are on **Foundations**. Everything you need is summar
 **[docs/design-system.md](docs/design-system.md)**: read it before any UI work.
 
 - The maroon / gold scaffold colours (`bg`, `fg`, `surface`, `primary`, `maroon`, `gold`, `amber`,
-  ...) and `lucide-react` icons are **placeholders**. New and migrated UI uses the Ivory + Sage
-  tokens (`ivory`, `ivory-surface`, `navy`, `ink-*`, `sage-*`, `terracotta-*`, ...) and Ionicons
-  from `src/components/icons/ionicons.tsx`.
+  ...) and `lucide-react` icons are **placeholders**. New and migrated UI uses the design tokens
+  (`ivory`, `ivory-surface`, `navy`, `ink-*`, `sage-*`, `terracotta-*`, ...) and Ionicons from
+  `src/components/icons/ionicons.tsx`.
+- **UI Redesign (ClickUp list "UI/UX Enhancement", tasks #1–#9):** the token *values* are now the
+  **Tropical Lagoon & Coral** palette (`navy` = lagoon teal, `terracotta` = coral, `sage` = teal);
+  the names are unchanged. For colour, `docs/design-system.md` wins over Figma's Foundations page
+  until the designer updates it. Layouts for the redesigned screens come from the screenshots on
+  each ClickUp task.
 - Only use colours from tokens. No raw hex in components; if Figma has a colour with no token,
   ask before adding one, and add it to both themes in `src/styles/index.css` and to the doc.
 - Don't create parallel palettes (`--artifact-*`, `--color-design-*`, ...). One token set, defined

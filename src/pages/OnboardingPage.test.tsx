@@ -51,6 +51,18 @@ describe('OnboardingPage', () => {
     expect(screen.getByRole('heading', { name: 'Every corner has a story.' })).toBeInTheDocument()
   })
 
+  it('pairs each slide with its photo headline and names the language indicator', async () => {
+    renderRoutes(routes, '/onboarding')
+    expect(await screen.findByText('Go where the map runs out.')).toBeInTheDocument()
+    expect(screen.getByText('Language: English')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Laag ta bAI' })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Page 3 of 3' }))
+    expect(screen.getByText('Explore Cebu at your own pace.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Learn more with every laag.' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Start exploring/ })).toBeInTheDocument()
+  })
+
   it('Skip goes to Login', async () => {
     renderRoutes(routes, '/onboarding')
     await userEvent.click(await screen.findByRole('button', { name: 'Skip onboarding' }))

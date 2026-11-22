@@ -1,13 +1,25 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import { AuthContext, type AuthState } from '@/features/auth/AuthContext'
 import { writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
-import { renderRoutes } from '@/test/render'
+import { renderPage, renderRoutes } from '@/test/render'
+import SignUpPage from './SignUpPage'
 
 async function openRegister() {
   renderRoutes(routes, '/register')
   return await screen.findByRole('heading', { name: 'Create Account' }, { timeout: 3000 })
+}
+
+async function selectAdultBirthDate(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'Choose date of birth' }))
+  const dialog = within(screen.getByRole('dialog', { name: 'Choose date of birth' }))
+  await user.click(dialog.getByRole('button', { name: 'Year' }))
+  await user.click(dialog.getByRole('option', { name: '1990' }))
+  await user.click(dialog.getByRole('button', { name: 'Month' }))
+  await user.click(dialog.getByRole('option', { name: 'January' }))
+  await user.click(dialog.getByRole('gridcell', { name: '1' }))
 }
 
 describe('sign-up page', () => {
@@ -22,12 +34,13 @@ describe('sign-up page', () => {
 
     expect(fullName).toHaveFocus()
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' })
-    expect(await screen.findByText('Full name is required.')).toBeInTheDocument()
-    expect(screen.getByText('Email is required.')).toBeInTheDocument()
-    expect(screen.getByText('Date of birth is required.')).toBeInTheDocument()
-    expect(screen.getByText('Nationality is required.')).toBeInTheDocument()
-    expect(screen.getByText('Please confirm your password.')).toBeInTheDocument()
-    expect(screen.getByText('You must accept the Terms and Privacy Policy.')).toBeInTheDocument()
+    expect(fullName).toHaveAccessibleDescription('Full name is required.')
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveAccessibleDescription('Email is required.')
+    expect(screen.getByRole('button', { name: 'Choose date of birth' })).toHaveAccessibleDescription('Date of birth is required.')
+    expect(screen.getByRole('textbox', { name: 'Nationality' })).toHaveAccessibleDescription('Nationality is required.')
+    expect(screen.getByLabelText(/^Password\b/)).toHaveAccessibleDescription(/One uppercase letter: required/)
+    expect(screen.getByLabelText(/^Confirm password\b/)).toHaveAccessibleDescription('Please confirm your password.')
+    expect(screen.getByRole('checkbox')).toHaveAccessibleDescription('You must accept the Terms and Privacy Policy.')
   })
 
   it('focuses the first remaining invalid control on each submit', async () => {
@@ -42,9 +55,7 @@ describe('sign-up page', () => {
     await user.click(submit)
     expect(datePicker).toHaveFocus()
 
-    await user.click(datePicker)
-    const dialog = screen.getByRole('dialog', { name: 'Choose date of birth' })
-    await user.click(within(dialog).getByRole('gridcell', { name: '1' }))
+    await selectAdultBirthDate(user)
     fireEvent.change(screen.getByRole('textbox', { name: /Nationality/ }), { target: { value: 'Filipino' } })
     fireEvent.change(password, { target: { value: 'Secret123' } })
     await user.click(submit)
@@ -57,6 +68,41 @@ describe('sign-up page', () => {
     expect(screen.getByRole('checkbox')).toHaveFocus()
   })
 
+  it('focuses the signup error after every failed request', async () => {
+    const user = userEvent.setup()
+    const signUp = vi.fn().mockRejectedValue(new Error('Email already registered.'))
+    const auth: AuthState = {
+      mode: 'supabase',
+      status: 'signed-out',
+      user: null,
+      token: null,
+      signIn: vi.fn(),
+      signUp,
+      signInWithGoogle: vi.fn(),
+      signInAsDev: vi.fn(),
+      signOut: vi.fn(),
+    }
+    renderPage(<AuthContext.Provider value={auth}><SignUpPage /></AuthContext.Provider>)
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Full name' }), { target: { value: 'Test Traveler' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), { target: { value: 'traveler@example.com' } })
+    await selectAdultBirthDate(user)
+    fireEvent.change(screen.getByRole('textbox', { name: 'Nationality' }), { target: { value: 'Filipino' } })
+    fireEvent.change(screen.getByLabelText(/^Password\b/), { target: { value: 'Secret123' } })
+    fireEvent.change(screen.getByLabelText(/^Confirm password\b/), { target: { value: 'Secret123' } })
+    await user.click(screen.getByRole('checkbox'))
+
+    const submit = screen.getByRole('button', { name: 'Create account' })
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      await user.click(submit)
+      const alert = await screen.findByRole('alert')
+      expect(alert).toHaveTextContent('Email already registered.')
+      expect(alert).toHaveFocus()
+      expect(submit).toBeEnabled()
+      expect(signUp).toHaveBeenCalledTimes(attempt)
+    }
+  })
+
   it('tracks password rules and the confirmation match as you type', async () => {
     const user = userEvent.setup()
     await openRegister()
@@ -64,19 +110,25 @@ describe('sign-up page', () => {
     const [password, confirmation] = document.querySelectorAll<HTMLInputElement>('input[autocomplete="new-password"]')
     await user.type(password, 'Secret')
 
-    expect(screen.getByText('At least 8 characters')).not.toHaveClass('text-success')
-    expect(screen.getByText('One uppercase letter')).toHaveClass('text-success')
-    expect(screen.getByText('One number')).not.toHaveClass('text-success')
+    expect(screen.getByText('At least 8 characters')).not.toHaveClass('text-sage-deep')
+    expect(screen.getByText('One uppercase letter')).toHaveClass('text-sage-deep')
+    expect(screen.getByText('One number')).not.toHaveClass('text-sage-deep')
 
     await user.type(password, '123')
-    expect(screen.getByText('At least 8 characters')).toHaveClass('text-success')
-    expect(screen.getByText('One number')).toHaveClass('text-success')
+    expect(screen.getByText('At least 8 characters')).toHaveClass('text-sage-deep')
+    expect(screen.getByText('One number')).toHaveClass('text-sage-deep')
 
     await user.type(confirmation, 'Secret124')
     expect(await screen.findByText('Passwords do not match')).toBeInTheDocument()
+    // Exactly one border state, so the mismatch colour can't lose to the neutral border.
+    expect(confirmation).toHaveClass('border-danger')
+    expect(confirmation).not.toHaveClass('border-ivory-line')
     await user.clear(confirmation)
     await user.type(confirmation, 'Secret123')
     expect(await screen.findByText('Passwords match')).toBeInTheDocument()
+    expect(confirmation).toHaveClass('border-sage-deep')
+    expect(confirmation).not.toHaveClass('border-ivory-line')
+    expect(confirmation).not.toHaveClass('border-danger')
   })
 
   it('opens the calendar on the 18-years-ago default with unique weekday headers', async () => {
@@ -156,24 +208,24 @@ describe('sign-up page', () => {
     expect(within(dialog).getByRole('button', { name: 'Year' })).toHaveTextContent(String(now.getFullYear() - 19))
   })
 
-  it('uses the night background when the Dark preference is on', async () => {
+  it('uses the night photo when the Dark preference is on', async () => {
     writeJson('preferences', { theme: 'dark' })
     const { container } = renderRoutes(routes, '/register')
     expect(await screen.findByRole('heading', { name: 'Create Account' })).toBeInTheDocument()
-    expect(container.querySelector('main')).toHaveClass('auth-signup-night')
+    expect(container.querySelector('img')).toHaveAttribute('src', '/authenticationBG/LoginNight.webp')
   })
 
-  it('uses the day background when the Light preference is on', async () => {
+  it('uses the day photo when the Light preference is on', async () => {
     writeJson('preferences', { theme: 'light' })
     const { container } = renderRoutes(routes, '/register')
     expect(await screen.findByRole('heading', { name: 'Create Account' })).toBeInTheDocument()
-    expect(container.querySelector('main')).toHaveClass('auth-signup-day')
+    expect(container.querySelector('img')).toHaveAttribute('src', '/authenticationBG/LoginDay.webp')
   })
 
   it('renders the dev sign-in notice with an explicit text colour', async () => {
     await openRegister()
     const notice = await screen.findByText("Supabase isn't configured.")
-    expect(notice.closest('div')).toHaveClass('text-navy')
+    expect(notice.closest('div')).toHaveClass('text-ink')
     expect(screen.getByRole('button', { name: 'Continue as dev traveler' })).toBeInTheDocument()
   })
 

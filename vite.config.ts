@@ -21,8 +21,8 @@ export default defineConfig({
         name: 'Laag ta bAI',
         short_name: 'Laag ta bAI',
         description: 'Your AI travel buddy for Cebu heritage: scan landmarks, hear their stories, and explore.',
-        theme_color: '#2B0E0E',
-        background_color: '#2B0E0E',
+        theme_color: '#FFFBF4',
+        background_color: '#FFFBF4',
         display: 'standalone',
         orientation: 'portrait', // SRS 3.6.1: portrait-only PWA
         start_url: '/',
@@ -33,7 +33,11 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,jpg,webp,ico,webmanifest}'],
+        globPatterns: [
+          '**/*.{js,css,html,svg,png,jpg,webp,ico,webmanifest}',
+          // Only the Latin subsets of the self-hosted fonts (~104 KB); other subsets load on demand.
+          '**/*-latin-wght-*.woff2',
+        ],
         // Decorative auth backgrounds load on demand instead of adding ~1 MB to
         // every install; they are not needed for the offline shell (PR #17 review).
         globIgnores: ['**/authenticationBG/**'],

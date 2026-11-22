@@ -13,3 +13,6 @@ photos the team owns or that carry a compatible license before a public release.
 | fort.jpg | https://en.wikipedia.org/wiki/Fort_San_Pedro |
 | basilica.jpg | https://guidetothephilippines.ph/destinations-and-attractions/basilica-minore-del-santo-nino |
 | museo.jpg | https://en.wikipedia.org/wiki/Museo_Sugbo |
+
+`magellan.jpg` was replaced by the refreshed photo attached to the UI Redesign task #2 in ClickUp
+(original source not recorded there). Confirm its source and license before a public release.
