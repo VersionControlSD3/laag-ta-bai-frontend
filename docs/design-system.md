@@ -128,10 +128,18 @@ Counted across all 31 Final Pages frames:
 
 ## Typography
 
-Figma says the app uses the **platform system face** (SF Pro on iOS, Roboto on Android) and that
-Inter only stands in for it in the file. In code, `--font-sans` lists Inter first but Inter is not
-loaded, so the system face is what renders. Use these styles; sizes are in `rem` so they follow
-the OS font size.
+**UI Redesign fonts (ClickUp #2).** The redesign uses two self-hosted web fonts (OFL, from
+`@fontsource-variable`, imported in `src/main.tsx`):
+
+- **Plus Jakarta Sans** is `--font-sans`, the default text face (Tailwind `font-sans`, so every
+  screen uses it).
+- **Playfair Display** is `--font-display` (Tailwind `font-display`) for editorial headlines, such
+  as onboarding headlines and screen titles. Italic is loaded for the `bAI` in the wordmark.
+
+Only the Latin subsets are precached (about 104 KB, `vite.config.ts`); other subsets load on demand.
+The system face is the fallback. This replaces Figma's "platform system face" rule.
+
+Use these styles; sizes are in `rem` so they follow the OS font size.
 
 | Figma style | Size / line, weight, tracking | Tailwind |
 |---|---|---|
@@ -246,8 +254,25 @@ tokenized:
 
 ### Onboarding (first run)
 
-Built in `src/pages/OnboardingPage.tsx`, route `/onboarding`. The running app is the clickable
-prototype: open `/onboarding` (or clear `laagtabai:preferences` and open `/`).
+Built in `src/pages/OnboardingPage.tsx`, route `/onboarding`, from the UI Redesign #2 screenshots.
+The running app is the clickable prototype: open `/onboarding` (or clear `laagtabai:preferences`
+and open `/`).
+
+Layout:
+- **Photo.** A full-bleed photo fills the top 56 % of the screen (46 % on screens 680 px tall or
+  less). Slide 1 uses `authenticationBG/LoginDay.webp`, slide 2 `landmarks/magellan.jpg` and slide
+  3 `onboarding/bridge.webp`.
+  - The photo has a lagoon tint plus top and bottom `ink` scrims.
+  - The header shows `EN`, the "Laag ta *bAI*" wordmark and Skip; the photo headline is set in
+    `font-display`.
+  - The photo area pins the light palette, so the white text stays white in dark mode.
+- **Sheet.** An `ivory-surface` sheet with `rounded-t-[2rem]` overlaps the photo by 32 px. It holds
+  the slide title (`font-display`, the slide's `h1`) and the body text.
+- **Footer.**
+  - The active dot is 28 px coral; inactive dots are 8 px `line-strong`, so they keep 3:1 as
+    controls. The target's sand dots are only 1.4:1.
+  - The CTA is a lagoon `rounded-xl` button. Below 400 px wide it uses tighter padding, so "Start
+    exploring" fits next to the dots at 360 px; on narrower screens it wraps onto its own row.
 
 Flow and transition timing:
 
@@ -256,7 +281,7 @@ Flow and transition timing:
 | Splash | after 1500 ms, or tap | Onboarding slide 1 | instant (route replace) |
 | Slide n | Next, swipe left (> 50 px), or tap dot | Slide n + 1 / dot's slide | 300 ms fade + 8 px rise, `ease-out` |
 | Slide n | swipe right (> 50 px) | Slide n − 1 | 300 ms fade + 8 px rise, `ease-out` |
-| Any slide | Page dot | — | dot width 8 → 24 px, 150 ms (Tailwind `transition-all`) |
+| Any slide | Page dot | — | dot width 8 → 28 px, 150 ms (Tailwind `transition-all`) |
 | Slide 3 | Start exploring | Permissions, then Sign up (`/register`) | instant (route replace) |
 | Any slide | Skip | Login | instant (route replace) |
 
