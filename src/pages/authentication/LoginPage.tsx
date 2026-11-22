@@ -127,7 +127,7 @@ export default function LoginPage() {
 
           <Link
             to="/forgot-password"
-            className={`-mt-2 flex min-h-11 items-center self-end rounded-lg text-sm font-bold text-terracotta-light underline underline-offset-4 ${focus}`}
+            className={`-mt-2 flex min-h-12 items-center self-end rounded-lg text-sm font-bold text-terracotta-light underline underline-offset-4 ${focus}`}
           >
             Forgot password?
           </Link>

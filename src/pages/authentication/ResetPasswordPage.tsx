@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 
 const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ivory'
 const inputStyle = `h-14 w-full rounded-xl border border-ivory/35 bg-navy-pressed/70 px-4 text-ivory ${focus}`
-const linkStyle = `self-center rounded font-bold text-terracotta-light underline underline-offset-4 ${focus}`
+const linkStyle = `inline-flex min-h-12 min-w-12 items-center justify-center self-center rounded font-bold text-terracotta-light underline underline-offset-4 ${focus}`
 
 export default function ResetPasswordPage() {
   const auth = useAuth()
@@ -47,13 +47,16 @@ export default function ResetPasswordPage() {
         <h1 id="reset-password-title" className="text-center text-[2rem] font-black text-ivory">
           Reset Password
         </h1>
+        <p role="status" className="mt-6 text-center text-ivory">
+          {updated ? 'Your password has been updated.' : auth.status === 'loading' ? 'Checking your reset link…' : ''}
+        </p>
+        <p role="alert" className="text-center text-sm font-semibold text-danger-line">{error ?? ''}</p>
         {updated ? (
           <div className="mt-6 flex flex-col gap-4 text-center text-ivory">
-            <p role="status">Your password has been updated.</p>
             <Link to="/" replace className={linkStyle}>Continue to Explore</Link>
           </div>
         ) : auth.status === 'loading' ? (
-          <p role="status" className="mt-6 text-center text-ivory">Checking your reset link…</p>
+          null
         ) : canReset ? (
           <form
             noValidate
@@ -85,7 +88,6 @@ export default function ResetPasswordPage() {
                 className={inputStyle}
               />
             </label>
-            {error && <p role="alert" className="text-sm font-semibold text-danger-line">{error}</p>}
             <button
               type="submit"
               disabled={busy}

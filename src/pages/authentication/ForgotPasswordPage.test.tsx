@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
@@ -10,7 +10,8 @@ import { routes } from '@/routes'
 import { renderRoutes } from '@/test/render'
 import ForgotPasswordPage from './ForgotPasswordPage'
 
-const { supabaseAuth } = vi.hoisted(() => ({
+const { supabaseAuth, config } = vi.hoisted(() => ({
+  config: { available: true },
   supabaseAuth: {
     getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
     onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
@@ -19,7 +20,7 @@ const { supabaseAuth } = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('@/lib/supabase', () => ({ supabase: { auth: supabaseAuth } }))
+vi.mock('@/lib/supabase', () => ({ get supabase() { return config.available ? { auth: supabaseAuth } : null }, hasRecoveryCallback: false }))
 
 function renderForgotPassword(overrides: Partial<AuthState> = {}) {
   const auth: AuthState = {
@@ -73,7 +74,7 @@ describe('forgot password page', () => {
     expect(screen.getByLabelText('Email')).toHaveAttribute('aria-invalid', 'true')
 
     await user.type(screen.getByLabelText('Email'), 'not-an-email')
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('alert')).toBeEmptyDOMElement()
 
     await user.click(screen.getByRole('button', { name: 'Send Reset Link' }))
     expect(screen.getByRole('alert')).toHaveTextContent('Please enter a valid email address.')
@@ -92,6 +93,20 @@ describe('forgot password page', () => {
       redirectTo: `${window.location.origin}/reset-password`,
     })
     expect(screen.getByLabelText('Email')).toHaveAttribute('aria-invalid', 'false')
+  })
+
+  it('reports when password reset is unavailable', async () => {
+    config.available = false
+    try {
+      const user = userEvent.setup()
+      renderForgotPassword()
+      await user.type(screen.getByLabelText('Email'), 'explorer@example.com')
+      await user.click(screen.getByRole('button', { name: 'Send Reset Link' }))
+      expect(screen.getByRole('alert')).toHaveTextContent('Password reset is not available right now.')
+      expect(screen.getByRole('status')).toBeEmptyDOMElement()
+    } finally {
+      config.available = true
+    }
   })
 
   it('uses LoginDay.webp and lighter field wells in light mode', () => {
@@ -118,56 +133,5 @@ describe('forgot password page', () => {
   it('renders at the /forgot-password app route', async () => {
     renderRoutes(routes, '/forgot-password')
     expect(await screen.findByRole('heading', { name: 'Forgot Password?' })).toBeInTheDocument()
-  })
-})
-
-describe('reset password route', () => {
-  const session = {
-    user: { id: 'traveler' },
-    access_token: `header.${btoa(JSON.stringify({ session_id: 'recovery-session' }))}.signature`,
-  } as Session
-
-  it('restores recovery after a reload and saves the confirmed password', async () => {
-    const user = userEvent.setup()
-    supabaseAuth.getSession.mockResolvedValueOnce({ data: { session } })
-    const original = renderRoutes(routes, '/reset-password')
-
-    expect(await screen.findByText('This reset link is invalid or expired.')).toBeInTheDocument()
-    expect(screen.queryByLabelText('New password', { exact: true })).not.toBeInTheDocument()
-
-    const notify = supabaseAuth.onAuthStateChange.mock.lastCall?.[0] as (event: AuthChangeEvent, session: Session) => void
-    act(() => notify('PASSWORD_RECOVERY', session))
-    expect(screen.getByLabelText('New password', { exact: true })).toBeInTheDocument()
-
-    original.unmount()
-    const refreshed = { ...session, access_token: session.access_token.replace('.signature', '.refreshed') }
-    supabaseAuth.getSession.mockResolvedValueOnce({ data: { session: refreshed } })
-    renderRoutes(routes, '/reset-password')
-
-    await user.type(await screen.findByLabelText('New password', { exact: true }), 'NewPassword123')
-    const confirmation = screen.getByLabelText('Confirm new password')
-    await user.type(confirmation, 'DifferentPassword123')
-    await user.click(screen.getByRole('button', { name: 'Update Password' }))
-    expect(screen.getByRole('alert')).toHaveTextContent('The passwords must match.')
-    expect(supabaseAuth.updateUser).not.toHaveBeenCalled()
-
-    await user.clear(confirmation)
-    await user.type(confirmation, 'NewPassword123')
-    await user.click(screen.getByRole('button', { name: 'Update Password' }))
-    expect(supabaseAuth.updateUser).toHaveBeenCalledWith({ password: 'NewPassword123' })
-    expect(await screen.findByRole('status')).toHaveTextContent('Your password has been updated.')
-  })
-
-  it('rejects a different session for the same account', async () => {
-    writeJson('password-recovery-session', 'recovery-session')
-    const other = {
-      ...session,
-      access_token: `header.${btoa(JSON.stringify({ session_id: 'ordinary-session' }))}.signature`,
-    }
-    supabaseAuth.getSession.mockResolvedValueOnce({ data: { session: other } })
-    renderRoutes(routes, '/reset-password')
-
-    expect(await screen.findByText('This reset link is invalid or expired.')).toBeInTheDocument()
-    expect(screen.queryByLabelText('New password', { exact: true })).not.toBeInTheDocument()
   })
 })

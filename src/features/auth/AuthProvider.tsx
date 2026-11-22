@@ -3,7 +3,7 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { api } from '@/api/client'
 import type { ProfileUpdate } from '@/api/types'
 import { readJson, removeKey, writeJson } from '@/lib/storage'
-import { supabase } from '@/lib/supabase'
+import { hasRecoveryCallback, supabase } from '@/lib/supabase'
 import { AuthContext, type AuthState, type AuthUser } from './AuthContext'
 
 const DEV_KEY = 'dev-user'
@@ -42,6 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true
     let receivedAuthEvent = false
     let recoveryId = readJson<string | null>(RECOVERY_SESSION_KEY, null)
+    let recoveryEventReceived = false
+    let recoveryTimer: ReturnType<typeof setTimeout> | undefined
 
     const syncSession = (next: Session | null, event?: AuthChangeEvent) => {
       const sessionId = getSessionId(next)
@@ -61,14 +63,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return
       if (!receivedAuthEvent) syncSession(data.session)
-      setLoading(false)
+      if (hasRecoveryCallback && !recoveryEventReceived) {
+        recoveryTimer = setTimeout(() => { if (active) setLoading(false) }, 5000)
+      } else {
+        setLoading(false)
+      }
+    }).catch(() => {
+      if (active) setLoading(false)
     })
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
+      if (!active) return
       receivedAuthEvent = true
       syncSession(next, event)
+      if (event === 'PASSWORD_RECOVERY') {
+        recoveryEventReceived = true
+        clearTimeout(recoveryTimer)
+        setLoading(false)
+      }
     })
     return () => {
       active = false
+      clearTimeout(recoveryTimer)
       data.subscription.unsubscribe()
     }
   }, [])

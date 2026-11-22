@@ -46,6 +46,12 @@ export function ForgotPasswordPage() {
 
     setError(null)
 
+    if (!supabase) {
+      setSubmitted(false)
+      setError('Password reset is not available right now.')
+      return
+    }
+
     if (supabase) {
       setBusy(true)
       try {
@@ -99,7 +105,7 @@ export function ForgotPasswordPage() {
         <form
           noValidate
           aria-labelledby="forgot-password-title"
-          aria-describedby={error || submitted ? statusId : undefined}
+          aria-describedby={submitted ? statusId : error ? `${statusId}-error` : undefined}
           aria-busy={busy}
           onSubmit={handleSubmit}
           className="mt-8 flex flex-col gap-4"
@@ -135,7 +141,7 @@ export function ForgotPasswordPage() {
                   if (submitted) setSubmitted(false)
                 }}
                 aria-invalid={Boolean(error)}
-                aria-describedby={error || submitted ? statusId : undefined}
+                aria-describedby={submitted ? statusId : error ? `${statusId}-error` : undefined}
                 className="h-full min-w-0 flex-1 bg-transparent text-base text-ivory outline-none placeholder:text-ivory/70"
               />
             </div>
@@ -149,17 +155,12 @@ export function ForgotPasswordPage() {
             {busy ? 'Sending…' : 'Send Reset Link'}
           </button>
 
-          {(error || submitted) && (
-            <p
-              id={statusId}
-              role={error ? 'alert' : 'status'}
-              className={`text-center text-sm leading-5 ${
-                error ? 'font-semibold text-danger-line' : 'text-ivory'
-              }`}
-            >
-              {error || 'Your secure reset link is on its way.'}
-            </p>
-          )}
+          <p id={statusId} role="status" className="text-center text-sm leading-5 text-ivory">
+            {submitted ? 'Your secure reset link is on its way.' : ''}
+          </p>
+          <p id={`${statusId}-error`} role="alert" className="text-center text-sm leading-5 font-semibold text-danger-line">
+            {error ?? ''}
+          </p>
         </form>
       </AuthCard>
     </AuthScreen>
