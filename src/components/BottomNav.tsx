@@ -24,9 +24,10 @@ const TABS: Tab[] = [
 ]
 
 /**
- * Thumb-reach bottom navigation (SRS 3.2.1.1), built from the Figma ScreenNavbar component
- * (Components page, node 151:122). The focused tab gets a filled navy icon and a visible label;
- * the others show an outline icon in ink-muted and keep their label for screen readers only.
+ * Thumb-reach bottom navigation (SRS 3.2.1.1): the floating pill BottomNav from Figma (Components
+ * page, node 551:971; UI Redesign #6). The active tab gets a navy-soft pill, a filled navy icon and
+ * a visible label; the others show an outline icon in ink-muted and keep their label for screen
+ * readers only. Scan is a navy disc that turns coral, with a ring, while Scan is open.
  */
 export function BottomNav() {
   const { pathname } = useLocation()
@@ -38,8 +39,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md items-center justify-between rounded-t-chrome bg-ivory-surface px-4 shadow-tabbar [view-transition-name:bottom-nav] min-[375px]:px-6"
-      style={{ height: 'calc(var(--spacing-tabbar) + env(safe-area-inset-bottom))', paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed inset-x-3.5 bottom-[calc(14px+env(safe-area-inset-bottom))] z-40 mx-auto flex min-h-tabbar max-w-[calc(28rem-28px)] items-center justify-between rounded-full border border-ivory-line bg-ivory-surface px-[10px] py-[6px] shadow-navy [view-transition-name:bottom-nav]"
     >
       {TABS.map((tab, i) =>
         tab.to === '/scan' ? (
@@ -59,14 +59,25 @@ function TabLink({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClic
       end={tab.to === '/'}
       viewTransition={animate}
       onClick={onClick}
-      className="flex min-h-12 min-w-12 flex-col items-center justify-center gap-1 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+      className={({ isActive }) =>
+        // Targets in px so they stay 48px; the active tab may widen to fit its label at large text sizes.
+        `flex min-h-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${isActive ? 'min-w-fit bg-navy-soft' : 'min-w-[48px]'}`
+      }
     >
       {({ isActive }) => {
         const Icon = isActive ? tab.activeIcon : tab.icon
         return (
           <>
-            <Icon size={isActive ? 28 : 24} className={isActive ? 'text-navy' : 'text-ink-muted'} />
-            <span className={isActive ? 'text-xs font-bold whitespace-nowrap text-navy' : 'sr-only'}>{tab.label}</span>
+            <Icon size={20} className={isActive ? 'text-navy' : 'text-ink-muted'} />
+            <span
+              className={
+                isActive
+                  ? 'text-[0.6875rem] leading-[0.875rem] font-bold tracking-[0.02em] whitespace-nowrap text-navy'
+                  : 'sr-only'
+              }
+            >
+              {tab.label}
+            </span>
           </>
         )
       }}
@@ -74,23 +85,23 @@ function TabLink({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClic
   )
 }
 
-/** The raised Scan button: a navy disc that overlaps the top edge of the bar by 17px, as in Figma. */
+/** Scan: a 48px navy disc inside the bar; coral with a ring while Scan is open, so the state isn't colour alone. */
 function ScanTab({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClick: () => void }) {
   return (
     <NavLink
       to={tab.to}
       viewTransition={animate}
       onClick={onClick}
-      className="group -mt-[17px] flex flex-col items-center gap-1 self-start rounded-full focus-visible:outline-none"
+      className={({ isActive }) =>
+        `flex size-[48px] shrink-0 items-center justify-center rounded-full text-on-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
+          isActive
+            ? 'bg-terracotta ring-2 ring-terracotta ring-offset-2 ring-offset-ivory-surface'
+            : 'bg-navy active:bg-navy-pressed'
+        }`
+      }
     >
-      {({ isActive }) => (
-        <>
-          <span className="flex size-scan-button items-center justify-center rounded-full border-4 border-ivory bg-navy text-on-navy shadow-navy group-active:bg-navy-pressed group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-navy">
-            <tab.icon size={30} />
-          </span>
-          <span className={isActive ? 'text-xs font-bold text-navy' : 'sr-only'}>{tab.label}</span>
-        </>
-      )}
+      <tab.icon size={22} />
+      <span className="sr-only">{tab.label}</span>
     </NavLink>
   )
 }

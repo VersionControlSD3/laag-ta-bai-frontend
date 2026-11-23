@@ -102,9 +102,8 @@
 @theme {
   --radius-tray: 30px;
   --radius-chrome: 40px;
-  --spacing-tabbar: 70px;
+  --spacing-tabbar: 62px;
   --spacing-topbar: 60px;
-  --spacing-scan-button: 64px;
 }
 
 /* data-palette="light" pins only these tokens (e.g. text on photos), leaving the scaffold colours on the theme. */
@@ -202,9 +201,9 @@ body {
   min-height: 48px;
 }
 
-/* Room for the tab bar plus the Scan disc's 17px overhang, so no content sits behind them. */
+/* Room for the floating tab bar (14px off the bottom) plus a 20px gap, so no content sits behind it. */
 :root {
-  --nav-clearance: calc(var(--spacing-tabbar) + 26px + env(safe-area-inset-bottom));
+  --nav-clearance: calc(var(--spacing-tabbar) + 34px + env(safe-area-inset-bottom));
 }
 
 .pb-nav {
@@ -215,10 +214,6 @@ body {
 .bleed-under-nav {
   margin-bottom: calc(-1 * var(--nav-clearance));
   padding-bottom: var(--nav-clearance);
-}
-
-.-mb-nav {
-  margin-bottom: calc(-96px - env(safe-area-inset-bottom));
 }
 
 .pt-safe {
