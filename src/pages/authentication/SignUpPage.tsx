@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { AuthScreen } from '@/components/AuthScreen'
+import { NationalitySelect } from '@/components/NationalitySelect'
 import {
   CalendarOutlineIcon,
   CheckmarkIcon,
@@ -13,6 +14,7 @@ import {
 } from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { DevSignIn } from '@/features/auth/DevSignIn'
+import { nationalityOptions } from '@/lib/nationality'
 import './SignUpPage.css'
 
 // Custom calendar controls keep the date picker consistent across browsers.
@@ -197,12 +199,13 @@ export default function SignUpPage() {
   const passwordValid = passwordRules.every(([, valid]) => valid)
   const confirmValid = form.confirmPassword.length > 0 && form.password === form.confirmPassword
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+  const nationalityValid = nationalityOptions.includes(form.nationality)
+  const nationalityInvalid = submitted && !nationalityValid
   const isUnderage = Boolean(form.dateOfBirth) && new Date(`${form.dateOfBirth}T00:00:00`) > maxBirthDate
   const fieldError = (message: string, id: string) => <span id={id} className="auth-field-error" role="alert">{message}</span>
   const nameInvalid = submitted && !form.displayName
   const emailInvalid = submitted && !emailValid
   const birthDateInvalid = submitted && (!form.dateOfBirth || isUnderage)
-  const nationalityInvalid = submitted && !form.nationality
   const passwordInvalid = submitted && !passwordValid
   const confirmationInvalid = submitted && !confirmValid
   const termsInvalid = submitted && !form.acceptedTerms
@@ -212,7 +215,7 @@ export default function SignUpPage() {
     event.preventDefault()
     setSubmitCount((count) => count + 1)
     setError(null)
-    if (!form.displayName || !emailValid || !form.dateOfBirth || isUnderage || !form.nationality || !passwordValid || !confirmValid || !form.acceptedTerms) {
+    if (!form.displayName || !emailValid || !form.dateOfBirth || isUnderage || !nationalityValid || !passwordValid || !confirmValid || !form.acceptedTerms) {
       return
     }
     setBusy(true)
@@ -234,11 +237,10 @@ export default function SignUpPage() {
   type FieldState = 'error' | 'success' | 'neutral'
   const border: Record<FieldState, string> = { error: 'border-danger', success: 'border-sage-deep', neutral: 'border-ivory-line' }
   const fieldClass = (state: FieldState) =>
-    `mt-2 h-14 w-full rounded-xl border bg-ivory-deep px-4 text-base text-ink outline-none placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${border[state]}`
-  const inputClass = (invalid: boolean) => fieldClass(invalid ? 'error' : 'neutral')
-  // Live match feedback once a confirmation is typed; submit errors win.
-  const matchState = (invalid: boolean): FieldState =>
-    invalid ? 'error' : form.confirmPassword ? (confirmValid ? 'success' : 'error') : 'neutral'
+    `h-14 w-full rounded-xl border bg-ivory-deep px-4 text-base text-ink outline-none placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${border[state]}`
+  const inputClass = (invalid: boolean) => `${fieldClass(invalid ? 'error' : 'neutral')} mt-2`
+  // Only the confirmation shows match feedback (once typed, or after submit); the password field reflects its own rules.
+  const confirmationState: FieldState = confirmValid ? 'success' : (submitted || form.confirmPassword) ? 'error' : 'neutral'
 
   return (
     // UI Redesign #4: same photo band and theme-following sheet as Login.
@@ -275,10 +277,17 @@ export default function SignUpPage() {
                     </div>
                     {birthDateInvalid && fieldError(isUnderage ? 'You must be at least 18 to create an account.' : 'Date of birth is required.', 'signup-birth-date-error')}
                   </div>
-                  <div>
-                    <label className="auth-label block">Nationality <span aria-hidden="true">*</span>
-                      <input required autoComplete="country-name" value={form.nationality} onChange={(e) => update('nationality', e.target.value)} className={inputClass(nationalityInvalid)} aria-invalid={nationalityInvalid} aria-describedby={nationalityInvalid ? 'signup-nationality-error' : undefined} />
-                    </label>
+                  <div className="min-w-0">
+                    <label htmlFor="signup-nationality" className="auth-label mb-2 block">Nationality <span aria-hidden="true">*</span></label>
+                    <NationalitySelect
+                      id="signup-nationality"
+                      required
+                      value={form.nationality}
+                      onValueChange={(value) => update('nationality', value)}
+                      className={fieldClass(nationalityInvalid ? 'error' : 'neutral')}
+                      aria-invalid={nationalityInvalid}
+                      aria-describedby={nationalityInvalid ? 'signup-nationality-error' : undefined}
+                    />
                     {nationalityInvalid && fieldError('Nationality is required.', 'signup-nationality-error')}
                   </div>
                 </div>
@@ -299,7 +308,7 @@ export default function SignUpPage() {
                 <div>
                   <label className="auth-label block">Confirm password <span aria-hidden="true">*</span>
                     <span className="relative block">
-                      <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${fieldClass(matchState(confirmationInvalid))} pr-12`} aria-invalid={confirmationInvalid} aria-describedby={confirmationInvalid ? 'signup-confirm-password-message' : undefined} />
+                      <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${fieldClass(confirmationState)} mt-2 pr-12`} aria-invalid={confirmationInvalid} aria-describedby={confirmationInvalid ? 'signup-confirm-password-message' : undefined} />
                       <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
                     </span>
                   </label>

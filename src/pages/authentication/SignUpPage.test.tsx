@@ -30,6 +30,13 @@ describe('sign-up page', () => {
     const scrollIntoView = vi.fn()
     Object.defineProperty(fullName, 'scrollIntoView', { value: scrollIntoView })
 
+    const nationality = screen.getByRole('combobox', { name: 'Nationality' })
+    expect(within(nationality).getByRole('option', { name: 'Japanese' })).toBeInTheDocument()
+    expect(within(nationality).queryByRole('option', { name: 'Japan' })).not.toBeInTheDocument()
+    expect(within(nationality).queryByRole('option', { name: 'Philippines' })).not.toBeInTheDocument()
+    await user.type(nationality, '12345')
+    expect(nationality).toHaveValue('')
+
     await user.click(screen.getByRole('button', { name: 'Create account' }))
 
     expect(fullName).toHaveFocus()
@@ -37,10 +44,14 @@ describe('sign-up page', () => {
     expect(fullName).toHaveAccessibleDescription('Full name is required.')
     expect(screen.getByRole('textbox', { name: 'Email' })).toHaveAccessibleDescription('Email is required.')
     expect(screen.getByRole('button', { name: 'Choose date of birth' })).toHaveAccessibleDescription('Date of birth is required.')
-    expect(screen.getByRole('textbox', { name: 'Nationality' })).toHaveAccessibleDescription('Nationality is required.')
+    expect(nationality).toHaveAccessibleDescription('Nationality is required.')
     expect(screen.getByLabelText(/^Password\b/)).toHaveAccessibleDescription(/One uppercase letter: required/)
     expect(screen.getByLabelText(/^Confirm password\b/)).toHaveAccessibleDescription('Please confirm your password.')
     expect(screen.getByRole('checkbox')).toHaveAccessibleDescription('You must accept the Terms and Privacy Policy.')
+
+    await user.selectOptions(nationality, 'Filipino')
+    expect(nationality).toHaveValue('Filipino')
+    expect(screen.queryByText('Nationality is required.')).not.toBeInTheDocument()
   })
 
   it('focuses the first remaining invalid control on each submit', async () => {
@@ -56,7 +67,7 @@ describe('sign-up page', () => {
     expect(datePicker).toHaveFocus()
 
     await selectAdultBirthDate(user)
-    fireEvent.change(screen.getByRole('textbox', { name: /Nationality/ }), { target: { value: 'Filipino' } })
+    fireEvent.change(screen.getByRole('combobox', { name: 'Nationality' }), { target: { value: 'Filipino' } })
     fireEvent.change(password, { target: { value: 'Secret123' } })
     await user.click(submit)
     expect(confirmation).toHaveFocus()
@@ -87,7 +98,7 @@ describe('sign-up page', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Full name' }), { target: { value: 'Test Traveler' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), { target: { value: 'traveler@example.com' } })
     await selectAdultBirthDate(user)
-    fireEvent.change(screen.getByRole('textbox', { name: 'Nationality' }), { target: { value: 'Filipino' } })
+    fireEvent.change(screen.getByRole('combobox', { name: 'Nationality' }), { target: { value: 'Filipino' } })
     fireEvent.change(screen.getByLabelText(/^Password\b/), { target: { value: 'Secret123' } })
     fireEvent.change(screen.getByLabelText(/^Confirm password\b/), { target: { value: 'Secret123' } })
     await user.click(screen.getByRole('checkbox'))
@@ -108,6 +119,8 @@ describe('sign-up page', () => {
     await openRegister()
 
     const [password, confirmation] = document.querySelectorAll<HTMLInputElement>('input[autocomplete="new-password"]')
+    expect(confirmation).toHaveClass('border-ivory-line')
+
     await user.type(password, 'Secret')
 
     expect(screen.getByText('At least 8 characters')).not.toHaveClass('text-sage-deep')
@@ -120,12 +133,24 @@ describe('sign-up page', () => {
 
     await user.type(confirmation, 'Secret124')
     expect(await screen.findByText('Passwords do not match')).toBeInTheDocument()
-    // Exactly one border state, so the mismatch colour can't lose to the neutral border.
+    expect(password).toHaveClass('border-ivory-line')
+    expect(password).not.toHaveClass('border-danger')
     expect(confirmation).toHaveClass('border-danger')
     expect(confirmation).not.toHaveClass('border-ivory-line')
+
+    await user.click(screen.getByRole('button', { name: 'Create account' }))
+    expect(password).toHaveClass('border-ivory-line')
+    expect(password).not.toHaveClass('border-danger')
+    expect(confirmation).toHaveClass('border-danger')
+    expect(confirmation).not.toHaveClass('border-ivory-line')
+
     await user.clear(confirmation)
+    expect(confirmation).toHaveClass('border-danger')
+    expect(confirmation).not.toHaveClass('border-ivory-line')
+
     await user.type(confirmation, 'Secret123')
     expect(await screen.findByText('Passwords match')).toBeInTheDocument()
+    expect(password).toHaveClass('border-ivory-line')
     expect(confirmation).toHaveClass('border-sage-deep')
     expect(confirmation).not.toHaveClass('border-ivory-line')
     expect(confirmation).not.toHaveClass('border-danger')
