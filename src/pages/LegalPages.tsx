@@ -69,7 +69,7 @@ export function PrivacyPage() {
         You must be 18 or older to register. In accordance with the Data Privacy Act proportionality principle, date of birth is collected solely to verify you meet the 18+ age requirement and is not stored or sent to our servers.
       </Section>
       <Section heading="Location and camera">
-        Location is used only while you use the nearby or check-in features to sort landmarks by distance. Photos are used only when you run a scan, to identify the landmark. Neither is collected in the background.
+        We use your location to show your position on the Explore map, sort nearby landmarks, and verify scans. The map draws your precise position in your browser and Google Maps loads tiles for your approximate area. Photos are used only when you run a scan, to identify the landmark. Neither is collected in the background.
       </Section>
       <Section heading="Where it is stored">
         Accounts are hosted by Supabase; app data is served by our API; the site is hosted on Vercel. Your preferences, bookmarks and offline stories are stored in your browser's local storage and are removed when you clear site data or use "Clear offline cache" in settings.
@@ -78,7 +78,7 @@ export function PrivacyPage() {
         Scanned images and chat messages are sent to our API, which forwards them to its AI provider to answer you. They are not used to identify you.
       </Section>
       <Section heading="Sharing">
-        We do not sell your data. We only share what is necessary to run the service with the hosting, authentication and AI providers above.
+        We do not sell your data. We only share what is necessary to run the service with our hosting, authentication, AI, and map providers.
       </Section>
       <Section heading="Your choices">
         You can edit your profile at any time and delete your account from the Profile screen. For any request about your data, open an issue in the <a className="font-semibold underline" href="https://github.com/VersionControlSD3/laag-ta-bai-frontend/issues" target="_blank" rel="noreferrer">project repository</a>.

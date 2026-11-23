@@ -45,11 +45,9 @@ describe('ExplorePage', () => {
     expect(screen.getByText(/sent to our server only to sort nearby landmarks and verify scans/)).toBeInTheDocument()
     expect(await screen.findAllByRole('link', { name: /Casa Gorordo/ })).toHaveLength(1)
     expect(nearbyRequests()).toHaveLength(0)
-    expect(screen.queryByRole('button', { name: 'Recenter on my location' })).not.toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Explore map' })).getByRole('status')).toHaveTextContent('Map unavailable')
 
     await userEvent.click(screen.getByRole('button', { name: 'Share location' }))
-    expect(screen.getByRole('img', { name: /navy pin marks your current location/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Recenter on my location' })).toBeInTheDocument()
 
     const nearby = screen.getByRole('region', { name: 'Nearby You' })
     expect(await within(nearby).findByRole('link', { name: /Casa Gorordo/ })).toHaveTextContent('400 m')
@@ -65,7 +63,7 @@ describe('ExplorePage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Share location' }))
     expect(screen.getByText('Location is off', { selector: 'p' })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Map of Cebu. Location is off.' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Explore map' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 
