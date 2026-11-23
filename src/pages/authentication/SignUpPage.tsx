@@ -219,9 +219,8 @@ export default function SignUpPage() {
   const fieldClass = (state: FieldState) =>
     `h-14 w-full rounded-xl border bg-ivory-deep px-4 text-base text-ink outline-none placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${border[state]}`
   const inputClass = (invalid: boolean) => `${fieldClass(invalid ? 'error' : 'neutral')} mt-2`
-  // Live match feedback once a confirmation is typed; submit errors win.
-  const matchState = (invalid: boolean): FieldState =>
-    invalid ? 'error' : form.confirmPassword ? (confirmValid ? 'success' : 'error') : 'neutral'
+  // Only the confirmation shows match feedback (once typed, or after submit); the password field reflects its own rules.
+  const confirmationState: FieldState = confirmValid ? 'success' : (submitted || form.confirmPassword) ? 'error' : 'neutral'
 
   return (
     // UI Redesign #4: same photo band and theme-following sheet as Login.
@@ -269,7 +268,7 @@ export default function SignUpPage() {
                 </div>
                 <label className="auth-label block">Password <span aria-hidden="true">*</span>
                   <span className="relative block">
-                    <input type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.password} onChange={(e) => update('password', e.target.value)} className={`${fieldClass(matchState(submitted && !passwordValid))} mt-2 pr-12`} aria-invalid={submitted && !passwordValid} />
+                    <input type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.password} onChange={(e) => update('password', e.target.value)} className={`${inputClass(submitted && !passwordValid)} pr-12`} aria-invalid={submitted && !passwordValid} />
                     <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
                   </span>
                   <span className="mt-2 grid gap-1 text-xs" aria-live="polite">
@@ -278,7 +277,7 @@ export default function SignUpPage() {
                 </label>
                 <label className="auth-label block">Confirm password <span aria-hidden="true">*</span>
                   <span className="relative block">
-                    <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${fieldClass(matchState(submitted && !confirmValid))} mt-2 pr-12`} aria-invalid={submitted && !confirmValid} />
+                    <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${fieldClass(confirmationState)} mt-2 pr-12`} aria-invalid={submitted && !confirmValid} />
                     <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
                   </span>
                   {form.confirmPassword && <span className={`auth-password-status mt-1 block ${confirmValid ? 'text-sage-deep' : 'text-danger'}`}>{confirmValid ? 'Passwords match' : 'Passwords do not match'}</span>}
