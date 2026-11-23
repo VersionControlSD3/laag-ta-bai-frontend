@@ -85,8 +85,12 @@ export default function LandmarkPage() {
   const share = async () => {
     const url = window.location.href
     if (navigator.share) return navigator.share({ title: landmark.name, url }).catch(() => undefined)
-    await navigator.clipboard?.writeText(url)
-    setCopied(true)
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+    } catch {
+      // No clipboard (insecure context) or access denied: keep the Share label rather than claim a copy.
+    }
   }
 
   return (

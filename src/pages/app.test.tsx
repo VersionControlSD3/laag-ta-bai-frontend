@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { Landmark } from '@/api/types'
@@ -73,6 +73,20 @@ describe('app routes', () => {
     await user.click(await screen.findByRole('button', { name: 'Share Fort San Pedro' }))
     expect(await screen.findByRole('button', { name: 'Link copied' })).toBeInTheDocument()
     expect(await navigator.clipboard.readText()).toBe(window.location.href)
+  })
+
+  it.each([
+    ['denied', () => ({ writeText: () => Promise.reject(new DOMException('Denied', 'NotAllowedError')) })],
+    ['missing (insecure context)', () => undefined],
+  ])('does not claim the link was copied when the clipboard is %s', async (_, clipboard) => {
+    vi.spyOn(navigator, 'clipboard', 'get').mockReturnValue(clipboard() as unknown as Clipboard)
+    mockFetch(() => ({ data: fort }))
+    renderRoutes(routes, '/landmarks/fort-san-pedro')
+    const share = await screen.findByRole('button', { name: 'Share Fort San Pedro' })
+    fireEvent.click(share)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(share).toHaveAccessibleName('Share Fort San Pedro')
+    expect(screen.queryByRole('button', { name: 'Link copied' })).not.toBeInTheDocument()
   })
 
   it('notes story parts that have not been written yet', async () => {
