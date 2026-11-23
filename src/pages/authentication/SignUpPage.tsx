@@ -169,6 +169,9 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [oauthError, setOauthError] = useState<string | null>(null)
+  // Google creates the account on first use, so it needs the same consent and 18+ gate as the form.
+  const [googleTried, setGoogleTried] = useState(false)
+  const showConsentErrors = submitted || googleTried
 
   const maxBirthDate = (() => {
     const now = new Date()
@@ -209,6 +212,16 @@ export default function SignUpPage() {
     }
   }
 
+  const continueWithGoogle = () => {
+    setGoogleTried(true)
+    if (!form.dateOfBirth || isUnderage || !form.acceptedTerms) {
+      setOauthError('Enter your date of birth (18+) and accept the Terms and Privacy Policy before continuing with Google.')
+      return
+    }
+    setOauthError(null)
+    void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.'))
+  }
+
   // One border state per field, so error/success never compete with the neutral border.
   type FieldState = 'error' | 'success' | 'neutral'
   const border: Record<FieldState, string> = { error: 'border-danger', success: 'border-sage-deep', neutral: 'border-ivory-line' }
@@ -244,10 +257,10 @@ export default function SignUpPage() {
                 </label>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="auth-label block">Date of birth <span aria-hidden="true">*</span>
-                    <CustomDatePicker value={form.dateOfBirth} onChange={(value) => update('dateOfBirth', value)} invalid={submitted && (!form.dateOfBirth || isUnderage)} />
+                    <CustomDatePicker value={form.dateOfBirth} onChange={(value) => update('dateOfBirth', value)} invalid={showConsentErrors && (!form.dateOfBirth || isUnderage)} />
                     <input type="text" className="sr-only" tabIndex={-1} aria-hidden="true" name="dateOfBirth" value={form.dateOfBirth} onChange={(e) => update('dateOfBirth', e.target.value)} />
-                    {submitted && !form.dateOfBirth && fieldError('Date of birth is required.')}
-                    {submitted && isUnderage && fieldError('You must be at least 18 to create an account.')}
+                    {showConsentErrors && !form.dateOfBirth && fieldError('Date of birth is required.')}
+                    {showConsentErrors && isUnderage && fieldError('You must be at least 18 to create an account.')}
                   </label>
                   <label className="auth-label block">Nationality <span aria-hidden="true">*</span>
                     <input required autoComplete="country-name" value={form.nationality} onChange={(e) => update('nationality', e.target.value)} className={inputClass(submitted && !form.nationality)} aria-invalid={submitted && !form.nationality} />
@@ -274,10 +287,10 @@ export default function SignUpPage() {
                   <textarea maxLength={240} value={form.bio} onChange={(e) => update('bio', e.target.value)} className="mt-2 min-h-20 w-full rounded-xl border border-ivory-line bg-ivory-deep p-4 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy" />
                 </label>
                 <label className="flex min-h-12 items-center gap-3 text-sm text-ink-body">
-                  <input type="checkbox" checked={form.acceptedTerms} onChange={(e) => update('acceptedTerms', e.target.checked)} className={`auth-terms-checkbox size-5 shrink-0 accent-navy ${submitted && !form.acceptedTerms ? 'auth-terms-checkbox-invalid' : ''}`} />
+                  <input type="checkbox" checked={form.acceptedTerms} onChange={(e) => update('acceptedTerms', e.target.checked)} className={`auth-terms-checkbox size-5 shrink-0 accent-navy ${showConsentErrors && !form.acceptedTerms ? 'auth-terms-checkbox-invalid' : ''}`} />
                   <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Terms</a> and <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
                 </label>
-                {submitted && !form.acceptedTerms && <p className="text-sm font-semibold text-danger" role="alert">You must accept the Terms and Privacy Policy.</p>}
+                {showConsentErrors && !form.acceptedTerms && <p className="text-sm font-semibold text-danger" role="alert">You must accept the Terms and Privacy Policy.</p>}
                 {error && <p role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-semibold text-danger">{error}</p>}
 
                 {/* Primary action */}
@@ -286,7 +299,7 @@ export default function SignUpPage() {
 
               {/* Secondary authentication option */}
               <div className="my-5 flex items-center gap-3 text-xs font-semibold text-ink-muted"><span className="h-px flex-1 bg-ivory-line" />OR<span className="h-px flex-1 bg-ivory-line" /></div>
-              <button type="button" disabled={auth.mode === 'dev' || busy} onClick={() => { setOauthError(null); void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.')) }} className="flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-ivory-line bg-ivory-surface font-semibold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">
+              <button type="button" disabled={auth.mode === 'dev' || busy} onClick={continueWithGoogle} className="flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-ivory-line bg-ivory-surface font-semibold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">
                 <GoogleIcon />
                 Continue with Google
               </button>

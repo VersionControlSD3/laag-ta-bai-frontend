@@ -1,16 +1,57 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { createMemoryRouter, RouterProvider } from 'react-router'
+import { describe, expect, it, vi } from 'vitest'
+import { AuthContext, type AuthState } from '@/features/auth/AuthContext'
+import { PreferencesProvider } from '@/features/preferences/PreferencesProvider'
 import { writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
 import { renderRoutes } from '@/test/render'
+import SignUpPage from './SignUpPage'
 
 async function openRegister() {
   renderRoutes(routes, '/register')
   return await screen.findByRole('heading', { name: 'Create Account' })
 }
 
+/** Renders /register with a Supabase-mode auth double, so Continue with Google is enabled. */
+function renderSupabaseRegister() {
+  const auth = {
+    mode: 'supabase', status: 'signed-out', user: null, token: null,
+    signIn: vi.fn(), signUp: vi.fn(), signInWithGoogle: vi.fn().mockResolvedValue(undefined), signInAsDev: vi.fn(), signOut: vi.fn(),
+  } satisfies AuthState
+  const router = createMemoryRouter([{ path: '/register', element: <SignUpPage /> }], { initialEntries: ['/register'] })
+  render(<PreferencesProvider><AuthContext.Provider value={auth}><RouterProvider router={router} /></AuthContext.Provider></PreferencesProvider>)
+  return auth
+}
+
 describe('sign-up page', () => {
+  it('blocks Continue with Google until the Terms are accepted and an 18+ date of birth is set', async () => {
+    const user = userEvent.setup()
+    const auth = renderSupabaseRegister()
+    const google = screen.getByRole('button', { name: 'Continue with Google' })
+
+    await user.click(google)
+    expect(auth.signInWithGoogle).not.toHaveBeenCalled()
+    expect(screen.getByText('Date of birth is required.')).toBeInTheDocument()
+    expect(screen.getByText('You must accept the Terms and Privacy Policy.')).toBeInTheDocument()
+    expect(screen.getByText(/before continuing with Google/)).toBeInTheDocument()
+    // Only the consent fields are flagged, not the email/password form.
+    expect(screen.queryByText('Full name is required.')).not.toBeInTheDocument()
+
+    const dateOfBirth = document.querySelector<HTMLInputElement>('input[name="dateOfBirth"]')!
+    fireEvent.change(dateOfBirth, { target: { value: `${new Date().getFullYear() - 16}-05-15` } })
+    await user.click(screen.getByRole('checkbox'))
+    await user.click(google)
+    expect(auth.signInWithGoogle).not.toHaveBeenCalled()
+    expect(screen.getByText('You must be at least 18 to create an account.')).toBeInTheDocument()
+
+    fireEvent.change(dateOfBirth, { target: { value: `${new Date().getFullYear() - 20}-05-15` } })
+    await user.click(google)
+    expect(auth.signInWithGoogle).toHaveBeenCalledOnce()
+    expect(screen.queryByText(/before continuing with Google/)).not.toBeInTheDocument()
+  })
+
   it('shows the required-field errors when the empty form is submitted', async () => {
     const user = userEvent.setup()
     await openRegister()
