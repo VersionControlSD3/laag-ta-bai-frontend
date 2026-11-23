@@ -43,31 +43,31 @@ Figma's Dev Mode / MCP server works too. Never edit the file from a script.
 Use the Tailwind class names in the second column; they switch with the theme. Values were taken
 from the redesign screenshots and logo files, then checked for WCAG AA.
 
-| Role (Ivory + Sage name) | Tailwind name | Light | Dark (provisional) | Use for |
+| Role (Ivory + Sage name) | Tailwind name | Light | Dark | Use for |
 |---|---|---|---|---|
-| `color/ivory` | `ivory` | `#FFFBF4` | `#0B1F24` | App background |
-| `color/ivory-deep` | `ivory-deep` | `#F4EBD9` | `#071619` | Sand input wells; locked and empty fills |
-| `color/surface` | `ivory-surface` | `#FFFFFF` | `#11292F` | Cards, sheets, tab bar, top bar |
-| `color/line` | `ivory-line` | `#E5D9C3` | `#21424A` | Hairline borders, list dividers |
+| `color/ivory` | `ivory` | `#FFFBF4` | `#0A1D24` | App background |
+| `color/ivory-deep` | `ivory-deep` | `#F4EBD9` | `#061318` | Sand input wells; locked and empty fills |
+| `color/surface` | `ivory-surface` | `#FFFFFF` | `#112B35` | Cards, sheets, tab bar, top bar |
+| `color/line` | `ivory-line` | `#E5D9C3` | `#1F4452` | Hairline borders, list dividers |
 | `color/line-strong` | `line-strong` | `#8A7D66` | `#7D989C` | Borders that mark a control (≥ 3:1) |
-| `color/navy` | `navy` | `#0D5C63` lagoon | `#8FD3CF` | Primary buttons, active navigation, lagoon accents |
-| `color/navy-pressed` | `navy-pressed` | `#09454C` | `#74C3BE` | Pressed primary fills |
-| `color/navy-soft` | `navy-soft` | `#DDF2F0` | `#173B40` | Lagoon tint (chips, location pills) |
-| `color/on-navy` | `on-navy` | → ivory | `#0B1F24` | Text and icons on lagoon fills |
-| `color/ink` | `ink` | `#0B2E36` | `#F5EFE4` | Headings and titles |
-| `color/ink-body` | `ink-body` | `#2D4A51` | `#D2DFDF` | Body copy |
-| `color/ink-muted` | `ink-muted` | `#4E6E75` | `#A3B9BB` | Metadata, placeholders, inactive tabs |
+| `color/navy` | `navy` | `#0D5C63` lagoon | `#48CAE4` | Primary buttons, active navigation, lagoon accents |
+| `color/navy-pressed` | `navy-pressed` | `#09454C` | `#36B5D0` | Pressed primary fills |
+| `color/navy-soft` | `navy-soft` | `#DDF2F0` | `#163A47` | Lagoon tint (chips, location pills) |
+| `color/on-navy` | `on-navy` | → ivory | `#0A1D24` | Text and icons on lagoon fills |
+| `color/ink` | `ink` | `#0B2E36` | `#F2FBF9` | Headings and titles |
+| `color/ink-body` | `ink-body` | `#2D4A51` | `#C7E6E3` | Body copy |
+| `color/ink-muted` | `ink-muted` | `#4E6E75` | `#8AB5B2` | Metadata, placeholders, inactive tabs |
 | `color/ink-faint` | `ink-faint` | `#7A9295` | `#5F7A7E` | Locked / disabled **icons only, never text** |
 | `color/sage` | `sage` | `#2A9D8F` teal | `#4FBFB0` | Secondary accents, logo steps; **icons and large text only** |
-| `color/sage-soft` | `sage-soft` | `#DCF5EE` mint | `#14362F` | Insets, icon discs, tracks, PWA icon background |
+| `color/sage-soft` | `sage-soft` | `#DCF5EE` mint | `#153B33` | Insets, icon discs, tracks, PWA icon background |
 | `color/sage-deep` | `sage-deep` | `#16655A` | `#9FE3D6` | Text and icons on sage-soft |
-| `color/terracotta` | `terracotta` | `#E46B4D` coral | `#F08A6F` | Accents, Scan button, active dots; **icons and 24 px+ only** |
-| `color/terracotta-ink` | `terracotta-ink` | `#B54124` | `#FFAB93` | Coral for text; coral **filled buttons with white text** |
-| `color/terracotta-soft` | `terracotta-soft` | `#FFE8DF` | `#3B241D` | Category tags, AI Mode chip, callouts |
+| `color/terracotta` | `terracotta` | `#E46B4D` coral | `#FF8566` | Accents, Scan button, active dots; **icons and 24 px+ only** |
+| `color/terracotta-ink` | `terracotta-ink` | `#B54124` | `#FFA68F` | Coral for text; coral **filled buttons with white text** |
+| `color/terracotta-soft` | `terracotta-soft` | `#FFE8DF` | `#3A211D` | Category tags, AI Mode chip, callouts |
 | none | `terracotta-light` | `#F9C4B4` | `#F9C4B4` | Labels, icons and links on lagoon fills only |
-| `color/danger` | `danger` | `#A8322A` | `#F2958A` | Destructive text |
-| `color/danger-soft` | `danger-soft` | `#F7E1DC` | `#3A1F1C` | Destructive button fill |
-| `color/danger-line` | `danger-line` | `#E3B3AA` | `#7A3B34` | Destructive button border |
+| `color/danger` | `danger` | `#A8322A` | `#FF8787` | Destructive text |
+| `color/danger-soft` | `danger-soft` | `#F7E1DC` | `#3B1A1D` | Destructive button fill and error notices |
+| `color/danger-line` | `danger-line` | `#E3B3AA` | `#8A3036` | Destructive button and error notice border |
 
 **Contrast rules.**
 - Coral (`terracotta`) is a shade darker than the brand `#E76F51` so coral icons reach 3:1 on
@@ -89,9 +89,7 @@ owns `surface` and `line`. Renaming the roles to `lagoon-*` / `coral-*` is a sep
 
 ### Dark mode
 
-The redesign has **no dark mode** yet, so `src/styles/index.css` ships **provisional** dark values
-derived from the same hues and checked for WCAG AA. Lagoon fills invert to a light teal with dark
-text. Ask the designer for real dark values and replace them in one place.
+`src/styles/index.css` uses the Figma Lagoon & Coral dark mode values from `07 · Mastery & Gamification (Dark)`, checked for WCAG AA. Lagoon fills invert to bright cyan-teal (`#48CAE4`) with dark text (`#0A1D24`).
 
 The **splash** stays ivory in both themes (`data-theme="light"`): the installed PWA's launch screen
 uses the manifest's ivory `background_color`, and the logo artwork is lagoon on transparent.
@@ -147,7 +145,7 @@ Use these styles; sizes are in `rem` so they follow the OS font size.
 | Display / hero-title | 30/36, 700, 2.5 % | `text-3xl font-bold tracking-wide` |
 | Display / level-numeral | 48/48, 800 | `text-5xl font-extrabold` |
 | Headings / section-title | 24/32, 700 | `text-2xl font-bold` |
-| Headings / nav-title | 24/32, 700, 2.5 % | `text-2xl font-bold tracking-wide` |
+| Headings / nav-title | 22/28, 700, 1 % | `text-[1.375rem] leading-7 font-bold tracking-[0.01em]` (TopNavbar) |
 | Headings / subsection-title | 20/28, 700 | `text-xl font-bold` |
 | Headings / card-title | 18/28, 700 | `text-lg font-bold` |
 | Text / body | 16/24, 400 | `text-base` |
@@ -172,11 +170,13 @@ to the table above and confirm with the designer.
 - **Radius** (`radius/*`): md 6, lg 8, xl 12, 2xl 16, 3xl 24 (Tailwind defaults), plus
   `rounded-tray` 30 px and `rounded-chrome` 40 px (tab bar and top bar). Radius grows with the
   object: tags → buttons → cards → panels → chrome → round controls.
-- **Shadows** (navy-tinted, soft, few): `shadow-tabbar`, `shadow-topbar`, `shadow-navy` (navy
-  buttons, Scan button, LevelRing) are tokens. Figma's `shadow-lg`, `shadow-2xl` and `shadow-panel`
+- **Shadows** (navy-tinted, soft, few): `shadow-topbar`, `shadow-navy` (navy buttons, the
+  BottomNav pill, toasts, LevelRing), `shadow-card` (chat composer, cards) and `shadow-modal`
+  (dialogs) are tokens. `shadow-tabbar` is left over from the old slab tab bar and no longer used;
+  remove it with the next token change. Figma's `shadow-lg`, `shadow-2xl` and `shadow-panel`
   are navy-tinted versions of Tailwind's; add them when the scaffold no longer uses Tailwind's.
 - **Sizes** (`size/*`): icon 24 (sm 18), control 48 (sm 40), field 56, top bar 60 (`h-topbar`),
-  Scan button 64 (`size-scan-button`), tab bar 70 (`h-tabbar`), shutter 80, level ring 128,
+  tab bar 62 (`min-h-tabbar`, with a 48 Scan disc inside it), shutter 80, level ring 128,
   medallion 192.
 - **Opacity**: press-primary 80 %, press-row 70 %, tab-inactive 60 %, muted 80 %, skip 50 %.
 
@@ -204,11 +204,11 @@ Each component in Figma has a written spec next to it. Read it before building.
 | LandmarkCard / LandmarkRow | 160 px rail tile / 80 px thumbnail row | ⚠️ scaffold version |
 | PaginationDots | 8 px sage dots, current 24 px terracotta | ❌ |
 | TopNavbar | Back, centred navy title, optional action; 40 px bottom corners; 60 px + inset | ✅ `TopNavbar.tsx` |
-| **ScreenNavbar** | Four tabs + raised navy Scan; 40 px top corners; 70 px + inset | ✅ `BottomNav.tsx` |
+| **BottomNav** (was ScreenNavbar) | Floating pill: four tabs + navy Scan disc; 62 px, 14 px off the edges | ✅ `BottomNav.tsx` |
 | TextField | Uppercase label, surface well, line-strong border, terracotta icon; 56 / 48 px | ❌ |
 | SearchBar | Surface field, terracotta search icon, filter button on Explore | ❌ |
 | Switch | Ivory-deep track off; navy or sage-deep on | ❌ |
-| ChatComposer / ChatBubble | Sage camera, send turns navy; guide in surface, traveller in navy | ❌ |
+| ChatComposer / ChatBubble | Sage camera, send turns navy; guide in surface, traveller in navy | ✅ inline in `ChatPage.tsx` |
 | InfoSection | Terracotta-ink title, ink-body text; Trivia callout in terracotta-soft | ⚠️ inline in `LandmarkPage.tsx` |
 | OptionRow / SettingsList | Icon disc, title, chevron / radio / switch; eyebrow group labels | ❌ |
 | ProgressBar | Navy XP, terracotta quest, sage-deep identifying; 12 / 6 px | ✅ `MasteryCards.tsx` (navy, terracotta); Profile still uses scaffold `XpBar` |
@@ -216,19 +216,26 @@ Each component in Figma has a written spec next to it. Read it before building.
 
 Build components in `src/components/`, take colours only from the tokens above, and add a test.
 
-### ScreenNavbar (bottom navigation)
+### BottomNav (bottom navigation, UI Redesign #6)
 
-Figma: Components → `Laag ta bAI/ScreenNavbar` (node `151:122`), variants `Active=Explore …
-Profile`. Implemented in `src/components/BottomNav.tsx`:
+Figma: Components → `Components — Laag ta bAI` → `BottomNav` (node `551:971`), variants
+`ActiveTab=Explore … Profile`; the Final Pages use it as `Laag ta bAI/BottomNav`. It replaces the
+old ScreenNavbar slab (`151:122`). Implemented in `src/components/BottomNav.tsx`:
 
-- `ivory-surface` slab, `rounded-t-chrome`, `shadow-tabbar`, `h-tabbar` + bottom safe-area inset,
-  24 px side padding (16 px below 375 px so the targets keep a gap on 320 px phones).
-- Active tab: filled Ionicon at 28 px in `navy` and a 12 px bold `navy` label, plus
-  `aria-current="page"`. Inactive tabs: outline icon at 24 px in `ink-muted`; the label stays in the
-  DOM as `sr-only`, so every link has an accessible name and the state isn't shown by colour alone.
-- Scan: 64 px `navy` disc with a 4 px `ivory` ring and `shadow-navy`, overlapping the bar by 17 px;
-  `camera-outline` in `on-navy`. Its label shows only when Scan is active.
-- Tabs are at least 48 × 48 px; the Scan disc is 64 px.
+- A floating pill: `ivory-surface`, 1 px `ivory-line` border, `rounded-full`, `shadow-navy`,
+  `min-h-tabbar` (62 px), 14 px from the screen edges and above the bottom safe-area inset.
+- Active tab: a `navy-soft` pill with the filled Ionicon at 20 px in `navy` and an 11 px bold
+  `navy` label, plus `aria-current="page"`. Inactive tabs: outline icon at 20 px in `ink-muted`; the
+  label stays in the DOM as `sr-only`, so every link has an accessible name and the state isn't
+  shown by colour alone.
+- Scan: a 48 px `navy` disc inside the bar with `camera-outline` in `on-navy`. While Scan is open it
+  turns `terracotta` (Figma's `ActiveTab=Scan`) and gets a 2 px ring, so that state isn't colour
+  alone either.
+- Tap targets are 48 × 48 px, set in `px` so the bar still fits a 320 px screen at 125 % text; the
+  active tab widens to fit its label.
+- Screens keep `pb-nav` / `bleed-under-nav` clearance: the bar plus 34 px (14 px float + 20 px gap).
+- The Final Pages frames draw the inactive tabs with filled custom icons; the Components variants
+  (outline at rest, filled when active) win, as in the Mastery section below.
 
 **Visibility rules.** The bar is rendered by `AppShell`, so it shows only on the five tab screens
 (`/`, `/archives`, `/scan`, `/mastery`, `/profile`). It's hidden on pushed screens (landmark
@@ -236,21 +243,61 @@ details, chat), auth, splash, onboarding, permissions and 404, which use a TopNa
 new tab-level screens inside `AppShell` and pushed screens outside it. The designer still needs to
 show these rules in the prototype (ticket #27).
 
-### Mastery (Final Pages → Mastery Page, All Quests, All Badges)
+### Archives (UI Redesign #6)
 
-Built in `src/pages/MasteryPage.tsx` and `MasteryListPages.tsx` from the component specs above.
-Where the Final Page frame and the Components page differ, the components win, because they're
-tokenized:
+Built in `src/pages/ArchivesPage.tsx` from Final Pages → `06 · Archives` (`558:3513` / `558:3567`
+saved and history, `558:3553` / `558:3607` offline, undo and empty). One flat `ivory` column, 24 px
+gutter, 16 px between every block; the old ambient colour washes are gone.
 
-- The frame's XP bar is a terracotta → sage gradient; the ProgressBar spec says **navy** for XP.
-- The frame's icons are Lucide placeholders pasted as vectors; the code uses the Ionicons
-  equivalents from the Icons page (`trophy`, `flame`, `footsteps`, `book-outline`, `ribbon`).
-- The frame's quest reward pill (`+300 XP`, gold `#CAB147`) has no token and the API has no
-  per-quest XP, so the pill shows the quest's **badge** in the QuestCard `navy-soft` style.
-- Locked badges are only faded in the frame (48 % opacity). The code uses the BadgeTile
-  `Unlocked=false` variant plus a lock icon and the word "Locked", so state isn't colour alone.
-- Active quests are ordered nearest to completion first (ClickUp #33); completed quests leave the
-  rail, and their badges move to the front of the collection.
+- **Header.** `terracotta-ink` eyebrow "Your collection", 30/36 extrabold "Saved Places", `ink-body`
+  body-sm line.
+- **Bookmarked Landmarks.** An 18/24 bold heading with the count and an 18 px coral `bookmark`.
+  Each card is `ivory-surface`, `ivory-line` border, `rounded-3xl`: a 144 px photo, then a
+  `font-display` 20/26 name (two lines at most), a 12 px `terracotta-ink` pin with district and
+  distance, and a `navy-soft` `rounded-[10px]` rating chip in `font-mono` 11/14.
+  - The category tag (Tag `heritage` tone) and a 48 px remove button (coral disc, filled bookmark,
+    `aria-pressed`) sit on the photo. They aren't in the frame; the ticket asks for category pills
+    and the remove button drives Undo.
+  - The whole card opens the landmark.
+- **Visit history.** Groups by day, newest first, each under an eyebrow "Visit history · Today /
+  Yesterday / date". Rows are `rounded-2xl` cards: a 48 px `rounded-[10px]` thumbnail, 15/22 bold
+  name with `+XP`, a 12 px `ink-muted` time and district, and a **StatusPill**: Scanned
+  (`navy-soft` / `navy`), Visited (`sage-soft` / `sage-deep`), Viewed (`terracotta-soft` /
+  `terracotta-ink`). The label text, not the colour, carries the state.
+- **StateNotice.** A `rounded-[20px]` card with a 15/22 bold title and a 12/16 caption:
+  `ivory-surface` for empty, signed-out and loading; `terracotta-soft` with a `terracotta` border
+  for "Offline mode active"; `danger-soft` with a `danger-line` border for errors. Signed-out and
+  error notices add a 48 px "Sign in" / "Try again" text action, which the frame doesn't show.
+- **Undo toast.** A `navy` `rounded-2xl` bar 20 px above the BottomNav: `Removed "<name>"` and a
+  `terracotta-soft` Undo pill whose `::before` box makes a 48 px target. It's dismissed after 6 s.
+
+### Mastery (UI Redesign #7: Mastery & Gamification, Light & Dark)
+
+Built in `src/pages/MasteryPage.tsx`, `src/pages/MasteryListPages.tsx` and `src/components/MasteryCards.tsx` from Figma `07 · Mastery & Gamification (Light & Dark)`:
+
+- **Background & shadows.** Flat `bg-ivory` surface (`#FFFBF4` light / `#0A1D24` dark), `shadow-navy` dual lagoon + coral glow on `LevelRing`, and `shadow-card` on `QuestCard`.
+- **Rank & stats.** `LevelRing` (`128 px` outer lagoon border, `112 px` inner coral ring), `navy` XP progress bar with monospace numbers (`font-mono tabular-nums`), and three stat tiles (`TrophyIcon` Awards, `FlameIcon` Streak, `LocationIcon` Visited).
+- **QuestCard.** Filled `BookIcon` in a `sage-soft` `10 px`-radius square, `navy-soft` badge pill, top-right monospace `done/total` counter in `terracotta-ink`, `6 px` coral progress bar (with full `role="progressbar"` ARIA text), and `Log a visit` action. Active quests are ordered nearest to completion first (ClickUp #33).
+- **BadgeTile.** Three-column grid; unlocked badges sit on `terracotta-soft` with a `terracotta` border and `StarIcon`, while locked badges show a `LockClosedIcon` and the word "Locked" (so state isn't colour alone).
+- **State notices.** `MasteryNotice` (`20 px` radius) uses `ivory-surface` / `ivory-line` for signed-out and 0 XP prompts, and `danger-soft` / `danger-line` / `danger` for connection error alerts.
+
+### Profile, Settings & Modals (UI Redesign #8: Light & Dark)
+
+Built in `src/pages/ProfilePage.tsx` (routes `/profile`, `/profile/permissions`) from Figma `08 · Profile, Settings & Modals (Light & Dark)`:
+
+- **Traveler card & inline edit.** Flat `bg-ivory` surface (`20 px` gutters), `64 px` coral initials avatar (`bg-terracotta text-on-navy`), uppercase rank/level eyebrow, `Edit` button (`rounded-[10px]`), and inline `Edit profile` card with `border-terracotta`, `14 px`-radius sand inputs, and `Cancel` / `Save changes` actions.
+- **Summary tiles & XP card.** Three-column stat tiles (`Places visited`, `Badges earned`, `Day streak`) with filled `18 px` Ionicons (`LocationIcon`, `RibbonIcon`, `FlameIcon`) above the count, followed by the lagoon-teal `Your journey` XP card (`bg-navy text-on-navy`) with monospace XP value (`font-mono tabular-nums`) and `10 px` coral-on-`navy-soft` progress bar.
+- **Preferences, Support & Developer.** `34 px` duotone icon badges (`terracotta-soft` with filled `MoonIcon`, `GlobeOutlineIcon`, `ShieldCheckmarkIcon`, `LocationIcon`, `FlameIcon`, `NotificationsIcon`; `sage-soft` with `CloudOfflineOutlineIcon` for Offline storage), accessible `role="switch"` toggles, and the `terracotta` accent-bar `About the developer` card.
+- **Permissions subpage & Modals.** `TopNavbar` + `sage-soft` `You're in control` banner (`ShieldCheckmarkIcon`), permission status pills (`Allowed`, `Not enabled`, `Blocked`), and `bg-ivory-surface` dialogs with `shadow-modal` and `navy-soft`/`border-navy` active radio rows for Appearance, Language, and Log out.
+
+### Global Statuses, Overlays & Errors (UI Redesign #9: Light & Dark)
+
+Built in `src/pages/NotFoundPage.tsx`, `src/features/progress/CelebrationProvider.tsx`, `src/components/PwaUpdatePrompt.tsx`, `src/components/AppShell.tsx`, `src/components/StateMessage.tsx` and `src/components/SignInPrompt.tsx` from Figma `09 · Global Statuses, Overlays & Errors (Light & Dark)`:
+
+- **404 Not Found (`*`).** Flat `bg-ivory` surface, `48 px` coral `404` display numeral (`text-terracotta`), `18 px` bold `Na-laag ka, bai! This page doesn't exist.` copy, and a lagoon `Back to Explore` CTA (`bg-navy text-on-navy`).
+- **Celebration & XP Toast.** Gold pill toast (`bg-gold`, `RibbonIcon`, pinned to the light palette with `data-palette="light"` so its `text-ink` stays dark on gold in both themes) for `+XP`, and a `28 px`-radius `bg-ivory-surface` modal (`shadow-modal`, `bg-ink/60 dark:bg-ivory-deep/60` scrim) with a `64 px` gold `TrophyIcon` disc, `30 px` `Level N!` heading, `terracotta-soft` badge unlocked pill (`RibbonIcon`), and `Padayon! (Continue)` lagoon CTA.
+- **PWA Update & Landscape Guard.** `bg-ivory-surface` update banner (`New version of Laag ta bAI ready.` + `Later` / lagoon `Reload` buttons) and full-screen lagoon `LandscapeGuard` (`bg-navy text-on-navy`, `CompassOutlineIcon`, `Please rotate your phone to portrait`).
+- **State Messages & Sign-In Prompt.** Migrated `Loading`, `ErrorMessage` (`danger-soft` / `danger-line` / `danger`), `EmptyState` and `SignInPrompt` off the old maroon/crimson scaffold onto Lagoon & Coral tokens and Ionicons.
 
 ### Onboarding (first run)
 
@@ -336,6 +383,57 @@ Login photos, so the separate register images were deleted.
   Google` (Google's own multicolour "G"), then "Already have an account? Sign in".
 - **Removed tokens.** The leftover `design-surface`, `design-line`, `navy-deep`, `error` and
   `success` tokens are gone from `index.css`.
+
+### Landmark details and Ask bAI (UI Redesign #5)
+
+Figma section *05 · Landmark Story & AI Guide Chat* (`558:3329`).
+
+**Landmark details.** Built in `src/pages/LandmarkPage.tsx` (`/landmarks/:id`, frames `558:3330` / `558:3421`).
+
+- **Photo.** A 320 px full-bleed photo with no top bar. It has floating 48 px discs:
+  - Back and Share use `ivory-surface` at 94 % with a `navy` icon.
+  - Bookmark is outline on that disc; once saved it's a filled icon on a `terracotta` disc, so the
+    state isn't colour alone.
+  - The `1/1` photo badge is `navy` at 85 %. The API returns one photo, so it always reads 1/1.
+- **Sheet.** An `ivory-surface` sheet, `rounded-t-[2rem]`, overlaps the photo by 30 px. In order:
+  - a `sage-soft` "Landmark matched · 97 %" pill (scans only);
+  - the `font-display` 30 px title;
+  - rating and opening hours;
+  - a `sage-soft` district pill;
+  - About, with a Listen button for narration;
+  - three `ivory-deep` fact tiles (`font-mono` values);
+  - the outlined "Ask bAI, your guide" pill;
+  - a "Significance & History" `<details>` accordion (open by default; each paragraph has a 3 px
+    `navy` bar);
+  - the `terracotta-soft` Trivia callout with a `terracotta` border;
+  - the `ivory-deep` check-in pill.
+- **Bottom bar.** A sticky `ivory-surface` bar shows "Free entry · 25 min visit" in `font-mono` and
+  the "Scan another landmark" CTA.
+  - The CTA uses a `terracotta-ink` fill with `on-navy` text. Figma's white on brand coral is 3.1:1,
+    so it isn't copied.
+- **Errors.** The not-found and offline cards follow `Laag ta bAI/StateNotice` (`558:3380`): 20 px
+  radius, `ivory-surface` or `danger-soft`. Each also has a recovery action (Explore landmarks / Try
+  again).
+- **Removed.** "Nearby Stores" (an empty placeholder) isn't in the frame, so it's gone.
+
+**Ask bAI.** Built in `src/pages/ChatPage.tsx` (`/landmarks/:id/chat`, frames `558:3385` / `558:3476`).
+
+- **Header.** An `ivory` header with no TopNavbar: back, an `ivory-deep` name pill (the `h1`), then
+  Copy · Export · Clear as 48 px text buttons.
+- **Messages.**
+  - A `font-mono` day divider ("Today, Nov 23").
+  - Traveller bubbles are `navy` with `on-navy` text.
+  - Guide answers have no bubble: a 28 px `terracotta-soft` compass disc plus Markdown.
+  - The greeting shows a Landmark Summary Card (52 px photo, `font-display` name, `font-mono`
+    facts) that links back to the details page.
+- **Feedback.** Each answer has "Helpful · Needs improvement" buttons (`aria-pressed`; the chosen one
+  is bold with a check). The tap area is a 48 px `::before` box, so the row stays 16 px high.
+  - Feedback is kept on the device until the API has an endpoint for it.
+- **Composer.**
+  - Quick prompt chips (34 px visual, 48 px tap) send at once.
+  - The composer card uses `shadow-card`.
+  - The camera opens Scan, since `/v1/chat` takes text only.
+  - Send is a 38 px `navy` disc in a 48 px target; it's `ivory-deep` while empty.
 
 ## Assets
 

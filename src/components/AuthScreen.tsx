@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { LocationOutlineIcon } from '@/components/icons/ionicons'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
 
 /**
@@ -9,7 +10,7 @@ import { usePreferences } from '@/features/preferences/PreferencesContext'
  * Only the photo band pins the light palette (`data-palette="light"`) so its white text stays white;
  * the sheet follows the theme.
  */
-export function AuthScreen({ children }: { children: ReactNode }) {
+function RedesignedAuthScreen({ children }: { children: ReactNode }) {
   const night = usePreferences().resolvedTheme === 'dark'
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-ivory-surface">
@@ -42,5 +43,59 @@ export function AuthScreen({ children }: { children: ReactNode }) {
         {children}
       </main>
     </div>
+  )
+}
+
+export function AuthScreen({ children, centered = false }: { children: ReactNode; centered?: boolean }) {
+  return centered ? <LegacyAuthScreen centered>{children}</LegacyAuthScreen> : <RedesignedAuthScreen>{children}</RedesignedAuthScreen>
+}
+
+function LegacyAuthScreen({ children, centered = false }: { children: ReactNode; centered?: boolean }) {
+  const night = usePreferences().resolvedTheme === 'dark'
+  return (
+    <div
+      data-theme="light"
+      className={`relative min-h-dvh bg-navy bg-cover bg-center ${
+        night ? "bg-[url('/authenticationBG/LoginNight.webp')]" : "bg-[url('/authenticationBG/LoginDay.webp')]"
+      }`}
+    >
+      <div className="absolute inset-0 bg-linear-to-b from-navy/35 via-navy/15 to-navy/50" aria-hidden />
+      <div
+        className={`relative mx-auto w-full max-w-md px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] ${
+          centered ? 'flex min-h-dvh flex-col' : ''
+        }`}
+      >
+        <header className="flex items-center justify-between gap-3">
+          <p className="flex items-end gap-1.5 text-ivory">
+            <span className="sr-only">Laag ta bAI</span>
+            <span aria-hidden className="pb-0.5 text-[0.625rem] leading-none font-bold tracking-[0.16em]">
+              LAAG TA
+            </span>
+            <span aria-hidden className="text-[1.5625rem] leading-none font-black tracking-[-0.06em] text-terracotta-light">
+              bAI
+            </span>
+          </p>
+          <p className="flex items-center gap-1.5 rounded-full border border-ivory/30 bg-navy/40 px-3 py-2 text-xs font-semibold text-ivory backdrop-blur-md">
+            <LocationOutlineIcon size={16} />
+            Cebu, Philippines
+          </p>
+        </header>
+        <main className={centered ? 'my-auto py-8' : 'pt-22'}>{children}</main>
+      </div>
+    </div>
+  )
+}
+
+/** The glass navy card ("Section" in Figma): 28px corners, ivory hairline, blurred photo behind. */
+export function AuthCard({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <section
+      className={
+        className ??
+        'rounded-[28px] border border-ivory/30 bg-linear-to-b from-navy/90 to-navy-pressed/80 px-6 py-8 shadow-2xl backdrop-blur-[36px]'
+      }
+    >
+      {children}
+    </section>
   )
 }
