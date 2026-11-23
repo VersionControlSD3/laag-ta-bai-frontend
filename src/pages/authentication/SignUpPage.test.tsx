@@ -1,19 +1,34 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { AuthContext, type AuthState } from '@/features/auth/AuthContext'
 import { writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
-import { renderRoutes } from '@/test/render'
+import { renderPage, renderRoutes } from '@/test/render'
+import SignUpPage from './SignUpPage'
 
 async function openRegister() {
   renderRoutes(routes, '/register')
-  return await screen.findByRole('heading', { name: 'Create Account' })
+  return await screen.findByRole('heading', { name: 'Create Account' }, { timeout: 3000 })
+}
+
+async function selectAdultBirthDate(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'Choose date of birth' }))
+  const dialog = within(screen.getByRole('dialog', { name: 'Choose date of birth' }))
+  await user.click(dialog.getByRole('button', { name: 'Year' }))
+  await user.click(dialog.getByRole('option', { name: '1990' }))
+  await user.click(dialog.getByRole('button', { name: 'Month' }))
+  await user.click(dialog.getByRole('option', { name: 'January' }))
+  await user.click(dialog.getByRole('gridcell', { name: '1' }))
 }
 
 describe('sign-up page', () => {
   it('shows the required-field errors when the empty form is submitted', async () => {
     const user = userEvent.setup()
     await openRegister()
+    const fullName = screen.getByRole('textbox', { name: 'Full name' })
+    const scrollIntoView = vi.fn()
+    Object.defineProperty(fullName, 'scrollIntoView', { value: scrollIntoView })
 
     const nationality = screen.getByRole('combobox', { name: 'Nationality' })
     expect(within(nationality).getByRole('option', { name: 'Japanese' })).toBeInTheDocument()
@@ -24,16 +39,79 @@ describe('sign-up page', () => {
 
     await user.click(screen.getByRole('button', { name: 'Create account' }))
 
-    expect(await screen.findByText('Full name is required.')).toBeInTheDocument()
-    expect(screen.getByText('Email is required.')).toBeInTheDocument()
-    expect(screen.getByText('Date of birth is required.')).toBeInTheDocument()
-    expect(screen.getByText('Nationality is required.')).toBeInTheDocument()
+    expect(fullName).toHaveFocus()
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' })
+    expect(fullName).toHaveAccessibleDescription('Full name is required.')
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveAccessibleDescription('Email is required.')
+    expect(screen.getByRole('button', { name: 'Choose date of birth' })).toHaveAccessibleDescription('Date of birth is required.')
     expect(nationality).toHaveAccessibleDescription('Nationality is required.')
-    expect(screen.getByText('You must accept the Terms and Privacy Policy.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Password\b/)).toHaveAccessibleDescription(/One uppercase letter: required/)
+    expect(screen.getByLabelText(/^Confirm password\b/)).toHaveAccessibleDescription('Please confirm your password.')
+    expect(screen.getByRole('checkbox')).toHaveAccessibleDescription('You must accept the Terms and Privacy Policy.')
 
     await user.selectOptions(nationality, 'Filipino')
     expect(nationality).toHaveValue('Filipino')
     expect(screen.queryByText('Nationality is required.')).not.toBeInTheDocument()
+  })
+
+  it('focuses the first remaining invalid control on each submit', async () => {
+    const user = userEvent.setup()
+    await openRegister()
+    const submit = screen.getByRole('button', { name: 'Create account' })
+    const datePicker = screen.getByRole('button', { name: 'Choose date of birth' })
+    const [password, confirmation] = document.querySelectorAll<HTMLInputElement>('input[autocomplete="new-password"]')
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Full name' }), { target: { value: 'Test Traveler' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), { target: { value: 'traveler@example.com' } })
+    await user.click(submit)
+    expect(datePicker).toHaveFocus()
+
+    await selectAdultBirthDate(user)
+    fireEvent.change(screen.getByRole('combobox', { name: 'Nationality' }), { target: { value: 'Filipino' } })
+    fireEvent.change(password, { target: { value: 'Secret123' } })
+    await user.click(submit)
+    expect(confirmation).toHaveFocus()
+    expect(confirmation).toHaveAccessibleDescription('Please confirm your password.')
+
+    fireEvent.change(confirmation, { target: { value: 'Secret123' } })
+    expect(screen.queryByText('Please confirm your password.')).not.toBeInTheDocument()
+    await user.click(submit)
+    expect(screen.getByRole('checkbox')).toHaveFocus()
+  })
+
+  it('focuses the signup error after every failed request', async () => {
+    const user = userEvent.setup()
+    const signUp = vi.fn().mockRejectedValue(new Error('Email already registered.'))
+    const auth: AuthState = {
+      mode: 'supabase',
+      status: 'signed-out',
+      user: null,
+      token: null,
+      signIn: vi.fn(),
+      signUp,
+      signInWithGoogle: vi.fn(),
+      signInAsDev: vi.fn(),
+      signOut: vi.fn(),
+    }
+    renderPage(<AuthContext.Provider value={auth}><SignUpPage /></AuthContext.Provider>)
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Full name' }), { target: { value: 'Test Traveler' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), { target: { value: 'traveler@example.com' } })
+    await selectAdultBirthDate(user)
+    fireEvent.change(screen.getByRole('combobox', { name: 'Nationality' }), { target: { value: 'Filipino' } })
+    fireEvent.change(screen.getByLabelText(/^Password\b/), { target: { value: 'Secret123' } })
+    fireEvent.change(screen.getByLabelText(/^Confirm password\b/), { target: { value: 'Secret123' } })
+    await user.click(screen.getByRole('checkbox'))
+
+    const submit = screen.getByRole('button', { name: 'Create account' })
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      await user.click(submit)
+      const alert = await screen.findByRole('alert')
+      expect(alert).toHaveTextContent('Email already registered.')
+      expect(alert).toHaveFocus()
+      expect(submit).toBeEnabled()
+      expect(signUp).toHaveBeenCalledTimes(attempt)
+    }
   })
 
   it('tracks password rules and the confirmation match as you type', async () => {
