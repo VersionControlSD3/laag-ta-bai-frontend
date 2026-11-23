@@ -212,13 +212,11 @@ export default function SignUpPage() {
     }
   }
 
+  const googleBlocked = !form.dateOfBirth || isUnderage || !form.acceptedTerms
   const continueWithGoogle = () => {
     setGoogleTried(true)
-    if (!form.dateOfBirth || isUnderage || !form.acceptedTerms) {
-      setOauthError('Enter your date of birth (18+) and accept the Terms and Privacy Policy before continuing with Google.')
-      return
-    }
     setOauthError(null)
+    if (googleBlocked) return
     void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.'))
   }
 
@@ -303,6 +301,7 @@ export default function SignUpPage() {
                 <GoogleIcon />
                 Continue with Google
               </button>
+              {googleTried && googleBlocked && <p role="alert" className="mt-2 text-center text-sm font-semibold text-danger">Enter your date of birth (18+) and accept the Terms and Privacy Policy before continuing with Google.</p>}
               {oauthError && <p role="alert" className="mt-2 text-center text-sm font-semibold text-danger">{oauthError}</p>}
             </>
           )}

@@ -47,6 +47,8 @@ describe('sign-up page', () => {
     expect(screen.getByText('You must be at least 18 to create an account.')).toBeInTheDocument()
 
     fireEvent.change(dateOfBirth, { target: { value: `${new Date().getFullYear() - 20}-05-15` } })
+    // The hint clears as soon as both fields are valid, not on the next click.
+    expect(screen.queryByText(/before continuing with Google/)).not.toBeInTheDocument()
     await user.click(google)
     expect(auth.signInWithGoogle).toHaveBeenCalledOnce()
     expect(screen.queryByText(/before continuing with Google/)).not.toBeInTheDocument()
