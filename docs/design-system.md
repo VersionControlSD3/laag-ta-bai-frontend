@@ -244,6 +244,15 @@ Built in `src/pages/MasteryPage.tsx`, `src/pages/MasteryListPages.tsx` and `src/
 - **BadgeTile.** Three-column grid; unlocked badges sit on `terracotta-soft` with a `terracotta` border and `StarIcon`, while locked badges show a `LockClosedIcon` and the word "Locked" (so state isn't colour alone).
 - **State notices.** `MasteryNotice` (`20 px` radius) uses `ivory-surface` / `ivory-line` for signed-out and 0 XP prompts, and `danger-soft` / `danger-line` / `danger` for connection error alerts.
 
+### Profile, Settings & Modals (UI Redesign #8: Light & Dark)
+
+Built in `src/pages/ProfilePage.tsx` (routes `/profile`, `/profile/permissions`) from Figma `08 · Profile, Settings & Modals (Light & Dark)`:
+
+- **Traveler card & inline edit.** Flat `bg-ivory` surface (`20 px` gutters), `64 px` coral initials avatar (`bg-terracotta text-on-navy`), uppercase rank/level eyebrow, `Edit` button (`rounded-[10px]`), and inline `Edit profile` card with `border-terracotta`, `14 px`-radius sand inputs, and `Cancel` / `Save changes` actions.
+- **Summary tiles & XP card.** Three-column stat tiles (`Places visited`, `Badges earned`, `Day streak`) with filled `18 px` Ionicons (`LocationIcon`, `RibbonIcon`, `FlameIcon`) above the count, followed by the lagoon-teal `Your journey` XP card (`bg-navy text-on-navy`) with monospace XP value (`font-mono tabular-nums`) and `10 px` coral-on-`navy-soft` progress bar.
+- **Preferences, Support & Developer.** `34 px` duotone icon badges (`terracotta-soft` with filled `MoonIcon`, `GlobeOutlineIcon`, `ShieldCheckmarkIcon`, `LocationIcon`, `FlameIcon`, `NotificationsIcon`; `sage-soft` with `CloudOfflineOutlineIcon` for Offline storage), accessible `role="switch"` toggles, and the `terracotta` accent-bar `About the developer` card.
+- **Permissions subpage & Modals.** `TopNavbar` + `sage-soft` `You're in control` banner (`ShieldCheckmarkIcon`), permission status pills (`Allowed`, `Not enabled`, `Blocked`), and `bg-ivory-surface` dialogs with `shadow-modal` and `navy-soft`/`border-navy` active radio rows for Appearance, Language, and Log out.
+
 ### Onboarding (first run)
 
 Built in `src/pages/OnboardingPage.tsx`, route `/onboarding`, from the UI Redesign #2 screenshots.
