@@ -30,8 +30,9 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
       {children}
       {toast && (
         <div
+          data-palette="light"
           role="status"
-          className="fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-[0.9375rem] leading-5 font-bold tracking-[0.04em] text-[#0b2e36] shadow-modal"
+          className="fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-[0.9375rem] leading-5 font-bold tracking-[0.04em] text-ink shadow-modal"
         >
           <RibbonIcon size={16} aria-hidden />
           <span>{toast}</span>
@@ -39,13 +40,13 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
       )}
       {dialog && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#061318]/60 p-6 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-6 dark:bg-ivory-deep/60 backdrop-blur-xs"
           role="dialog"
           aria-modal="true"
           aria-labelledby="celebrate-title"
         >
           <div className="flex w-full max-w-sm animate-[pulse_1s_ease-in-out_1] flex-col items-center gap-3 rounded-[28px] border border-ivory-line bg-ivory-surface px-6 py-7 text-center text-ink shadow-modal motion-reduce:animate-none">
-            <div className="flex size-16 items-center justify-center rounded-full bg-gold text-[#0b2e36]">
+            <div data-palette="light" className="flex size-16 items-center justify-center rounded-full bg-gold text-ink">
               <TrophyIcon size={30} aria-hidden />
             </div>
             <h2 id="celebrate-title" className="text-3xl leading-9 font-extrabold tracking-tight text-ink">
