@@ -1015,7 +1015,7 @@ function ModalDialog({
       aria-modal="true"
       aria-labelledby={titleId}
       aria-describedby={describedBy}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#061318]/60 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 dark:bg-ivory-deep/60 p-4 backdrop-blur-xs"
     >
       <div className="w-full max-w-sm rounded-3xl border border-ivory-line bg-ivory-surface px-5 py-[18px] text-ink shadow-modal">
         <div className="mb-3.5 flex items-center justify-between">
