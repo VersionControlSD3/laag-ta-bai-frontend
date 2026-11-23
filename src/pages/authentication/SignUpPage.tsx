@@ -48,7 +48,7 @@ function CalendarSelect({ label, value, options, open, onToggle, onChange, isDis
   )
 }
 
-function CustomDatePicker({ value, onChange, invalid }: { value: string; onChange: (value: string) => void; invalid: boolean }) {
+export function CustomDatePicker({ value, onChange, invalid }: { value: string; onChange: (value: string) => void; invalid: boolean }) {
   const today = new Date()
   const maxYear = today.getFullYear() - 18
   // Age gate: latest selectable date is today minus 18 years (PR #17 review).

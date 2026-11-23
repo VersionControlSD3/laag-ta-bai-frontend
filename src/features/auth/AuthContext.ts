@@ -21,7 +21,10 @@ export type AuthState = {
     nationality: string
     bio: string
   }): Promise<{ needsConfirmation: boolean }>
-  /** Google OAuth via Supabase: signs in, or creates the account on first use. */
+  /**
+   * Google OAuth via Supabase: signs in, or creates the account on first use. A new account has no
+   * Terms acceptance, so ProfileGate sends it to /complete-profile (18+, nationality, Terms).
+   */
   signInWithGoogle(): Promise<void>
   signInAsDev(displayName?: string): void
   signOut(): Promise<void>

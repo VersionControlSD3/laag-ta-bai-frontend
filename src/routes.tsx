@@ -2,6 +2,7 @@ import { lazy, Suspense, type ComponentType, type ReactNode } from 'react'
 import { Navigate, type RouteObject } from 'react-router'
 import { AppShell } from '@/components/AppShell'
 import { Loading } from '@/components/StateMessage'
+import { ProfileGate } from '@/features/auth/ProfileGate'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
 import ExplorePage from '@/pages/ExplorePage'
 import SplashScreenPage from '@/pages/SplashScreenPage'
@@ -18,6 +19,7 @@ const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 const LoginPage = lazy(() => import('@/pages/authentication/LoginPage'))
 const RegisterPage = lazy(() => import('@/pages/authentication/SignUpPage'))
+const CompleteProfilePage = lazy(() => import('@/pages/authentication/CompleteProfilePage'))
 const TermsPage = lazy(() => import('@/pages/LegalPages').then((m) => ({ default: m.TermsPage })))
 const PrivacyPage = lazy(() => import('@/pages/LegalPages').then((m) => ({ default: m.PrivacyPage })))
 
@@ -32,34 +34,41 @@ function FirstRun({ children }: { children: ReactNode }) {
 export const routes: RouteObject[] = [
   {
     hydrateFallbackElement: <Loading />,
-    element: (
-      <FirstRun>
-        <AppShell />
-      </FirstRun>
-    ),
+    // New Google accounts finish their profile (18+, nationality, Terms) before using the app.
+    element: <ProfileGate />,
     children: [
-      { index: true, element: <ExplorePage /> },
-      { path: 'archives', lazy: tab(() => import('@/pages/ArchivesPage')) },
-      { path: 'scan', lazy: tab(() => import('@/pages/ScanPage')) },
-      { path: 'mastery', lazy: tab(() => import('@/pages/MasteryPage')) },
-      // "See all" screens keep the bottom nav with Mastery active, as in Figma.
       {
-        path: 'mastery/quests',
-        lazy: tab(() => import('@/pages/MasteryListPages').then((m) => ({ default: m.MasteryQuestsPage }))),
+        element: (
+          <FirstRun>
+            <AppShell />
+          </FirstRun>
+        ),
+        children: [
+          { index: true, element: <ExplorePage /> },
+          { path: 'archives', lazy: tab(() => import('@/pages/ArchivesPage')) },
+          { path: 'scan', lazy: tab(() => import('@/pages/ScanPage')) },
+          { path: 'mastery', lazy: tab(() => import('@/pages/MasteryPage')) },
+          // "See all" screens keep the bottom nav with Mastery active, as in Figma.
+          {
+            path: 'mastery/quests',
+            lazy: tab(() => import('@/pages/MasteryListPages').then((m) => ({ default: m.MasteryQuestsPage }))),
+          },
+          {
+            path: 'mastery/badges',
+            lazy: tab(() => import('@/pages/MasteryListPages').then((m) => ({ default: m.MasteryBadgesPage }))),
+          },
+          { path: 'profile', lazy: tab(() => import('@/pages/ProfilePage')) },
+        ],
       },
-      {
-        path: 'mastery/badges',
-        lazy: tab(() => import('@/pages/MasteryListPages').then((m) => ({ default: m.MasteryBadgesPage }))),
-      },
-      { path: 'profile', lazy: tab(() => import('@/pages/ProfilePage')) },
+      { path: 'landmarks/:id', element: page(<LandmarkPage />) },
+      { path: 'landmarks/:id/chat', element: page(<ChatPage />) },
+      { path: 'profile/permissions', element: page(<ProfilePage />) },
     ],
   },
-  { path: 'landmarks/:id', element: page(<LandmarkPage />) },
-  { path: 'landmarks/:id/chat', element: page(<ChatPage />) },
   { path: 'splash', element: page(<SplashScreenPage />) },
   { path: 'onboarding', element: page(<OnboardingPage />) },
   { path: 'permissions', element: page(<PermissionsPage />) },
-  { path: 'profile/permissions', element: page(<ProfilePage />) },
+  { path: 'complete-profile', element: page(<CompleteProfilePage />) },
   { path: 'login', element: page(<LoginPage />) },
   { path: 'register', element: page(<RegisterPage />) },
   // Linked from the sign-up checkboxes (open in a new tab).

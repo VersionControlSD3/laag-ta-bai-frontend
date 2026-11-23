@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
+import { useQueryClient } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import type { ProfileUpdate } from '@/api/types'
 import { readJson, removeKey, writeJson } from '@/lib/storage'
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [devUser, setDevUser] = useState<AuthUser | null>(() => (supabase ? null : readJson<AuthUser | null>(DEV_KEY, null)))
   const [loading, setLoading] = useState(Boolean(supabase))
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     if (!supabase) return
@@ -42,13 +44,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const pending = readJson<PendingProfile | null>(PENDING_PROFILE_KEY, null)
     if (!pending) return
     if (pending.email.toLowerCase() !== (session.user.email ?? '').toLowerCase()) return
+    // A pending profile only comes from the sign-up form, which requires the Terms checkbox.
     api
-      .updateMe({ nationality: pending.nationality, bio: pending.bio }, session.access_token)
-      .then(() => removeKey(PENDING_PROFILE_KEY))
+      .updateMe({ nationality: pending.nationality, bio: pending.bio, acceptTerms: true }, session.access_token)
+      .then(() => {
+        removeKey(PENDING_PROFILE_KEY)
+        // ProfileGate may already have read a profile without terms and sent the user to /complete-profile.
+        void queryClient.invalidateQueries({ queryKey: ['me'] })
+      })
       .catch(() => {
         // Keep it: retried on the next sign-in / token refresh.
       })
-  }, [session])
+  }, [session, queryClient])
 
   const value = useMemo<AuthState>(() => {
     const user = supabase ? fromSession(session) : devUser
@@ -96,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           writeJson(PENDING_PROFILE_KEY, { email, nationality, bio })
           return { needsConfirmation: true }
         }
-        await api.updateMe({ nationality, bio }, data.session.access_token).catch(() => {
+        await api.updateMe({ nationality, bio, acceptTerms: true }, data.session.access_token).catch(() => {
           writeJson(PENDING_PROFILE_KEY, { email, nationality, bio })
         })
         return { needsConfirmation: false }
