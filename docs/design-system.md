@@ -147,7 +147,7 @@ Use these styles; sizes are in `rem` so they follow the OS font size.
 | Display / hero-title | 30/36, 700, 2.5 % | `text-3xl font-bold tracking-wide` |
 | Display / level-numeral | 48/48, 800 | `text-5xl font-extrabold` |
 | Headings / section-title | 24/32, 700 | `text-2xl font-bold` |
-| Headings / nav-title | 24/32, 700, 2.5 % | `text-2xl font-bold tracking-wide` |
+| Headings / nav-title | 22/28, 700, 1 % | `text-[1.375rem] leading-7 font-bold tracking-[0.01em]` (TopNavbar) |
 | Headings / subsection-title | 20/28, 700 | `text-xl font-bold` |
 | Headings / card-title | 18/28, 700 | `text-lg font-bold` |
 | Text / body | 16/24, 400 | `text-base` |
@@ -173,7 +173,7 @@ to the table above and confirm with the designer.
   `rounded-tray` 30 px and `rounded-chrome` 40 px (tab bar and top bar). Radius grows with the
   object: tags → buttons → cards → panels → chrome → round controls.
 - **Shadows** (navy-tinted, soft, few): `shadow-tabbar`, `shadow-topbar`, `shadow-navy` (navy
-  buttons, Scan button, LevelRing) are tokens. Figma's `shadow-lg`, `shadow-2xl` and `shadow-panel`
+  buttons, Scan button, LevelRing) and `shadow-card` (chat composer, cards) are tokens. Figma's `shadow-lg`, `shadow-2xl` and `shadow-panel`
   are navy-tinted versions of Tailwind's; add them when the scaffold no longer uses Tailwind's.
 - **Sizes** (`size/*`): icon 24 (sm 18), control 48 (sm 40), field 56, top bar 60 (`h-topbar`),
   Scan button 64 (`size-scan-button`), tab bar 70 (`h-tabbar`), shutter 80, level ring 128,
@@ -208,7 +208,7 @@ Each component in Figma has a written spec next to it. Read it before building.
 | TextField | Uppercase label, surface well, line-strong border, terracotta icon; 56 / 48 px | ❌ |
 | SearchBar | Surface field, terracotta search icon, filter button on Explore | ❌ |
 | Switch | Ivory-deep track off; navy or sage-deep on | ❌ |
-| ChatComposer / ChatBubble | Sage camera, send turns navy; guide in surface, traveller in navy | ❌ |
+| ChatComposer / ChatBubble | Sage camera, send turns navy; guide in surface, traveller in navy | ✅ inline in `ChatPage.tsx` |
 | InfoSection | Terracotta-ink title, ink-body text; Trivia callout in terracotta-soft | ⚠️ inline in `LandmarkPage.tsx` |
 | OptionRow / SettingsList | Icon disc, title, chevron / radio / switch; eyebrow group labels | ❌ |
 | ProgressBar | Navy XP, terracotta quest, sage-deep identifying; 12 / 6 px | ✅ `MasteryCards.tsx` (navy, terracotta); Profile still uses scaffold `XpBar` |
@@ -336,6 +336,57 @@ Login photos, so the separate register images were deleted.
   Google` (Google's own multicolour "G"), then "Already have an account? Sign in".
 - **Removed tokens.** The leftover `design-surface`, `design-line`, `navy-deep`, `error` and
   `success` tokens are gone from `index.css`.
+
+### Landmark details and Ask bAI (UI Redesign #5)
+
+Figma section *05 · Landmark Story & AI Guide Chat* (`558:3329`).
+
+**Landmark details.** Built in `src/pages/LandmarkPage.tsx` (`/landmarks/:id`, frames `558:3330` / `558:3421`).
+
+- **Photo.** A 320 px full-bleed photo with no top bar. It has floating 48 px discs:
+  - Back and Share use `ivory-surface` at 94 % with a `navy` icon.
+  - Bookmark is outline on that disc; once saved it's a filled icon on a `terracotta` disc, so the
+    state isn't colour alone.
+  - The `1/1` photo badge is `navy` at 85 %. The API returns one photo, so it always reads 1/1.
+- **Sheet.** An `ivory-surface` sheet, `rounded-t-[2rem]`, overlaps the photo by 30 px. In order:
+  - a `sage-soft` "Landmark matched · 97 %" pill (scans only);
+  - the `font-display` 30 px title;
+  - rating and opening hours;
+  - a `sage-soft` district pill;
+  - About, with a Listen button for narration;
+  - three `ivory-deep` fact tiles (`font-mono` values);
+  - the outlined "Ask bAI, your guide" pill;
+  - a "Significance & History" `<details>` accordion (open by default; each paragraph has a 3 px
+    `navy` bar);
+  - the `terracotta-soft` Trivia callout with a `terracotta` border;
+  - the `ivory-deep` check-in pill.
+- **Bottom bar.** A sticky `ivory-surface` bar shows "Free entry · 25 min visit" in `font-mono` and
+  the "Scan another landmark" CTA.
+  - The CTA uses a `terracotta-ink` fill with `on-navy` text. Figma's white on brand coral is 3.1:1,
+    so it isn't copied.
+- **Errors.** The not-found and offline cards follow `Laag ta bAI/StateNotice` (`558:3380`): 20 px
+  radius, `ivory-surface` or `danger-soft`. Each also has a recovery action (Explore landmarks / Try
+  again).
+- **Removed.** "Nearby Stores" (an empty placeholder) isn't in the frame, so it's gone.
+
+**Ask bAI.** Built in `src/pages/ChatPage.tsx` (`/landmarks/:id/chat`, frames `558:3385` / `558:3476`).
+
+- **Header.** An `ivory` header with no TopNavbar: back, an `ivory-deep` name pill (the `h1`), then
+  Copy · Export · Clear as 48 px text buttons.
+- **Messages.**
+  - A `font-mono` day divider ("Today, Nov 23").
+  - Traveller bubbles are `navy` with `on-navy` text.
+  - Guide answers have no bubble: a 28 px `terracotta-soft` compass disc plus Markdown.
+  - The greeting shows a Landmark Summary Card (52 px photo, `font-display` name, `font-mono`
+    facts) that links back to the details page.
+- **Feedback.** Each answer has "Helpful · Needs improvement" buttons (`aria-pressed`; the chosen one
+  is bold with a check). The tap area is a 48 px `::before` box, so the row stays 16 px high.
+  - Feedback is kept on the device until the API has an endpoint for it.
+- **Composer.**
+  - Quick prompt chips (34 px visual, 48 px tap) send at once.
+  - The composer card uses `shadow-card`.
+  - The camera opens Scan, since `/v1/chat` takes text only.
+  - Send is a 38 px `navy` disc in a 48 px target; it's `ivory-deep` while empty.
 
 ## Assets
 

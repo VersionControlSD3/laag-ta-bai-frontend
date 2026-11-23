@@ -94,6 +94,7 @@
   --shadow-tabbar: var(--ds-shadow-tabbar);
   --shadow-topbar: var(--ds-shadow-topbar);
   --shadow-navy: var(--ds-shadow-navy);
+  --shadow-card: var(--ds-shadow-card);
 }
 
 /* Figma radius/*, size/* (md, lg, xl, 2xl, 3xl and full match Tailwind's defaults). */
@@ -137,6 +138,7 @@
   --ds-shadow-tabbar: 0 -5px 10px 0 rgb(11 46 54 / 0.08);
   --ds-shadow-topbar: 0 5px 10px 0 rgb(11 46 54 / 0.08);
   --ds-shadow-navy: 0 10px 15px -3px rgb(13 92 99 / 0.25), 0 4px 6px -4px rgb(13 92 99 / 0.2);
+  --ds-shadow-card: 0 2px 10px 0 rgb(11 46 54 / 0.08);
 }
 
 /*
@@ -171,6 +173,7 @@
   --ds-shadow-tabbar: 0 -5px 10px 0 rgb(0 0 0 / 0.35);
   --ds-shadow-topbar: 0 5px 10px 0 rgb(0 0 0 / 0.35);
   --ds-shadow-navy: 0 10px 15px -3px rgb(0 0 0 / 0.45), 0 4px 6px -4px rgb(0 0 0 / 0.35);
+  --ds-shadow-card: 0 2px 10px 0 rgb(0 0 0 / 0.35);
 }
 
 html,

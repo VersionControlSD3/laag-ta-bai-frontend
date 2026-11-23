@@ -46,16 +46,13 @@ describe('app routes', () => {
     expect(screen.getByText('Oldest fort.')).toBeInTheDocument()
     expect(screen.getByText('Was a zoo.')).toBeInTheDocument()
     expect(screen.getByText('Rated 4.7 out of 5')).toBeInTheDocument()
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      'About',
-      'Significance',
-      'History',
-      'Trivia',
-      'Nearby Stores',
-    ])
+    expect(screen.getByText('Coral stone.')).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['About', 'Significance & History', 'Trivia'])
+    expect(screen.getByRole('group')).toHaveAttribute('open')
     expect(screen.queryByText(/Landmark matched/)).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Ask bAI/ })).toHaveAttribute('href', '/landmarks/fort-san-pedro/chat')
     expect(screen.getByRole('link', { name: /Scan another landmark/ })).toHaveAttribute('href', '/scan')
+    expect(screen.getByText('₱30 entry')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Save for offline reading' }))
     expect(screen.getByRole('button', { name: 'Remove bookmark' })).toHaveAttribute('aria-pressed', 'true')
@@ -66,7 +63,16 @@ describe('app routes', () => {
     mockFetch(() => ({ data: fort }))
     renderRoutes(routes, { pathname: '/landmarks/fort-san-pedro', state: { confidence: 0.98 } })
     expect(await screen.findByText('Landmark matched · 98%')).toBeInTheDocument()
-    expect(screen.getByText('Scan to story')).toBeInTheDocument()
+  })
+
+  it('copies the landmark link when the browser has no share sheet', async () => {
+    // userEvent.setup() gives jsdom a clipboard; jsdom has no navigator.share.
+    const user = userEvent.setup()
+    mockFetch(() => ({ data: fort }))
+    renderRoutes(routes, '/landmarks/fort-san-pedro')
+    await user.click(await screen.findByRole('button', { name: 'Share Fort San Pedro' }))
+    expect(await screen.findByRole('button', { name: 'Link copied' })).toBeInTheDocument()
+    expect(await navigator.clipboard.readText()).toBe(window.location.href)
   })
 
   it('notes story parts that have not been written yet', async () => {
@@ -82,6 +88,14 @@ describe('app routes', () => {
     renderRoutes(routes, '/landmarks/nowhere')
     expect(await screen.findByText("We couldn't find this landmark")).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Explore landmarks' })).toHaveAttribute('href', '/')
+  })
+
+  it('offers a retry when a landmark fails to load', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'))
+    renderRoutes(routes, '/landmarks/temple-of-leah')
+    // The client retries network errors with backoff before giving up.
+    expect(await screen.findByText("Couldn't load this landmark", undefined, { timeout: 4000 })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 
   it('asks for permissions and shows the denied state when the browser blocks them', async () => {
