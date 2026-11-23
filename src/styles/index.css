@@ -94,6 +94,7 @@
   --shadow-tabbar: var(--ds-shadow-tabbar);
   --shadow-topbar: var(--ds-shadow-topbar);
   --shadow-navy: var(--ds-shadow-navy);
+  --shadow-card: var(--ds-shadow-card);
 }
 
 /* Figma radius/*, size/* (md, lg, xl, 2xl, 3xl and full match Tailwind's defaults). */
@@ -136,41 +137,41 @@
   --ds-danger-line: #e3b3aa;
   --ds-shadow-tabbar: 0 -5px 10px 0 rgb(11 46 54 / 0.08);
   --ds-shadow-topbar: 0 5px 10px 0 rgb(11 46 54 / 0.08);
-  --ds-shadow-navy: 0 10px 15px -3px rgb(13 92 99 / 0.25), 0 4px 6px -4px rgb(13 92 99 / 0.2);
+  --ds-shadow-navy: 0 10px 24px -4px rgb(13 92 99 / 0.28), 0 4px 10px -4px rgb(231 111 81 / 0.16);
+  --ds-shadow-card: 0 2px 10px 0 rgb(11 46 54 / 0.08);
 }
 
 /*
- * Provisional dark values: the redesign has no dark mode yet. Derived from the same hues so every
- * text pair still meets WCAG AA. Lagoon fills invert to a light teal with dark text. Replace with
- * the designer's values once they exist.
+ * Dark mode tokens from the Figma Tropical Lagoon & Coral redesign (07 · Mastery & Gamification Dark).
  */
 [data-theme='dark'] {
-  --ds-ivory: #0b1f24;
-  --ds-ivory-deep: #071619;
-  --ds-surface: #11292f;
-  --ds-line: #21424a;
+  --ds-ivory: #0a1d24;
+  --ds-ivory-deep: #061318;
+  --ds-surface: #112b35;
+  --ds-line: #1f4452;
   --ds-line-strong: #7d989c;
-  --ds-navy: #8fd3cf;
-  --ds-navy-pressed: #74c3be;
-  --ds-navy-soft: #173b40;
-  --ds-on-navy: #0b1f24;
-  --ds-ink: #f5efe4;
-  --ds-ink-body: #d2dfdf;
-  --ds-ink-muted: #a3b9bb;
+  --ds-navy: #48cae4;
+  --ds-navy-pressed: #36b5d0;
+  --ds-navy-soft: #163a47;
+  --ds-on-navy: #0a1d24;
+  --ds-ink: #f2fbf9;
+  --ds-ink-body: #c7e6e3;
+  --ds-ink-muted: #8ab5b2;
   --ds-ink-faint: #5f7a7e;
   --ds-sage: #4fbfb0;
-  --ds-sage-soft: #14362f;
+  --ds-sage-soft: #153b33;
   --ds-sage-deep: #9fe3d6;
-  --ds-terracotta: #f08a6f;
-  --ds-terracotta-ink: #ffab93;
-  --ds-terracotta-soft: #3b241d;
+  --ds-terracotta: #ff8566;
+  --ds-terracotta-ink: #ffa68f;
+  --ds-terracotta-soft: #3a211d;
   --ds-terracotta-light: #f9c4b4;
-  --ds-danger: #f2958a;
-  --ds-danger-soft: #3a1f1c;
-  --ds-danger-line: #7a3b34;
+  --ds-danger: #ff8787;
+  --ds-danger-soft: #3b1a1d;
+  --ds-danger-line: #8a3036;
   --ds-shadow-tabbar: 0 -5px 10px 0 rgb(0 0 0 / 0.35);
   --ds-shadow-topbar: 0 5px 10px 0 rgb(0 0 0 / 0.35);
-  --ds-shadow-navy: 0 10px 15px -3px rgb(0 0 0 / 0.45), 0 4px 6px -4px rgb(0 0 0 / 0.35);
+  --ds-shadow-navy: 0 10px 24px -4px rgb(13 92 99 / 0.35), 0 4px 10px -4px rgb(231 111 81 / 0.16);
+  --ds-shadow-card: 0 2px 10px 0 rgb(0 0 0 / 0.35);
 }
 
 html,

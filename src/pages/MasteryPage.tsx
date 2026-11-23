@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useMe, useQuests } from '@/api/hooks'
 import type { Me } from '@/api/types'
-import { FlameIcon, FootstepsIcon, TrophyIcon } from '@/components/icons/ionicons'
+import { FlameIcon, LocationIcon, TrophyIcon } from '@/components/icons/ionicons'
 import {
   BadgeTile,
   buttonClass,
@@ -31,7 +31,7 @@ export default function MasteryPage() {
     <MasteryScreen>
       {!signedIn ? (
         <>
-          <h1 className="text-center text-3xl font-extrabold tracking-tight text-ink">Mastery</h1>
+          <h1 className="text-3xl leading-9 font-extrabold tracking-tight text-ink">Mastery</h1>
           <MasteryNotice
             title="Track your journey"
             action={
@@ -81,9 +81,9 @@ export default function MasteryPage() {
 export function MasteryScreen({ children, top }: { children: ReactNode; top?: ReactNode }) {
   return (
     // Pulls the background under AppShell's nav padding so the scaffold colour never shows below the list.
-    <div className="-mb-[calc(96px+env(safe-area-inset-bottom))] min-h-dvh bg-linear-to-b from-ivory to-ivory-deep pb-[calc(96px+env(safe-area-inset-bottom))]">
+    <div className="-mb-[calc(96px+env(safe-area-inset-bottom))] min-h-dvh bg-ivory pb-[calc(96px+env(safe-area-inset-bottom))]">
       {top}
-      <div className={`flex flex-col gap-7 px-5 ${top ? 'pt-6' : 'pt-[max(3rem,env(safe-area-inset-top))]'}`}>{children}</div>
+      <div className={`flex flex-col gap-5 px-5 ${top ? 'pt-5' : 'pt-[max(3.25rem,env(safe-area-inset-top))]'}`}>{children}</div>
     </div>
   )
 }
@@ -94,15 +94,15 @@ function RankSummary({ me }: { me: Me }) {
   const newTraveller = rank.xp === 0
   return (
     <>
-      <header className="flex flex-col items-center gap-1 text-center">
-        <p className="text-xs font-bold tracking-[0.1em] text-terracotta-ink uppercase">Current rank</p>
-        <h1 className="text-3xl font-extrabold tracking-tight text-ink">{rank.title}</h1>
-        <div className="mt-3">
+      <header className="flex flex-col items-center gap-1.5 text-center">
+        <p className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">Current rank</p>
+        <h1 className="text-3xl leading-9 font-extrabold tracking-tight text-ink">{rank.title}</h1>
+        <div className="mt-1.5">
           <LevelRing level={rank.level} />
         </div>
       </header>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         <ProgressBar
           label="XP Progress"
           value={level ? `${formatNumber(rank.xp)} / ${formatNumber(rank.nextLevelXp!)}` : `${formatNumber(rank.xp)} XP`}
@@ -113,7 +113,7 @@ function RankSummary({ me }: { me: Me }) {
               : `Level ${rank.level}, ${formatNumber(rank.xp)} XP, top rank`
           }
         />
-        <p className="text-xs text-ink-muted">
+        <p className="text-xs leading-4 font-medium text-ink-muted">
           {level ? `${formatNumber(rank.nextLevelXp! - rank.xp)} XP until Level ${rank.level + 1}` : 'You reached the top rank.'}
         </p>
       </div>
@@ -131,10 +131,10 @@ function RankSummary({ me }: { me: Me }) {
         </MasteryNotice>
       )}
 
-      <dl className="grid grid-cols-3 gap-3">
+      <dl className="grid grid-cols-3 gap-2.5">
         <StatTile Icon={TrophyIcon} value={String(badges.length)} label="Awards" tone="navy" />
         <StatTile Icon={FlameIcon} value={String(stats.streakCount)} label="Streak" tone="terracotta" />
-        <StatTile Icon={FootstepsIcon} value={String(stats.visitedCount)} label="Visited" tone="sage" />
+        <StatTile Icon={LocationIcon} value={String(stats.visitedCount)} label="Visited" tone="sage" />
       </dl>
     </>
   )
@@ -152,8 +152,8 @@ function QuestRail({ quests, allDone }: { quests: ReturnType<typeof activeQuests
     <ul className="-mx-5 flex snap-x scroll-px-5 gap-3 overflow-x-auto px-5 pb-2" aria-label="Active quests, nearest to completion first">
       {quests.map((q) => (
         <li key={q.id} className="flex snap-start">
-          {/* 256 px as in Figma, but never so wide (large text, 320 px phones) that the next card stops peeking in. */}
-          <QuestCard quest={q} className="w-[min(16rem,calc(100vw-4rem))]" />
+          {/* 260 px as in Figma, but never so wide (large text, 320 px phones) that the next card stops peeking in. */}
+          <QuestCard quest={q} className="w-[min(16.25rem,calc(100vw-4rem))]" />
         </li>
       ))}
     </ul>
@@ -164,7 +164,7 @@ export function BadgeGrid({ badges }: { badges: ReturnType<typeof badgesFrom> })
   if (badges.length === 0)
     return <MasteryNotice title="No badges yet">Finish a quest to unlock your first badge.</MasteryNotice>
   return (
-    <ul className="grid grid-cols-3 gap-x-3 gap-y-5">
+    <ul className="grid grid-cols-3 gap-x-4 gap-y-5">
       {badges.map((b) => (
         <BadgeTile key={b.questId} badge={b} />
       ))}

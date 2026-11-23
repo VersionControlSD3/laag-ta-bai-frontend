@@ -43,31 +43,31 @@ Figma's Dev Mode / MCP server works too. Never edit the file from a script.
 Use the Tailwind class names in the second column; they switch with the theme. Values were taken
 from the redesign screenshots and logo files, then checked for WCAG AA.
 
-| Role (Ivory + Sage name) | Tailwind name | Light | Dark (provisional) | Use for |
+| Role (Ivory + Sage name) | Tailwind name | Light | Dark | Use for |
 |---|---|---|---|---|
-| `color/ivory` | `ivory` | `#FFFBF4` | `#0B1F24` | App background |
-| `color/ivory-deep` | `ivory-deep` | `#F4EBD9` | `#071619` | Sand input wells; locked and empty fills |
-| `color/surface` | `ivory-surface` | `#FFFFFF` | `#11292F` | Cards, sheets, tab bar, top bar |
-| `color/line` | `ivory-line` | `#E5D9C3` | `#21424A` | Hairline borders, list dividers |
+| `color/ivory` | `ivory` | `#FFFBF4` | `#0A1D24` | App background |
+| `color/ivory-deep` | `ivory-deep` | `#F4EBD9` | `#061318` | Sand input wells; locked and empty fills |
+| `color/surface` | `ivory-surface` | `#FFFFFF` | `#112B35` | Cards, sheets, tab bar, top bar |
+| `color/line` | `ivory-line` | `#E5D9C3` | `#1F4452` | Hairline borders, list dividers |
 | `color/line-strong` | `line-strong` | `#8A7D66` | `#7D989C` | Borders that mark a control (≥ 3:1) |
-| `color/navy` | `navy` | `#0D5C63` lagoon | `#8FD3CF` | Primary buttons, active navigation, lagoon accents |
-| `color/navy-pressed` | `navy-pressed` | `#09454C` | `#74C3BE` | Pressed primary fills |
-| `color/navy-soft` | `navy-soft` | `#DDF2F0` | `#173B40` | Lagoon tint (chips, location pills) |
-| `color/on-navy` | `on-navy` | → ivory | `#0B1F24` | Text and icons on lagoon fills |
-| `color/ink` | `ink` | `#0B2E36` | `#F5EFE4` | Headings and titles |
-| `color/ink-body` | `ink-body` | `#2D4A51` | `#D2DFDF` | Body copy |
-| `color/ink-muted` | `ink-muted` | `#4E6E75` | `#A3B9BB` | Metadata, placeholders, inactive tabs |
+| `color/navy` | `navy` | `#0D5C63` lagoon | `#48CAE4` | Primary buttons, active navigation, lagoon accents |
+| `color/navy-pressed` | `navy-pressed` | `#09454C` | `#36B5D0` | Pressed primary fills |
+| `color/navy-soft` | `navy-soft` | `#DDF2F0` | `#163A47` | Lagoon tint (chips, location pills) |
+| `color/on-navy` | `on-navy` | → ivory | `#0A1D24` | Text and icons on lagoon fills |
+| `color/ink` | `ink` | `#0B2E36` | `#F2FBF9` | Headings and titles |
+| `color/ink-body` | `ink-body` | `#2D4A51` | `#C7E6E3` | Body copy |
+| `color/ink-muted` | `ink-muted` | `#4E6E75` | `#8AB5B2` | Metadata, placeholders, inactive tabs |
 | `color/ink-faint` | `ink-faint` | `#7A9295` | `#5F7A7E` | Locked / disabled **icons only, never text** |
 | `color/sage` | `sage` | `#2A9D8F` teal | `#4FBFB0` | Secondary accents, logo steps; **icons and large text only** |
-| `color/sage-soft` | `sage-soft` | `#DCF5EE` mint | `#14362F` | Insets, icon discs, tracks, PWA icon background |
+| `color/sage-soft` | `sage-soft` | `#DCF5EE` mint | `#153B33` | Insets, icon discs, tracks, PWA icon background |
 | `color/sage-deep` | `sage-deep` | `#16655A` | `#9FE3D6` | Text and icons on sage-soft |
-| `color/terracotta` | `terracotta` | `#E46B4D` coral | `#F08A6F` | Accents, Scan button, active dots; **icons and 24 px+ only** |
-| `color/terracotta-ink` | `terracotta-ink` | `#B54124` | `#FFAB93` | Coral for text; coral **filled buttons with white text** |
-| `color/terracotta-soft` | `terracotta-soft` | `#FFE8DF` | `#3B241D` | Category tags, AI Mode chip, callouts |
+| `color/terracotta` | `terracotta` | `#E46B4D` coral | `#FF8566` | Accents, Scan button, active dots; **icons and 24 px+ only** |
+| `color/terracotta-ink` | `terracotta-ink` | `#B54124` | `#FFA68F` | Coral for text; coral **filled buttons with white text** |
+| `color/terracotta-soft` | `terracotta-soft` | `#FFE8DF` | `#3A211D` | Category tags, AI Mode chip, callouts |
 | none | `terracotta-light` | `#F9C4B4` | `#F9C4B4` | Labels, icons and links on lagoon fills only |
-| `color/danger` | `danger` | `#A8322A` | `#F2958A` | Destructive text |
-| `color/danger-soft` | `danger-soft` | `#F7E1DC` | `#3A1F1C` | Destructive button fill |
-| `color/danger-line` | `danger-line` | `#E3B3AA` | `#7A3B34` | Destructive button border |
+| `color/danger` | `danger` | `#A8322A` | `#FF8787` | Destructive text |
+| `color/danger-soft` | `danger-soft` | `#F7E1DC` | `#3B1A1D` | Destructive button fill and error notices |
+| `color/danger-line` | `danger-line` | `#E3B3AA` | `#8A3036` | Destructive button and error notice border |
 
 **Contrast rules.**
 - Coral (`terracotta`) is a shade darker than the brand `#E76F51` so coral icons reach 3:1 on
@@ -89,9 +89,7 @@ owns `surface` and `line`. Renaming the roles to `lagoon-*` / `coral-*` is a sep
 
 ### Dark mode
 
-The redesign has **no dark mode** yet, so `src/styles/index.css` ships **provisional** dark values
-derived from the same hues and checked for WCAG AA. Lagoon fills invert to a light teal with dark
-text. Ask the designer for real dark values and replace them in one place.
+`src/styles/index.css` uses the Figma Lagoon & Coral dark mode values from `07 · Mastery & Gamification (Dark)`, checked for WCAG AA. Lagoon fills invert to bright cyan-teal (`#48CAE4`) with dark text (`#0A1D24`).
 
 The **splash** stays ivory in both themes (`data-theme="light"`): the installed PWA's launch screen
 uses the manifest's ivory `background_color`, and the logo artwork is lagoon on transparent.
@@ -236,21 +234,15 @@ details, chat), auth, splash, onboarding, permissions and 404, which use a TopNa
 new tab-level screens inside `AppShell` and pushed screens outside it. The designer still needs to
 show these rules in the prototype (ticket #27).
 
-### Mastery (Final Pages → Mastery Page, All Quests, All Badges)
+### Mastery (UI Redesign #7: Mastery & Gamification, Light & Dark)
 
-Built in `src/pages/MasteryPage.tsx` and `MasteryListPages.tsx` from the component specs above.
-Where the Final Page frame and the Components page differ, the components win, because they're
-tokenized:
+Built in `src/pages/MasteryPage.tsx`, `src/pages/MasteryListPages.tsx` and `src/components/MasteryCards.tsx` from Figma `07 · Mastery & Gamification (Light & Dark)`:
 
-- The frame's XP bar is a terracotta → sage gradient; the ProgressBar spec says **navy** for XP.
-- The frame's icons are Lucide placeholders pasted as vectors; the code uses the Ionicons
-  equivalents from the Icons page (`trophy`, `flame`, `footsteps`, `book-outline`, `ribbon`).
-- The frame's quest reward pill (`+300 XP`, gold `#CAB147`) has no token and the API has no
-  per-quest XP, so the pill shows the quest's **badge** in the QuestCard `navy-soft` style.
-- Locked badges are only faded in the frame (48 % opacity). The code uses the BadgeTile
-  `Unlocked=false` variant plus a lock icon and the word "Locked", so state isn't colour alone.
-- Active quests are ordered nearest to completion first (ClickUp #33); completed quests leave the
-  rail, and their badges move to the front of the collection.
+- **Background & shadows.** Flat `bg-ivory` surface (`#FFFBF4` light / `#0A1D24` dark), `shadow-navy` dual lagoon + coral glow on `LevelRing`, and `shadow-card` on `QuestCard`.
+- **Rank & stats.** `LevelRing` (`128 px` outer lagoon border, `112 px` inner coral ring), `navy` XP progress bar with monospace numbers (`font-mono tabular-nums`), and three stat tiles (`TrophyIcon` Awards, `FlameIcon` Streak, `LocationIcon` Visited).
+- **QuestCard.** Filled `BookIcon` in a `sage-soft` `10 px`-radius square, `navy-soft` badge pill, top-right monospace `done/total` counter in `terracotta-ink`, `6 px` coral progress bar (with full `role="progressbar"` ARIA text), and `Log a visit` action. Active quests are ordered nearest to completion first (ClickUp #33).
+- **BadgeTile.** Three-column grid; unlocked badges sit on `terracotta-soft` with a `terracotta` border and `StarIcon`, while locked badges show a `LockClosedIcon` and the word "Locked" (so state isn't colour alone).
+- **State notices.** `MasteryNotice` (`20 px` radius) uses `ivory-surface` / `ivory-line` for signed-out and 0 XP prompts, and `danger-soft` / `danger-line` / `danger` for connection error alerts.
 
 ### Onboarding (first run)
 
