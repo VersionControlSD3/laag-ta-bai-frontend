@@ -124,7 +124,8 @@ describe('ArchivesPage', () => {
 
     renderPage(<ArchivesPage />, '/archives')
 
-    expect(await screen.findByText(/Your archives are empty/i)).toBeInTheDocument()
+    expect(await screen.findByText('No visits yet')).toBeInTheDocument()
+    expect(screen.getByText('No saved places yet')).toBeInTheDocument()
     expect(screen.queryByText("Magellan's Cross")).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /load samples|restore examples|reset sample/i })).not.toBeInTheDocument()
   })
@@ -137,13 +138,13 @@ describe('ArchivesPage', () => {
     renderPage(<ArchivesPage />, '/archives')
 
     const favorites = await screen.findByRole('region', { name: /Bookmarked Landmarks/i })
-    await screen.findByText(/No activity history yet/i)
+    await screen.findByText('No visits yet')
     await userEvent.click(within(favorites).getByRole('button', { name: "Remove Magellan's Cross from bookmarks" }))
 
     expect(within(favorites).queryByRole('link', { name: "Magellan's Cross" })).not.toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('laagtabai:bookmarks')!)).toEqual([])
 
-    const toast = (await screen.findByText(/Removed "Magellan's Cross" from bookmarks/)).closest(
+    const toast = (await screen.findByText(`Removed "Magellan's Cross"`)).closest(
       '[role="status"]',
     ) as HTMLElement
     expect(toast).not.toBeNull()
@@ -160,10 +161,11 @@ describe('ArchivesPage', () => {
     renderPage(<ArchivesPage />, '/archives')
 
     expect(await screen.findByRole('link', { name: "Magellan's Cross" })).toBeInTheDocument()
-    expect(await screen.findByText('Sign in to keep a history of the places you visit.')).toBeInTheDocument()
+    expect(await screen.findByText('Sign in to keep visit history')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
   })
 
-  it('labels Scanned, Visited and Viewed by icon and text', async () => {
+  it('labels Scanned, Visited and Viewed by text, not colour alone', async () => {
     signIn()
     mockApi([
       visitAt(0, 12, { id: 'v-scan', landmarkId: cross.id, source: 'scan' }),
@@ -173,14 +175,13 @@ describe('ArchivesPage', () => {
 
     renderPage(<ArchivesPage />, '/archives')
 
-    const scanned = await screen.findByLabelText('Activity type: Scanned')
-    const visited = screen.getByLabelText('Activity type: Visited')
-    const viewed = screen.getByLabelText('Activity type: Viewed')
-
-    expect(scanned).toHaveTextContent('Scanned')
-    expect(visited).toHaveTextContent('Visited')
-    expect(viewed).toHaveTextContent('Viewed')
-    for (const tag of [scanned, visited, viewed]) expect(tag.querySelector('svg')).toBeInTheDocument()
+    const history = screen.getByRole('region', { name: 'Visit history' })
+    const rows = await within(history).findAllByRole('link')
+    expect(rows.map((row) => within(row).getByText(/^(Scanned|Visited|Viewed)$/).textContent)).toEqual([
+      'Scanned',
+      'Visited',
+      'Viewed',
+    ])
   })
 
   it('groups history by date, newest first', async () => {
@@ -189,8 +190,8 @@ describe('ArchivesPage', () => {
 
     renderPage(<ArchivesPage />, '/archives')
 
-    const today = await screen.findByText('Today')
-    const yesterday = screen.getByText('Yesterday')
+    const today = await screen.findByRole('heading', { name: 'Visit history · Today' })
+    const yesterday = screen.getByRole('heading', { name: 'Visit history · Yesterday' })
     expect(today.compareDocumentPosition(yesterday)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 
@@ -199,7 +200,7 @@ describe('ArchivesPage', () => {
     mockApi([visitAt(0, 10)])
 
     renderPage(<ArchivesPage />, '/archives')
-    await screen.findByText('Today')
+    await screen.findByRole('heading', { name: 'Visit history · Today' })
 
     expect(screen.queryByRole('button', { name: /clear.*history/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
@@ -245,7 +246,7 @@ describe('ArchivesPage', () => {
     signIn()
     mockApi([])
     const { container } = renderPage(<ArchivesPage />, '/archives')
-    await screen.findByText(/Your archives are empty/i)
+    await screen.findByText('No visits yet')
 
     const page = container.firstElementChild as HTMLElement
     expect(page).toHaveClass('bg-ivory', 'text-ink')

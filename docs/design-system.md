@@ -172,11 +172,12 @@ to the table above and confirm with the designer.
 - **Radius** (`radius/*`): md 6, lg 8, xl 12, 2xl 16, 3xl 24 (Tailwind defaults), plus
   `rounded-tray` 30 px and `rounded-chrome` 40 px (tab bar and top bar). Radius grows with the
   object: tags → buttons → cards → panels → chrome → round controls.
-- **Shadows** (navy-tinted, soft, few): `shadow-tabbar`, `shadow-topbar`, `shadow-navy` (navy
-  buttons, Scan button, LevelRing) are tokens. Figma's `shadow-lg`, `shadow-2xl` and `shadow-panel`
+- **Shadows** (navy-tinted, soft, few): `shadow-topbar` and `shadow-navy` (navy buttons, the
+  BottomNav pill, toasts, LevelRing) are tokens. `shadow-tabbar` is left over from the old slab
+  tab bar and no longer used; remove it with the next token change. Figma's `shadow-lg`, `shadow-2xl` and `shadow-panel`
   are navy-tinted versions of Tailwind's; add them when the scaffold no longer uses Tailwind's.
 - **Sizes** (`size/*`): icon 24 (sm 18), control 48 (sm 40), field 56, top bar 60 (`h-topbar`),
-  Scan button 64 (`size-scan-button`), tab bar 70 (`h-tabbar`), shutter 80, level ring 128,
+  tab bar 62 (`min-h-tabbar`, with a 48 Scan disc inside it), shutter 80, level ring 128,
   medallion 192.
 - **Opacity**: press-primary 80 %, press-row 70 %, tab-inactive 60 %, muted 80 %, skip 50 %.
 
@@ -204,7 +205,7 @@ Each component in Figma has a written spec next to it. Read it before building.
 | LandmarkCard / LandmarkRow | 160 px rail tile / 80 px thumbnail row | ⚠️ scaffold version |
 | PaginationDots | 8 px sage dots, current 24 px terracotta | ❌ |
 | TopNavbar | Back, centred navy title, optional action; 40 px bottom corners; 60 px + inset | ✅ `TopNavbar.tsx` |
-| **ScreenNavbar** | Four tabs + raised navy Scan; 40 px top corners; 70 px + inset | ✅ `BottomNav.tsx` |
+| **BottomNav** (was ScreenNavbar) | Floating pill: four tabs + navy Scan disc; 62 px, 14 px off the edges | ✅ `BottomNav.tsx` |
 | TextField | Uppercase label, surface well, line-strong border, terracotta icon; 56 / 48 px | ❌ |
 | SearchBar | Surface field, terracotta search icon, filter button on Explore | ❌ |
 | Switch | Ivory-deep track off; navy or sage-deep on | ❌ |
@@ -216,25 +217,60 @@ Each component in Figma has a written spec next to it. Read it before building.
 
 Build components in `src/components/`, take colours only from the tokens above, and add a test.
 
-### ScreenNavbar (bottom navigation)
+### BottomNav (bottom navigation, UI Redesign #6)
 
-Figma: Components → `Laag ta bAI/ScreenNavbar` (node `151:122`), variants `Active=Explore …
-Profile`. Implemented in `src/components/BottomNav.tsx`:
+Figma: Components → `Components — Laag ta bAI` → `BottomNav` (node `551:971`), variants
+`ActiveTab=Explore … Profile`; the Final Pages use it as `Laag ta bAI/BottomNav`. It replaces the
+old ScreenNavbar slab (`151:122`). Implemented in `src/components/BottomNav.tsx`:
 
-- `ivory-surface` slab, `rounded-t-chrome`, `shadow-tabbar`, `h-tabbar` + bottom safe-area inset,
-  24 px side padding (16 px below 375 px so the targets keep a gap on 320 px phones).
-- Active tab: filled Ionicon at 28 px in `navy` and a 12 px bold `navy` label, plus
-  `aria-current="page"`. Inactive tabs: outline icon at 24 px in `ink-muted`; the label stays in the
-  DOM as `sr-only`, so every link has an accessible name and the state isn't shown by colour alone.
-- Scan: 64 px `navy` disc with a 4 px `ivory` ring and `shadow-navy`, overlapping the bar by 17 px;
-  `camera-outline` in `on-navy`. Its label shows only when Scan is active.
-- Tabs are at least 48 × 48 px; the Scan disc is 64 px.
+- A floating pill: `ivory-surface`, 1 px `ivory-line` border, `rounded-full`, `shadow-navy`,
+  `min-h-tabbar` (62 px), 14 px from the screen edges and above the bottom safe-area inset.
+- Active tab: a `navy-soft` pill with the filled Ionicon at 20 px in `navy` and an 11 px bold
+  `navy` label, plus `aria-current="page"`. Inactive tabs: outline icon at 20 px in `ink-muted`; the
+  label stays in the DOM as `sr-only`, so every link has an accessible name and the state isn't
+  shown by colour alone.
+- Scan: a 48 px `navy` disc inside the bar with `camera-outline` in `on-navy`. While Scan is open it
+  turns `terracotta` (Figma's `ActiveTab=Scan`) and gets a 2 px ring, so that state isn't colour
+  alone either.
+- Tap targets are 48 × 48 px, set in `px` so the bar still fits a 320 px screen at 125 % text; the
+  active tab widens to fit its label.
+- Screens keep `pb-nav` / `bleed-under-nav` clearance: the bar plus 34 px (14 px float + 20 px gap).
+- The Final Pages frames draw the inactive tabs with filled custom icons; the Components variants
+  (outline at rest, filled when active) win, as in the Mastery section below.
 
 **Visibility rules.** The bar is rendered by `AppShell`, so it shows only on the five tab screens
 (`/`, `/archives`, `/scan`, `/mastery`, `/profile`). It's hidden on pushed screens (landmark
 details, chat), auth, splash, onboarding, permissions and 404, which use a TopNavbar or nothing. Keep
 new tab-level screens inside `AppShell` and pushed screens outside it. The designer still needs to
 show these rules in the prototype (ticket #27).
+
+### Archives (UI Redesign #6)
+
+Built in `src/pages/ArchivesPage.tsx` from Final Pages → `06 · Archives` (`558:3513` / `558:3567`
+saved and history, `558:3553` / `558:3607` offline, undo and empty). One flat `ivory` column, 24 px
+gutter, 16 px between every block; the old ambient colour washes are gone.
+
+- **Header.** `terracotta-ink` eyebrow "Your collection", 30/36 extrabold "Saved Places", `ink-body`
+  body-sm line.
+- **Bookmarked Landmarks.** An 18/24 bold heading with the count and an 18 px coral `bookmark`.
+  Each card is `ivory-surface`, `ivory-line` border, `rounded-3xl`: a 144 px photo, then a
+  `font-display` 20/26 name (two lines at most), a 12 px `terracotta-ink` pin with district and
+  distance, and a `navy-soft` `rounded-[10px]` rating chip in `font-mono` 11/14.
+  - The category tag (Tag `heritage` tone) and a 48 px remove button (coral disc, filled bookmark,
+    `aria-pressed`) sit on the photo. They aren't in the frame; the ticket asks for category pills
+    and the remove button drives Undo.
+  - The whole card opens the landmark.
+- **Visit history.** Groups by day, newest first, each under an eyebrow "Visit history · Today /
+  Yesterday / date". Rows are `rounded-2xl` cards: a 48 px `rounded-[10px]` thumbnail, 15/22 bold
+  name with `+XP`, a 12 px `ink-muted` time and district, and a **StatusPill**: Scanned
+  (`navy-soft` / `navy`), Visited (`sage-soft` / `sage-deep`), Viewed (`terracotta-soft` /
+  `terracotta-ink`). The label text, not the colour, carries the state.
+- **StateNotice.** A `rounded-[20px]` card with a 15/22 bold title and a 12/16 caption:
+  `ivory-surface` for empty, signed-out and loading; `terracotta-soft` with a `terracotta` border
+  for "Offline mode active"; `danger-soft` with a `danger-line` border for errors. Signed-out and
+  error notices add a 48 px "Sign in" / "Try again" text action, which the frame doesn't show.
+- **Undo toast.** A `navy` `rounded-2xl` bar 20 px above the BottomNav: `Removed "<name>"` and a
+  `terracotta-soft` Undo pill whose `::before` box makes a 48 px target. It's dismissed after 6 s.
 
 ### Mastery (Final Pages → Mastery Page, All Quests, All Badges)
 
