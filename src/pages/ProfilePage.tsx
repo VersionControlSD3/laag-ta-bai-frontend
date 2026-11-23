@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMe, useUpdateMe } from '@/api/hooks'
 import type { Me } from '@/api/types'
+import { NationalitySelect } from '@/components/NationalitySelect'
 import { SignInPrompt } from '@/components/SignInPrompt'
 import { ErrorMessage, Loading } from '@/components/StateMessage'
 import { TopNavbar } from '@/components/TopNavbar'
@@ -36,6 +37,7 @@ import { levelProgress } from '@/features/mastery/progress'
 import { usePreferences, type ThemeMode } from '@/features/preferences/PreferencesContext'
 import { GRANTED_KEY } from '@/hooks/useGeolocation'
 import { env } from '@/lib/env'
+import { normalizeSavedNationality } from '@/lib/nationality'
 import { clearOfflineCache, readJson } from '@/lib/storage'
 
 type LanguageOption = {
@@ -557,11 +559,12 @@ export default function ProfilePage() {
 function AuthenticatedProfileContent({ me }: { me: Me }) {
   const updateMe = useUpdateMe()
   const [isEditOpen, setIsEditOpen] = useState(false)
-  const [editFormData, setEditFormData] = useState({
-    displayName: me.profile.displayName,
-    nationality: me.profile.nationality ?? '',
-    bio: me.profile.bio ?? '',
-  })
+  const getEditFormData = () => {
+    const savedNationality = me.profile.nationality ?? ''
+    const nationality = normalizeSavedNationality(savedNationality)
+    return { displayName: me.profile.displayName, savedNationality, nationality, bio: me.profile.bio ?? '' }
+  }
+  const [editFormData, setEditFormData] = useState(getEditFormData)
   const [validationError, setValidationError] = useState<string | null>(null)
 
   const displayName = me.profile.displayName.trim() || 'Unnamed traveler'
@@ -583,26 +586,12 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
 
   const handleToggleEdit = () => {
     setValidationError(null)
-    setIsEditOpen((prev) => {
-      const next = !prev
-      if (next) {
-        setEditFormData({
-          displayName: me.profile.displayName,
-          nationality: me.profile.nationality ?? '',
-          bio: me.profile.bio ?? '',
-        })
-      }
-      return next
-    })
+    if (!isEditOpen) setEditFormData(getEditFormData())
+    setIsEditOpen(!isEditOpen)
   }
 
   const handleCancelEdit = () => {
     setValidationError(null)
-    setEditFormData({
-      displayName: me.profile.displayName,
-      nationality: me.profile.nationality ?? '',
-      bio: me.profile.bio ?? '',
-    })
     setIsEditOpen(false)
   }
 
@@ -613,11 +602,13 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
       setValidationError('Display name is required.')
       return
     }
+    const { nationality, savedNationality } = editFormData
+    const nationalityChanged = nationality !== savedNationality
     setValidationError(null)
     updateMe.mutate(
       {
         displayName: trimmedName,
-        nationality: editFormData.nationality.trim() || null,
+        ...(nationalityChanged && { nationality: nationality || null }),
         bio: editFormData.bio.trim() || null,
       },
       {
@@ -771,18 +762,18 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 Nationality
               </label>
               <div className="relative flex items-center">
-                <span className="pointer-events-none absolute left-3.5 text-terracotta">
+                <span className="pointer-events-none absolute left-3.5 z-10 text-terracotta">
                   <GlobeOutlineIcon size={18} />
                 </span>
-                <input
+                <NationalitySelect
                   id="edit-nationality"
-                  name="nationality"
-                  type="text"
-                  maxLength={60}
                   value={editFormData.nationality}
-                  onChange={(e) => setEditFormData((prev) => ({ ...prev, nationality: e.target.value }))}
-                  placeholder="e.g. Filipino"
-                  className="h-12 w-full rounded-[14px] border border-line-strong bg-ivory pr-3.5 pl-10 text-sm leading-5 font-normal text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-navy"
+                  savedValue={normalizeSavedNationality(editFormData.savedNationality)}
+                  onValueChange={(nationality) => {
+                    setValidationError(null)
+                    setEditFormData((prev) => ({ ...prev, nationality }))
+                  }}
+                  className="h-12 w-full min-w-0 rounded-[14px] border border-line-strong bg-ivory pl-10 text-sm leading-5 font-normal text-ink scheme-light focus-visible:outline-2 focus-visible:outline-navy dark:scheme-dark"
                 />
               </div>
             </div>
@@ -1024,7 +1015,7 @@ function ModalDialog({
       aria-modal="true"
       aria-labelledby={titleId}
       aria-describedby={describedBy}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#061318]/60 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 dark:bg-ivory-deep/60 p-4 backdrop-blur-xs"
     >
       <div className="w-full max-w-sm rounded-3xl border border-ivory-line bg-ivory-surface px-5 py-[18px] text-ink shadow-modal">
         <div className="mb-3.5 flex items-center justify-between">

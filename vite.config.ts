@@ -73,6 +73,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    // Avoid starving lazy route imports when several jsdom suites start together.
+    maxWorkers: 3,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
     // Keep unit tests deterministic regardless of local .env.local credentials.
