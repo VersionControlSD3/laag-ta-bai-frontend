@@ -15,13 +15,25 @@ describe('sign-up page', () => {
     const user = userEvent.setup()
     await openRegister()
 
+    const nationality = screen.getByRole('combobox', { name: 'Nationality' })
+    expect(within(nationality).getByRole('option', { name: 'Japanese' })).toBeInTheDocument()
+    expect(within(nationality).queryByRole('option', { name: 'Japan' })).not.toBeInTheDocument()
+    expect(within(nationality).queryByRole('option', { name: 'Philippines' })).not.toBeInTheDocument()
+    await user.type(nationality, '12345')
+    expect(nationality).toHaveValue('')
+
     await user.click(screen.getByRole('button', { name: 'Create account' }))
 
     expect(await screen.findByText('Full name is required.')).toBeInTheDocument()
     expect(screen.getByText('Email is required.')).toBeInTheDocument()
     expect(screen.getByText('Date of birth is required.')).toBeInTheDocument()
     expect(screen.getByText('Nationality is required.')).toBeInTheDocument()
+    expect(nationality).toHaveAccessibleDescription('Nationality is required.')
     expect(screen.getByText('You must accept the Terms and Privacy Policy.')).toBeInTheDocument()
+
+    await user.selectOptions(nationality, 'Filipino')
+    expect(nationality).toHaveValue('Filipino')
+    expect(screen.queryByText('Nationality is required.')).not.toBeInTheDocument()
   })
 
   it('tracks password rules and the confirmation match as you type', async () => {
