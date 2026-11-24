@@ -22,6 +22,22 @@ async function selectAdultBirthDate(user: ReturnType<typeof userEvent.setup>) {
   await user.click(dialog.getByRole('gridcell', { name: '1' }))
 }
 
+/** A Supabase-mode auth double (Continue with Google is enabled); override only what a test checks. */
+function supabaseAuth(overrides: Partial<AuthState> = {}): AuthState {
+  return {
+    mode: 'supabase',
+    status: 'signed-out',
+    user: null,
+    token: null,
+    signIn: vi.fn(),
+    signUp: vi.fn(),
+    signInWithGoogle: vi.fn().mockResolvedValue(undefined),
+    signInAsDev: vi.fn(),
+    signOut: vi.fn(),
+    ...overrides,
+  }
+}
+
 describe('sign-up page', () => {
   it('shows the required-field errors when the empty form is submitted', async () => {
     const user = userEvent.setup()
@@ -82,17 +98,7 @@ describe('sign-up page', () => {
   it('focuses the signup error after every failed request', async () => {
     const user = userEvent.setup()
     const signUp = vi.fn().mockRejectedValue(new Error('Email already registered.'))
-    const auth: AuthState = {
-      mode: 'supabase',
-      status: 'signed-out',
-      user: null,
-      token: null,
-      signIn: vi.fn(),
-      signUp,
-      signInWithGoogle: vi.fn(),
-      signInAsDev: vi.fn(),
-      signOut: vi.fn(),
-    }
+    const auth = supabaseAuth({ signUp })
     renderPage(<AuthContext.Provider value={auth}><SignUpPage /></AuthContext.Provider>)
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Full name' }), { target: { value: 'Test Traveler' } })
@@ -112,6 +118,36 @@ describe('sign-up page', () => {
       expect(submit).toBeEnabled()
       expect(signUp).toHaveBeenCalledTimes(attempt)
     }
+  })
+
+  it('blocks Continue with Google until the Terms are accepted and an 18+ date of birth is set', async () => {
+    const user = userEvent.setup()
+    const signInWithGoogle = vi.fn().mockResolvedValue(undefined)
+    renderPage(<AuthContext.Provider value={supabaseAuth({ signInWithGoogle })}><SignUpPage /></AuthContext.Provider>)
+    const google = screen.getByRole('button', { name: 'Continue with Google' })
+
+    await user.click(google)
+    expect(signInWithGoogle).not.toHaveBeenCalled()
+    expect(screen.getByText('Date of birth is required.')).toBeInTheDocument()
+    expect(screen.getByText('You must accept the Terms and Privacy Policy.')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/before continuing with Google/)
+    // Focus moves to the first consent field, as on submit; the email/password fields are not flagged.
+    expect(screen.getByRole('button', { name: 'Choose date of birth' })).toHaveFocus()
+    expect(screen.queryByText('Full name is required.')).not.toBeInTheDocument()
+
+    const dateOfBirth = document.querySelector<HTMLInputElement>('input[name="dateOfBirth"]')!
+    fireEvent.change(dateOfBirth, { target: { value: `${new Date().getFullYear() - 16}-05-15` } })
+    await user.click(google)
+    expect(signInWithGoogle).not.toHaveBeenCalled()
+    expect(screen.getByText('You must be at least 18 to create an account.')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('checkbox'))
+    fireEvent.change(dateOfBirth, { target: { value: `${new Date().getFullYear() - 20}-05-15` } })
+    // The hint clears as soon as both fields are valid, not on the next click.
+    expect(screen.queryByText(/before continuing with Google/)).not.toBeInTheDocument()
+    await user.click(google)
+    expect(signInWithGoogle).toHaveBeenCalledOnce()
+    expect(screen.queryByText(/before continuing with Google/)).not.toBeInTheDocument()
   })
 
   it('tracks password rules and the confirmation match as you type', async () => {

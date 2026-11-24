@@ -172,15 +172,18 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitCount, setSubmitCount] = useState(0)
   const [oauthError, setOauthError] = useState<string | null>(null)
+  // Google creates the account on first use, so it needs the same consent and 18+ gate as the form.
+  const [blockedGoogleCount, setBlockedGoogleCount] = useState(0)
   const formRef = useRef<HTMLFormElement>(null)
   const errorRef = useRef<HTMLParagraphElement>(null)
   const submitted = submitCount > 0
+  const consentChecked = submitted || blockedGoogleCount > 0
 
   useLayoutEffect(() => {
     const firstInvalid = formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')
     firstInvalid?.focus({ preventScroll: true })
     firstInvalid?.scrollIntoView?.({ block: 'center' })
-  }, [submitCount])
+  }, [submitCount, blockedGoogleCount])
 
   useLayoutEffect(() => {
     if (!error) return
@@ -205,10 +208,10 @@ export default function SignUpPage() {
   const fieldError = (message: string, id: string) => <span id={id} className="auth-field-error" role="alert">{message}</span>
   const nameInvalid = submitted && !form.displayName
   const emailInvalid = submitted && !emailValid
-  const birthDateInvalid = submitted && (!form.dateOfBirth || isUnderage)
+  const birthDateInvalid = consentChecked && (!form.dateOfBirth || isUnderage)
   const passwordInvalid = submitted && !passwordValid
   const confirmationInvalid = submitted && !confirmValid
-  const termsInvalid = submitted && !form.acceptedTerms
+  const termsInvalid = consentChecked && !form.acceptedTerms
   const update = (field: keyof typeof form, value: string | boolean) => setForm((current) => ({ ...current, [field]: value }))
 
   const submit = async (event: FormEvent) => {
@@ -231,6 +234,17 @@ export default function SignUpPage() {
     } finally {
       setBusy(false)
     }
+  }
+
+  const googleBlocked = !form.dateOfBirth || isUnderage || !form.acceptedTerms
+  const continueWithGoogle = () => {
+    setOauthError(null)
+    if (googleBlocked) {
+      // Show the date-of-birth and Terms errors and move focus to the first one, as a form submit does.
+      setBlockedGoogleCount((count) => count + 1)
+      return
+    }
+    void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.'))
   }
 
   // One border state per field, so error/success never compete with the neutral border.
@@ -332,10 +346,11 @@ export default function SignUpPage() {
 
               {/* Secondary authentication option */}
               <div className="my-5 flex items-center gap-3 text-xs font-semibold text-ink-muted"><span className="h-px flex-1 bg-ivory-line" />OR<span className="h-px flex-1 bg-ivory-line" /></div>
-              <button type="button" disabled={auth.mode === 'dev' || busy} onClick={() => { setOauthError(null); void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.')) }} className="flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-ivory-line bg-ivory-surface font-semibold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">
+              <button type="button" disabled={auth.mode === 'dev' || busy} onClick={continueWithGoogle} className="flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-ivory-line bg-ivory-surface font-semibold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">
                 <GoogleIcon />
                 Continue with Google
               </button>
+              {blockedGoogleCount > 0 && googleBlocked && <p role="status" className="mt-2 text-center text-sm font-semibold text-danger">Enter your date of birth (18+) and accept the Terms and Privacy Policy before continuing with Google.</p>}
               {oauthError && <p role="alert" className="mt-2 text-center text-sm font-semibold text-danger">{oauthError}</p>}
             </>
           )}
