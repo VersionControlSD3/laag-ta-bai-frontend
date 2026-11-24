@@ -9,6 +9,7 @@ export type AuthState = {
   user: AuthUser | null
   /** Bearer token for the API. */
   token: string | null
+  isPasswordRecovery?: boolean
   signIn(email: string, password: string): Promise<void>
   /**
    * `date_of_birth` is intentionally absent: it is used only for the 18+ age

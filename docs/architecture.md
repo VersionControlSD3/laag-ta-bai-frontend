@@ -22,6 +22,10 @@ src/
 
 - **Auth**: the app signs in with Supabase Auth directly and keeps the session in the browser.
   Every API call sends the access token as `Authorization: Bearer`. The API verifies it.
+  Password recovery records the Supabase session ID in local storage when Supabase emits
+  `PASSWORD_RECOVERY`. The reset form requires that ID to match the active session, so it
+  remains available after a reload or token refresh. The app clears the ID when Supabase
+  reports a user update, sign-out, or a different session.
 - **App data** always goes through the API, never straight to Supabase tables. That keeps
   XP and progress rules on the server and the Gemini key out of the browser.
 - **Server state** lives in TanStack Query. Mutations that award XP (scan, chat, check-in)

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { AuthScreen } from '@/components/AuthScreen'
+import { NationalitySelect } from '@/components/NationalitySelect'
 import {
   CalendarOutlineIcon,
   CheckmarkIcon,
@@ -13,6 +14,7 @@ import {
 } from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { DevSignIn } from '@/features/auth/DevSignIn'
+import { nationalityOptions } from '@/lib/nationality'
 import './SignUpPage.css'
 
 // Custom calendar controls keep the date picker consistent across browsers.
@@ -234,14 +236,31 @@ export default function SignUpPage() {
   const auth = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ displayName: '', email: '', dateOfBirth: '', nationality: '', password: '', confirmPassword: '', bio: '', acceptedTerms: false })
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<{ message: string } | null>(null)
   const [confirmEmail, setConfirmEmail] = useState(false)
   const [busy, setBusy] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [submitCount, setSubmitCount] = useState(0)
   const [oauthError, setOauthError] = useState<string | null>(null)
+  // Google creates the account on first use, so it needs the same consent and 18+ gate as the form.
+  const [blockedGoogleCount, setBlockedGoogleCount] = useState(0)
   const [dobTypedInvalid, setDobTypedInvalid] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
+  const errorRef = useRef<HTMLParagraphElement>(null)
+  const submitted = submitCount > 0
+  const consentChecked = submitted || blockedGoogleCount > 0
+
+  useLayoutEffect(() => {
+    const firstInvalid = formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')
+    firstInvalid?.focus({ preventScroll: true })
+    firstInvalid?.scrollIntoView?.({ block: 'center' })
+  }, [submitCount, blockedGoogleCount])
+
+  useLayoutEffect(() => {
+    if (!error) return
+    errorRef.current?.focus()
+  }, [error])
 
   const maxBirthDate = (() => {
     const now = new Date()
@@ -255,19 +274,26 @@ export default function SignUpPage() {
   const passwordValid = passwordRules.every(([, valid]) => valid)
   const confirmValid = form.confirmPassword.length > 0 && form.password === form.confirmPassword
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+  const nationalityValid = nationalityOptions.includes(form.nationality)
+  const nationalityInvalid = submitted && !nationalityValid
   const isUnderage = Boolean(form.dateOfBirth) && new Date(`${form.dateOfBirth}T00:00:00`) > maxBirthDate
-  const fieldError = (message: string) => <span className="auth-field-error" role="alert">{message}</span>
+  const fieldError = (message: string, id: string) => <span id={id} className="auth-field-error" role="alert">{message}</span>
+  const nameInvalid = submitted && !form.displayName
+  const emailInvalid = submitted && !emailValid
+  const birthDateInvalid = consentChecked && (!form.dateOfBirth || isUnderage)
+  const passwordInvalid = submitted && !passwordValid
+  const confirmationInvalid = submitted && !confirmValid
+  const termsInvalid = consentChecked && !form.acceptedTerms
   const update = (field: keyof typeof form, value: string | boolean) => setForm((current) => ({ ...current, [field]: value }))
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    setSubmitted(true)
-    setBusy(true)
+    setSubmitCount((count) => count + 1)
     setError(null)
-    if (!form.displayName || !emailValid || !form.dateOfBirth || isUnderage || !form.nationality || !passwordValid || !confirmValid || !form.acceptedTerms) {
-      setBusy(false)
+    if (!form.displayName || !emailValid || !form.dateOfBirth || isUnderage || !nationalityValid || !passwordValid || !confirmValid || !form.acceptedTerms) {
       return
     }
+    setBusy(true)
     try {
       const { needsConfirmation } = await auth.signUp({
         email: form.email, password: form.password, displayName: form.displayName,
@@ -276,21 +302,31 @@ export default function SignUpPage() {
       if (needsConfirmation) setConfirmEmail(true)
       else navigate('/')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Sign up failed.')
+      setError({ message: e instanceof Error ? e.message || 'Sign up failed.' : 'Sign up failed.' })
     } finally {
       setBusy(false)
     }
+  }
+
+  const googleBlocked = !form.dateOfBirth || isUnderage || !form.acceptedTerms
+  const continueWithGoogle = () => {
+    setOauthError(null)
+    if (googleBlocked) {
+      // Show the date-of-birth and Terms errors and move focus to the first one, as a form submit does.
+      setBlockedGoogleCount((count) => count + 1)
+      return
+    }
+    void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.'))
   }
 
   // One border state per field, so error/success never compete with the neutral border.
   type FieldState = 'error' | 'success' | 'neutral'
   const border: Record<FieldState, string> = { error: 'border-danger', success: 'border-sage-deep', neutral: 'border-ivory-line' }
   const fieldClass = (state: FieldState) =>
-    `mt-2 h-14 w-full rounded-xl border bg-ivory-deep px-4 text-base text-ink outline-none placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${border[state]}`
-  const inputClass = (invalid: boolean) => fieldClass(invalid ? 'error' : 'neutral')
-  // Live match feedback once a confirmation is typed; submit errors win.
-  const matchState = (invalid: boolean): FieldState =>
-    invalid ? 'error' : form.confirmPassword ? (confirmValid ? 'success' : 'error') : 'neutral'
+    `h-14 w-full rounded-xl border bg-ivory-deep px-4 text-base text-ink outline-none placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${border[state]}`
+  const inputClass = (invalid: boolean) => `${fieldClass(invalid ? 'error' : 'neutral')} mt-2`
+  // Only the confirmation shows match feedback (once typed, or after submit); the password field reflects its own rules.
+  const confirmationState: FieldState = confirmValid ? 'success' : (submitted || form.confirmPassword) ? 'error' : 'neutral'
 
   return (
     // UI Redesign #4: same photo band and theme-following sheet as Login.
@@ -306,54 +342,75 @@ export default function SignUpPage() {
               {auth.mode === 'dev' && <div className="mt-4"><DevSignIn tone="notice" /></div>}
 
               {/* Registration form */}
-              <form onSubmit={submit} noValidate className="mt-7 space-y-4">
-                <label className="auth-label block">Full name <span aria-hidden="true">*</span>
-                  <input required maxLength={60} autoComplete="name" value={form.displayName} onChange={(e) => update('displayName', e.target.value)} className={inputClass(submitted && !form.displayName)} aria-invalid={submitted && !form.displayName} />
-                  {submitted && !form.displayName && fieldError('Full name is required.')}
-                </label>
-                <label className="auth-label block">Email <span aria-hidden="true">*</span>
-                  <input type="email" autoComplete="email" required value={form.email} onChange={(e) => update('email', e.target.value)} className={inputClass(submitted && !emailValid)} aria-invalid={submitted && !emailValid} />
-                  {submitted && !emailValid && fieldError(form.email ? 'Enter a valid email address.' : 'Email is required.')}
-                </label>
+              <form ref={formRef} onSubmit={submit} noValidate className="mt-7 space-y-4">
+                <div>
+                  <label className="auth-label block">Full name <span aria-hidden="true">*</span>
+                    <input required maxLength={60} autoComplete="name" value={form.displayName} onChange={(e) => update('displayName', e.target.value)} className={inputClass(nameInvalid)} aria-invalid={nameInvalid} aria-describedby={nameInvalid ? 'signup-name-error' : undefined} />
+                  </label>
+                  {nameInvalid && fieldError('Full name is required.', 'signup-name-error')}
+                </div>
+                <div>
+                  <label className="auth-label block">Email <span aria-hidden="true">*</span>
+                    <input type="email" autoComplete="email" required value={form.email} onChange={(e) => update('email', e.target.value)} className={inputClass(emailInvalid)} aria-invalid={emailInvalid} aria-describedby={emailInvalid ? 'signup-email-error' : undefined} />
+                  </label>
+                  {emailInvalid && fieldError(form.email ? 'Enter a valid email address.' : 'Email is required.', 'signup-email-error')}
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {/* A div, not a <label>: the field holds both the text input and the calendar button. */}
                   <div>
                     <label htmlFor="signup-dob" className="auth-label block">Date of birth <span aria-hidden="true">*</span></label>
-                    <CustomDatePicker id="signup-dob" value={form.dateOfBirth} onChange={(value) => update('dateOfBirth', value)} onTypedInvalid={setDobTypedInvalid} invalid={submitted && (!form.dateOfBirth || isUnderage)} describedBy={submitted && (!form.dateOfBirth || isUnderage) ? 'signup-dob-error' : undefined} />
+                    <CustomDatePicker id="signup-dob" value={form.dateOfBirth} onChange={(value) => update('dateOfBirth', value)} onTypedInvalid={setDobTypedInvalid} invalid={birthDateInvalid} describedBy={birthDateInvalid ? 'signup-birth-date-error' : undefined} />
                     <input type="text" className="sr-only" tabIndex={-1} aria-hidden="true" name="dateOfBirth" value={form.dateOfBirth} onChange={(e) => update('dateOfBirth', e.target.value)} />
-                    {submitted && !form.dateOfBirth && <span id="signup-dob-error">{fieldError(dobTypedInvalid ? 'Enter a real date as mm/dd/yyyy.' : 'Date of birth is required.')}</span>}
-                    {submitted && isUnderage && <span id="signup-dob-error">{fieldError('You must be at least 18 to create an account.')}</span>}
+                    {birthDateInvalid && fieldError(isUnderage ? 'You must be at least 18 to create an account.' : dobTypedInvalid ? 'Enter a real date as mm/dd/yyyy.' : 'Date of birth is required.', 'signup-birth-date-error')}
                   </div>
-                  <label className="auth-label block">Nationality <span aria-hidden="true">*</span>
-                    <input required autoComplete="country-name" value={form.nationality} onChange={(e) => update('nationality', e.target.value)} className={inputClass(submitted && !form.nationality)} aria-invalid={submitted && !form.nationality} />
-                    {submitted && !form.nationality && fieldError('Nationality is required.')}
-                  </label>
+                  <div className="min-w-0">
+                    <label htmlFor="signup-nationality" className="auth-label mb-2 block">Nationality <span aria-hidden="true">*</span></label>
+                    <NationalitySelect
+                      id="signup-nationality"
+                      required
+                      value={form.nationality}
+                      onValueChange={(value) => update('nationality', value)}
+                      className={fieldClass(nationalityInvalid ? 'error' : 'neutral')}
+                      aria-invalid={nationalityInvalid}
+                      aria-describedby={nationalityInvalid ? 'signup-nationality-error' : undefined}
+                    />
+                    {nationalityInvalid && fieldError('Nationality is required.', 'signup-nationality-error')}
+                  </div>
                 </div>
-                <label className="auth-label block">Password <span aria-hidden="true">*</span>
-                  <span className="relative block">
-                    <input type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.password} onChange={(e) => update('password', e.target.value)} className={`${fieldClass(matchState(submitted && !passwordValid))} pr-12`} aria-invalid={submitted && !passwordValid} />
-                    <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
-                  </span>
-                  <span className="mt-2 grid gap-1 text-xs" aria-live="polite">
+                <div className="auth-label">
+                  <label className="block">Password <span aria-hidden="true">*</span>
+                    <span className="relative block">
+                      <input type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.password} onChange={(e) => update('password', e.target.value)} className={`${inputClass(passwordInvalid)} pr-12`} aria-invalid={passwordInvalid} aria-describedby="signup-password-rules" />
+                      <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
+                    </span>
+                  </label>
+                  <span className="mt-2 grid gap-1 text-xs" aria-hidden="true">
                     {passwordRules.map(([label, valid]) => <span key={label} className={`flex items-center gap-1 ${valid ? 'font-semibold text-sage-deep' : 'text-ink-muted'}`}>{valid ? <CheckmarkIcon size={14} /> : <CloseOutlineIcon size={14} />}{label}</span>)}
                   </span>
-                </label>
-                <label className="auth-label block">Confirm password <span aria-hidden="true">*</span>
-                  <span className="relative block">
-                    <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${fieldClass(matchState(submitted && !confirmValid))} pr-12`} aria-invalid={submitted && !confirmValid} />
-                    <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
+                  <span id="signup-password-rules" className="sr-only" aria-live="polite">
+                    {passwordRules.map(([label, valid]) => `${label}: ${valid ? 'met' : 'required'}.`).join(' ')}
                   </span>
-                  {form.confirmPassword && <span className={`auth-password-status mt-1 block ${confirmValid ? 'text-sage-deep' : 'text-danger'}`}>{confirmValid ? 'Passwords match' : 'Passwords do not match'}</span>}
-                </label>
+                </div>
+                <div>
+                  <label className="auth-label block">Confirm password <span aria-hidden="true">*</span>
+                    <span className="relative block">
+                      <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${fieldClass(confirmationState)} mt-2 pr-12`} aria-invalid={confirmationInvalid} aria-describedby={confirmationInvalid ? 'signup-confirm-password-message' : undefined} />
+                      <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
+                    </span>
+                  </label>
+                  {form.confirmPassword ? (
+                    <span id="signup-confirm-password-message" className={`auth-password-status mt-1 block ${confirmValid ? 'text-sage-deep' : 'text-danger'}`}>{confirmValid ? 'Passwords match' : 'Passwords do not match'}</span>
+                  ) : confirmationInvalid && fieldError('Please confirm your password.', 'signup-confirm-password-message')}
+                </div>
                 <label className="auth-label block">Bio <span className="font-normal text-ink-muted">(optional)</span>
                   <textarea maxLength={240} value={form.bio} onChange={(e) => update('bio', e.target.value)} className="mt-2 min-h-20 w-full rounded-xl border border-ivory-line bg-ivory-deep p-4 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy" />
                 </label>
                 <label className="flex min-h-12 items-center gap-3 text-sm text-ink-body">
-                  <input type="checkbox" checked={form.acceptedTerms} onChange={(e) => update('acceptedTerms', e.target.checked)} className={`auth-terms-checkbox size-5 shrink-0 accent-navy ${submitted && !form.acceptedTerms ? 'auth-terms-checkbox-invalid' : ''}`} />
+                  <input type="checkbox" checked={form.acceptedTerms} onChange={(e) => update('acceptedTerms', e.target.checked)} aria-invalid={termsInvalid} aria-describedby={termsInvalid ? 'signup-terms-error' : undefined} className={`auth-terms-checkbox size-5 shrink-0 accent-navy ${termsInvalid ? 'auth-terms-checkbox-invalid' : ''}`} />
                   <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Terms</a> and <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
                 </label>
-                {submitted && !form.acceptedTerms && <p className="text-sm font-semibold text-danger" role="alert">You must accept the Terms and Privacy Policy.</p>}
-                {error && <p role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-semibold text-danger">{error}</p>}
+                {termsInvalid && <p id="signup-terms-error" className="text-sm font-semibold text-danger" role="alert">You must accept the Terms and Privacy Policy.</p>}
+                {error && <p ref={errorRef} tabIndex={-1} role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-semibold text-danger">{error.message}</p>}
 
                 {/* Primary action */}
                 <button type="submit" disabled={busy} className="min-h-14 w-full rounded-xl bg-navy text-base font-bold text-on-navy shadow-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">{busy ? 'Creating account…' : 'Create account'}</button>
@@ -361,10 +418,11 @@ export default function SignUpPage() {
 
               {/* Secondary authentication option */}
               <div className="my-5 flex items-center gap-3 text-xs font-semibold text-ink-muted"><span className="h-px flex-1 bg-ivory-line" />OR<span className="h-px flex-1 bg-ivory-line" /></div>
-              <button type="button" disabled={auth.mode === 'dev' || busy} onClick={() => { setOauthError(null); void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.')) }} className="flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-ivory-line bg-ivory-surface font-semibold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">
+              <button type="button" disabled={auth.mode === 'dev' || busy} onClick={continueWithGoogle} className="flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-ivory-line bg-ivory-surface font-semibold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">
                 <GoogleIcon />
                 Continue with Google
               </button>
+              {blockedGoogleCount > 0 && googleBlocked && <p role="status" className="mt-2 text-center text-sm font-semibold text-danger">Enter your date of birth (18+) and accept the Terms and Privacy Policy before continuing with Google.</p>}
               {oauthError && <p role="alert" className="mt-2 text-center text-sm font-semibold text-danger">{oauthError}</p>}
             </>
           )}
