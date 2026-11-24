@@ -43,6 +43,7 @@ describe('ExplorePage', () => {
     renderPage(<ExplorePage />)
 
     expect(screen.getByText(/sent to our server only to sort nearby landmarks and verify scans/)).toBeInTheDocument()
+    expect(screen.getByText(/Google Maps receives the map area you view/)).toBeInTheDocument()
     expect(await screen.findAllByRole('link', { name: /Casa Gorordo/ })).toHaveLength(1)
     expect(nearbyRequests()).toHaveLength(0)
     expect(within(screen.getByRole('region', { name: 'Explore map' })).getByRole('status')).toHaveTextContent('Map unavailable')

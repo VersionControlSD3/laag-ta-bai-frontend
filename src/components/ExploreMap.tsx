@@ -9,6 +9,14 @@ const MAP_LOAD_TIMEOUT_MS = 15_000
 const EXPLORE_ZOOM = 13
 
 type Location = NonNullable<GeoState['coords']>
+type ExploreMapProps = {
+  hidden: boolean
+  location: Location | null
+  locating: boolean
+  onRefreshLocation: () => void
+  theme: 'light' | 'dark'
+}
+
 type MapView = {
   map: GoogleMap
   OverlayView: Awaited<ReturnType<typeof loadGoogleMaps>>['OverlayView']
@@ -22,7 +30,7 @@ function centerNearLocation(map: GoogleMap, location: Location) {
   })
 }
 
-export function ExploreMap({ hidden, location }: { hidden: boolean; location: Location | null }) {
+export function ExploreMap({ hidden, location, locating, onRefreshLocation, theme }: ExploreMapProps) {
   const apiKey = env.googleMapsApiKey
   const container = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'unavailable'>(apiKey ? 'loading' : 'unavailable')
@@ -50,15 +58,19 @@ export function ExploreMap({ hidden, location }: { hidden: boolean; location: Lo
     element.className = 'size-full'
     host.append(element)
 
-    void loadGoogleMaps(apiKey).then(({ Map, OverlayView }) => {
+    void loadGoogleMaps(apiKey).then(({ ControlPosition, Map, OverlayView }) => {
       if (!active) return
       const map = new Map(element, {
         center: CEBU_CITY,
         zoom: EXPLORE_ZOOM,
+        colorScheme: theme === 'dark' ? 'DARK' : 'LIGHT',
         gestureHandling: 'cooperative',
+        cameraControl: false,
         fullscreenControl: false,
         mapTypeControl: false,
         streetViewControl: false,
+        zoomControl: true,
+        zoomControlOptions: { position: ControlPosition.INLINE_START_BLOCK_END },
       })
       tilesListener = map.addListener('tilesloaded', () => {
         tilesListener?.remove()
@@ -76,7 +88,7 @@ export function ExploreMap({ hidden, location }: { hidden: boolean; location: Lo
       window.removeEventListener(MAPS_AUTH_FAILURE, showUnavailable)
       element.remove()
     }
-  }, [apiKey])
+  }, [apiKey, theme])
 
   useEffect(() => {
     if (status !== 'ready' || !view || !location) return
@@ -117,12 +129,19 @@ export function ExploreMap({ hidden, location }: { hidden: boolean; location: Lo
             {status === 'loading' ? 'Loading map…' : 'Map unavailable'}
           </p>
         )}
+        {status === 'ready' && locating && (
+          <p role="status" className="pointer-events-none absolute top-3 left-1/2 flex w-max max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-2 rounded-full bg-ivory-surface px-3 py-2 text-sm font-semibold text-ink shadow-md">
+            <span aria-hidden className="size-2 shrink-0 rounded-full bg-navy motion-safe:animate-pulse" />
+            Finding your location…
+          </p>
+        )}
         {status === 'ready' && view && location && (
           <button
             type="button"
-            onClick={() => centerNearLocation(view.map, location)}
-            aria-label="Center map on my location"
-            className="absolute bottom-8 left-3 flex size-12 items-center justify-center rounded-xl bg-ivory-surface text-navy shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+            onClick={onRefreshLocation}
+            disabled={locating}
+            aria-label="Refresh and center map on my location"
+            className="absolute right-3 bottom-8 flex size-12 items-center justify-center rounded-xl bg-ivory-surface text-navy shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-70"
           >
             <LocateOutlineIcon size={20} aria-hidden />
           </button>

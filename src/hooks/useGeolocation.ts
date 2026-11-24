@@ -14,7 +14,7 @@ export const GRANTED_KEY = 'location-rationale-accepted'
  * (SRS 3.5.3.1). Coordinates stay in the browser and are sent to the API only
  * for distance sorting and scan verification (SRS 3.5.3.2).
  */
-export function useGeolocation() {
+export function useGeolocation({ maximumAge = 60_000 } = {}) {
   const [state, setState] = useState<GeoState>({ status: 'idle', coords: null, error: null })
   const rationaleAccepted = readJson(GRANTED_KEY, false)
 
@@ -38,9 +38,9 @@ export function useGeolocation() {
           coords: null,
           error: error.code === error.PERMISSION_DENIED ? 'Location permission was denied.' : 'Could not get your location.',
         }),
-      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
+      { enableHighAccuracy: true, timeout: 10_000, maximumAge },
     )
-  }, [])
+  }, [maximumAge])
 
   return { ...state, rationaleAccepted, request }
 }

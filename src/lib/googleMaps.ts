@@ -6,10 +6,14 @@ type MapCamera = {
 }
 
 type MapOptions = MapCamera & {
+  colorScheme: 'LIGHT' | 'DARK'
   gestureHandling: 'cooperative'
+  cameraControl: boolean
   fullscreenControl: boolean
   mapTypeControl: boolean
   streetViewControl: boolean
+  zoomControl: boolean
+  zoomControlOptions: { position: number }
 }
 
 export type GoogleMap = {
@@ -18,6 +22,7 @@ export type GoogleMap = {
 }
 
 type MapsLibrary = {
+  ControlPosition: { INLINE_START_BLOCK_END: number }
   Map: new (element: HTMLElement, options: MapOptions) => GoogleMap
   OverlayView: new () => {
     onAdd(): void

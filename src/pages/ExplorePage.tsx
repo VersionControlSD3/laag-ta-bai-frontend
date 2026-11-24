@@ -4,6 +4,7 @@ import type { LandmarkCategory } from '@/api/types'
 import { ExploreMap } from '@/components/ExploreMap'
 import { OptionsOutlineIcon, SearchIcon } from '@/components/icons/ionicons'
 import { LandmarkRow, LandmarkTile } from '@/components/LandmarkCard'
+import { usePreferences } from '@/features/preferences/PreferencesContext'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { CATEGORY_LABELS } from '@/lib/format'
 
@@ -12,7 +13,8 @@ const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visi
 const PRIVACY = 'Your coordinates are sent to our server only to sort nearby landmarks and verify scans.'
 
 export default function ExplorePage() {
-  const geo = useGeolocation()
+  const geo = useGeolocation({ maximumAge: 0 })
+  const { resolvedTheme } = usePreferences()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<LandmarkCategory | undefined>()
   const [freeOnly, setFreeOnly] = useState(false)
@@ -79,7 +81,15 @@ export default function ExplorePage() {
         )}
       </div>
 
-      <ExploreMap hidden={filtering} location={geo.status === 'ready' ? geo.coords : null} />
+      {/* Google Maps sets its color scheme only when the map is created. */}
+      <ExploreMap
+        key={resolvedTheme}
+        theme={resolvedTheme}
+        hidden={filtering}
+        location={geo.coords}
+        locating={geo.status === 'locating'}
+        onRefreshLocation={geo.request}
+      />
 
       {filtering ? (
         <section className="flex flex-col gap-3 px-6" aria-label="Search results">
@@ -110,7 +120,7 @@ export default function ExplorePage() {
                     </button>
                   }
                 >
-                  Share your location to see where you are and sort landmarks by distance. {PRIVACY} Google Maps loads tiles for your approximate area.
+                  Share your location to see where you are and sort landmarks by distance. {PRIVACY} Google Maps receives the map area you view.
                 </Notice>
               )}
               {(geo.status === 'denied' || geo.status === 'unavailable') && (

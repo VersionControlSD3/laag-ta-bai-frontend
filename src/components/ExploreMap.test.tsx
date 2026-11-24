@@ -38,19 +38,27 @@ it('loads once, draws the permitted location, and falls back if Google rejects a
     getProjection() { return { fromLatLngToDivPixel: project } }
   }
 
-  const { rerender } = render(<ExploreMap hidden={false} location={null} />)
+  const onRefreshLocation = vi.fn()
+  const props = { hidden: false, location: null, locating: false, onRefreshLocation, theme: 'dark' as const }
+  const { rerender } = render(<ExploreMap {...props} />)
   expect(screen.getByRole('status')).toHaveTextContent('Loading map')
 
   const script = document.querySelector<HTMLScriptElement>('script[src^="https://maps.googleapis.com/maps/api/js?"]')
   expect(script).toBeInTheDocument()
   expect(new URL(script!.src).searchParams.get('key')).toBe('test-key')
 
-  vi.stubGlobal('google', { maps: { Map: createMap, OverlayView } })
+  vi.stubGlobal('google', { maps: {
+    Map: createMap,
+    OverlayView,
+    ControlPosition: { INLINE_START_BLOCK_END: 4 },
+  } })
   try {
     await act(async () => window.laagTaBaiMapsReady?.())
     expect(createMap).toHaveBeenCalledWith(expect.any(HTMLElement), expect.objectContaining({
       center: { lat: 10.299, lng: 123.899 },
+      colorScheme: 'DARK',
       gestureHandling: 'cooperative',
+      zoomControlOptions: { position: 4 },
     }))
     act(() => tilesLoaded?.())
     expect(screen.queryByRole('status')).toBeNull()
@@ -58,23 +66,36 @@ it('loads once, draws the permitted location, and falls back if Google rejects a
     expect(moveCamera).not.toHaveBeenCalled()
 
     const location = { lat: 10.29312, lng: 123.90456 }
-    rerender(<ExploreMap hidden={false} location={location} />)
+    rerender(<ExploreMap {...props} locating />)
+    expect(screen.getByRole('status')).toHaveTextContent('Finding your location')
+
+    rerender(<ExploreMap {...props} location={location} />)
     expect(project).toHaveBeenCalledWith(location)
     expect(screen.getByRole('img', { name: 'Your current location' })).toHaveStyle({ left: '25px', top: '50px' })
     const camera = { center: { lat: 10.29, lng: 123.9 }, zoom: 13 }
     expect(moveCamera).toHaveBeenCalledExactlyOnceWith(camera)
-    fireEvent.click(screen.getByRole('button', { name: 'Center map on my location' }))
-    expect(moveCamera).toHaveBeenNthCalledWith(2, camera)
+    const refreshButton = () => screen.getByRole('button', { name: 'Refresh and center map on my location' })
+    fireEvent.click(refreshButton())
+    expect(onRefreshLocation).toHaveBeenCalledTimes(1)
+    rerender(<ExploreMap {...props} location={location} locating />)
+    expect(refreshButton()).toBeDisabled()
+    expect(screen.getByRole('status')).toHaveTextContent('Finding your location')
+    expect(moveCamera).toHaveBeenCalledTimes(1)
 
-    rerender(<ExploreMap hidden location={location} />)
+    const refreshedLocation = { lat: 10.3178, lng: 123.9212 }
+    rerender(<ExploreMap {...props} location={refreshedLocation} />)
+    expect(moveCamera).toHaveBeenNthCalledWith(2, { center: { lat: 10.32, lng: 123.92 }, zoom: 13 })
+    expect(project).toHaveBeenLastCalledWith(refreshedLocation)
+
+    rerender(<ExploreMap {...props} hidden location={refreshedLocation} />)
     expect(screen.queryByRole('region', { name: 'Explore map' })).toBeNull()
-    rerender(<ExploreMap hidden={false} location={location} />)
+    rerender(<ExploreMap {...props} location={refreshedLocation} />)
     expect(createMap).toHaveBeenCalledTimes(1)
     expect(moveCamera).toHaveBeenCalledTimes(2)
 
-    rerender(<ExploreMap hidden={false} location={null} />)
+    rerender(<ExploreMap {...props} />)
     expect(screen.queryByRole('img', { name: 'Your current location' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Center map on my location' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Refresh and center map on my location' })).toBeNull()
 
     act(() => window.gm_authFailure?.())
     expect(screen.getByRole('status')).toHaveTextContent('Map unavailable')
