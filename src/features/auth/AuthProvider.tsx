@@ -146,6 +146,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           },
         })
         if (error) throw error
+        // With email confirmation on, Supabase hides taken emails: it returns a user with no identities instead of an error.
+        if (data.user && data.user.identities?.length === 0) {
+          throw new Error('An account with this email already exists. Please sign in or reset your password.')
+        }
         if (!data.session) {
           // No session until the email is confirmed; save the profile then.
           writeJson(PENDING_PROFILE_KEY, { email, nationality, bio })
