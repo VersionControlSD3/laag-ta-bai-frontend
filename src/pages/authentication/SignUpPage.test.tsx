@@ -1,6 +1,6 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AuthContext, type AuthState } from '@/features/auth/AuthContext'
 import { writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
@@ -30,12 +30,26 @@ function supabaseAuth(overrides: Partial<AuthState> = {}): AuthState {
     user: null,
     token: null,
     signIn: vi.fn(),
-    signUp: vi.fn(),
+    signUp: vi.fn().mockResolvedValue({ needsConfirmation: true }),
+    resendConfirmationEmail: vi.fn().mockResolvedValue(undefined),
     signInWithGoogle: vi.fn().mockResolvedValue(undefined),
     signInAsDev: vi.fn(),
     signOut: vi.fn(),
     ...overrides,
   }
+}
+
+async function fillAndSubmitValidForm(user: ReturnType<typeof userEvent.setup>, email = 'traveler@example.com') {
+  fireEvent.change(screen.getByRole('textbox', { name: 'Full name' }), { target: { value: 'Juan Dela Cruz' } })
+  fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), { target: { value: email } })
+  const hiddenDob = document.querySelector<HTMLInputElement>('input[name="dateOfBirth"]')!
+  fireEvent.change(hiddenDob, { target: { value: '1998-06-15' } })
+  fireEvent.change(screen.getByRole('combobox', { name: 'Nationality' }), { target: { value: 'Filipino' } })
+  const [password, confirm] = document.querySelectorAll<HTMLInputElement>('input[autocomplete="new-password"]')
+  fireEvent.change(password, { target: { value: 'Secret123' } })
+  fireEvent.change(confirm, { target: { value: 'Secret123' } })
+  await user.click(screen.getByRole('checkbox'))
+  await user.click(screen.getByRole('button', { name: 'Create account' }))
 }
 
 describe('sign-up page', () => {
@@ -317,5 +331,126 @@ describe('sign-up page', () => {
     expect(screen.getByText(/18 or older/i)).toBeInTheDocument()
     expect(screen.getByText(/not stored or sent to our servers/i)).toBeInTheDocument()
     expect(screen.queryByText(/This page doesn't exist/)).not.toBeInTheDocument()
+  })
+
+  describe('email confirmation screen', () => {
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    function advanceSeconds(seconds: number) {
+      for (let i = 0; i < seconds; i++) {
+        act(() => {
+          vi.advanceTimersByTime(1000)
+        })
+      }
+    }
+
+    it('uses the redesigned tokens, shows a Spam/Junk tip, keeps the button label fixed, and disables resend right after sign-up', async () => {
+      const user = userEvent.setup()
+      renderPage(<AuthContext.Provider value={supabaseAuth()}><SignUpPage /></AuthContext.Provider>)
+
+      await fillAndSubmitValidForm(user, 'maria@example.com')
+
+      expect(await screen.findByRole('heading', { name: 'Check your email' })).toBeInTheDocument()
+      const statusBox = screen.getByRole('status')
+      expect(statusBox).toHaveClass('bg-sage-soft', 'border-ivory-line', 'text-ink')
+      expect(screen.getByText('maria@example.com')).toBeInTheDocument()
+      expect(screen.getByText(/Spam or Junk folder/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Resend confirmation email' })).toBeDisabled()
+      const countdown = screen.getByText('You can resend in 60s.')
+      expect(countdown).toHaveAttribute('aria-live', 'off')
+      expect(screen.getByRole('button', { name: 'Use a different email' })).toBeInTheDocument()
+    })
+
+    it('re-enables resend after the initial cooldown and enforces a 60-second cooldown on resend', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      const resendConfirmationEmail = vi.fn().mockResolvedValue(undefined)
+      renderPage(<AuthContext.Provider value={supabaseAuth({ resendConfirmationEmail })}><SignUpPage /></AuthContext.Provider>)
+
+      await fillAndSubmitValidForm(user, 'maria@example.com')
+      await screen.findByRole('heading', { name: 'Check your email' })
+      expect(screen.getByRole('button', { name: 'Resend confirmation email' })).toBeDisabled()
+      expect(screen.getByText('You can resend in 60s.')).toBeInTheDocument()
+
+      advanceSeconds(60)
+
+      const resendButton = screen.getByRole('button', { name: 'Resend confirmation email' })
+      expect(resendButton).toBeEnabled()
+      expect(screen.queryByText(/You can resend in/)).not.toBeInTheDocument()
+      await user.click(resendButton)
+
+      expect(resendConfirmationEmail).toHaveBeenCalledWith('maria@example.com')
+      const feedback = await screen.findByText('Confirmation email resent.')
+      expect(feedback).toHaveClass('text-sage-deep')
+      expect(screen.getByRole('button', { name: 'Resend confirmation email' })).toBeDisabled()
+      expect(screen.getByText('You can resend in 60s.')).toBeInTheDocument()
+
+      advanceSeconds(60)
+
+      expect(screen.getByRole('button', { name: 'Resend confirmation email' })).toBeEnabled()
+    })
+
+    it('starts the cooldown using the wait time from a Supabase rate-limit error', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      const resendConfirmationEmail = vi.fn().mockRejectedValue(
+        new Error('For security purposes, you can only request this after 45 seconds.'),
+      )
+      renderPage(<AuthContext.Provider value={supabaseAuth({ resendConfirmationEmail })}><SignUpPage /></AuthContext.Provider>)
+
+      await fillAndSubmitValidForm(user, 'maria@example.com')
+      await screen.findByRole('heading', { name: 'Check your email' })
+
+      advanceSeconds(60)
+
+      await user.click(screen.getByRole('button', { name: 'Resend confirmation email' }))
+
+      const alert = await screen.findByRole('alert')
+      expect(alert).toHaveTextContent('For security purposes, you can only request this after 45 seconds.')
+      expect(alert).toHaveClass('text-danger')
+      expect(screen.getByRole('button', { name: 'Resend confirmation email' })).toBeDisabled()
+      expect(screen.getByText('You can resend in 45s.')).toBeInTheDocument()
+
+      advanceSeconds(45)
+
+      expect(screen.getByRole('button', { name: 'Resend confirmation email' })).toBeEnabled()
+    })
+
+    it('shows an error alert for non-rate-limit failures without locking the button', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+      const resendConfirmationEmail = vi.fn().mockRejectedValue(new Error('Network error'))
+      renderPage(<AuthContext.Provider value={supabaseAuth({ resendConfirmationEmail })}><SignUpPage /></AuthContext.Provider>)
+
+      await fillAndSubmitValidForm(user, 'maria@example.com')
+      await screen.findByRole('heading', { name: 'Check your email' })
+
+      advanceSeconds(60)
+
+      await user.click(screen.getByRole('button', { name: 'Resend confirmation email' }))
+
+      const alert = await screen.findByRole('alert')
+      expect(alert).toHaveTextContent('Network error')
+      expect(alert).toHaveClass('text-danger')
+      expect(screen.getByRole('button', { name: 'Resend confirmation email' })).toBeEnabled()
+    })
+
+    it('returns to the form and focuses the email field when "Use a different email" is clicked', async () => {
+      const user = userEvent.setup()
+      renderPage(<AuthContext.Provider value={supabaseAuth()}><SignUpPage /></AuthContext.Provider>)
+
+      await fillAndSubmitValidForm(user, 'mistyped@exampl.com')
+      await screen.findByRole('heading', { name: 'Check your email' })
+
+      await user.click(screen.getByRole('button', { name: 'Use a different email' }))
+
+      expect(await screen.findByRole('heading', { name: 'Create Account' })).toBeInTheDocument()
+      const emailInput = screen.getByRole('textbox', { name: 'Email' })
+      expect(emailInput).toHaveValue('mistyped@exampl.com')
+      expect(emailInput).toHaveFocus()
+      expect(screen.getByRole('textbox', { name: 'Full name' })).toHaveValue('Juan Dela Cruz')
+    })
   })
 })

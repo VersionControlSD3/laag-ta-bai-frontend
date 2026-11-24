@@ -160,6 +160,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         return { needsConfirmation: false }
       },
+      async resendConfirmationEmail(email) {
+        if (!supabase) throw new Error('Supabase is not configured. Use the dev sign-in.')
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email,
+          options: { emailRedirectTo: window.location.origin },
+        })
+        if (error) throw error
+      },
       async signInWithGoogle() {
         if (!supabase) throw new Error('Supabase is not configured. Use the dev sign-in.')
         const { error } = await supabase.auth.signInWithOAuth({
