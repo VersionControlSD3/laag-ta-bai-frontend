@@ -20,6 +20,7 @@ function renderLogin(overrides: Partial<AuthState> = {}) {
     token: null,
     signIn: vi.fn().mockResolvedValue(undefined),
     signUp: vi.fn(),
+    resendConfirmationEmail: vi.fn().mockResolvedValue(undefined),
     signInWithGoogle: vi.fn().mockResolvedValue(undefined),
     signInAsDev: vi.fn(),
     signOut: vi.fn(),

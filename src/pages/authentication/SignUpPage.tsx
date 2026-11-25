@@ -161,13 +161,38 @@ function CustomDatePicker({ value, onChange, invalid, describedBy }: { value: st
   )
 }
 
+const RESEND_COOLDOWN_SECONDS = 60
+
+function parseRateLimitCooldown(error: unknown): number | null {
+  const message = error instanceof Error ? error.message : typeof error === 'string' ? error : ''
+  const status = typeof error === 'object' && error !== null && 'status' in error ? (error as { status?: unknown }).status : undefined
+  const code = typeof error === 'object' && error !== null && 'code' in error ? (error as { code?: unknown }).code : undefined
+
+  const secondsMatch = message.match(/(?:after|in)\s+(\d+)\s*seconds?/i)
+  if (secondsMatch) {
+    const seconds = Number(secondsMatch[1])
+    if (Number.isFinite(seconds) && seconds > 0) return seconds
+  }
+
+  if (status === 429 || code === 'over_email_send_rate_limit' || /rate\s*limit|too many requests/i.test(message)) {
+    return RESEND_COOLDOWN_SECONDS
+  }
+
+  return null
+}
+
 export default function SignUpPage() {
   const auth = useAuth()
   const navigate = useNavigate()
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const focusEmailOnReturnRef = useRef(false)
   const [form, setForm] = useState({ displayName: '', email: '', dateOfBirth: '', nationality: '', password: '', confirmPassword: '', bio: '', acceptedTerms: false })
   const [error, setError] = useState<{ message: string } | null>(null)
   const [confirmEmail, setConfirmEmail] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
+  const [resendFeedback, setResendFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitCount, setSubmitCount] = useState(0)
@@ -178,6 +203,22 @@ export default function SignUpPage() {
   const errorRef = useRef<HTMLParagraphElement>(null)
   const submitted = submitCount > 0
   const consentChecked = submitted || blockedGoogleCount > 0
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const timer = window.setTimeout(() => {
+      setResendCooldown((seconds) => (seconds <= 1 ? 0 : seconds - 1))
+    }, 1000)
+    return () => window.clearTimeout(timer)
+  }, [resendCooldown])
+
+  useEffect(() => {
+    if (!confirmEmail && focusEmailOnReturnRef.current) {
+      focusEmailOnReturnRef.current = false
+      emailInputRef.current?.focus()
+      emailInputRef.current?.select()
+    }
+  }, [confirmEmail])
 
   useLayoutEffect(() => {
     const firstInvalid = formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')
@@ -227,13 +268,48 @@ export default function SignUpPage() {
         email: form.email, password: form.password, displayName: form.displayName,
         nationality: form.nationality, bio: form.bio,
       })
-      if (needsConfirmation) setConfirmEmail(true)
-      else navigate('/')
+      if (needsConfirmation) {
+        setResendFeedback(null)
+        setResendCooldown(RESEND_COOLDOWN_SECONDS)
+        setConfirmEmail(true)
+      } else {
+        navigate('/')
+      }
     } catch (e) {
       setError({ message: e instanceof Error ? e.message || 'Sign up failed.' : 'Sign up failed.' })
     } finally {
       setBusy(false)
     }
+  }
+
+  const handleResendConfirmation = async () => {
+    if (resending || resendCooldown > 0) return
+    setResending(true)
+    setResendFeedback(null)
+    try {
+      await auth.resendConfirmationEmail(form.email)
+      setResendCooldown(RESEND_COOLDOWN_SECONDS)
+      setResendFeedback({ type: 'success', message: 'Confirmation email resent.' })
+    } catch (e) {
+      const cooldown = parseRateLimitCooldown(e)
+      if (cooldown !== null) setResendCooldown(cooldown)
+      setResendFeedback({
+        type: 'error',
+        message: e instanceof Error ? e.message : 'Could not resend confirmation email. Please try again.',
+      })
+    } finally {
+      setResending(false)
+    }
+  }
+
+  const handleUseDifferentEmail = () => {
+    focusEmailOnReturnRef.current = true
+    setConfirmEmail(false)
+    setResendFeedback(null)
+    setResendCooldown(0)
+    setError(null)
+    setSubmitCount(0)
+    setBlockedGoogleCount(0)
   }
 
   const googleBlocked = !form.dateOfBirth || isUnderage || !form.acceptedTerms
@@ -261,7 +337,41 @@ export default function SignUpPage() {
     <AuthScreen>
       <div className="auth-signup">
           {confirmEmail ? (
-            <p role="status" className="rounded-2xl border border-ivory-line bg-sage-soft p-4 text-center text-ink">Check <strong>{form.email}</strong> for a confirmation link, then sign in.</p>
+            <>
+              <h1 className="text-center font-display text-[2.25rem] leading-[1.15] font-bold tracking-tight text-ink">Check your email</h1>
+              <div role="status" className="mt-4 rounded-2xl border border-ivory-line bg-sage-soft p-4 text-center text-ink">
+                <p>Check <strong>{form.email}</strong> for a confirmation link, then sign in.</p>
+                <p className="mt-2 text-xs text-ink-body">Don&apos;t see it? Check your Spam or Junk folder.</p>
+              </div>
+              <button
+                type="button"
+                disabled={resending || resendCooldown > 0}
+                onClick={() => void handleResendConfirmation()}
+                className="mt-5 min-h-14 w-full rounded-xl bg-navy px-4 text-base font-bold text-on-navy shadow-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60"
+              >
+                {resending ? 'Sending…' : 'Resend confirmation email'}
+              </button>
+              {resendCooldown > 0 && (
+                <p aria-live="off" className="mt-2 text-center text-xs text-ink-muted">
+                  You can resend in {resendCooldown}s.
+                </p>
+              )}
+              {resendFeedback && (
+                <p
+                  role={resendFeedback.type === 'error' ? 'alert' : 'status'}
+                  className={`mt-3 text-center text-sm font-semibold ${resendFeedback.type === 'error' ? 'text-danger' : 'text-sage-deep'}`}
+                >
+                  {resendFeedback.message}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={handleUseDifferentEmail}
+                className="touch-target mt-2 w-full rounded-xl text-center text-sm font-bold text-navy underline underline-offset-4 transition-colors hover:text-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              >
+                Use a different email
+              </button>
+            </>
           ) : (
             <>
               {/* Form header */}
@@ -279,7 +389,7 @@ export default function SignUpPage() {
                 </div>
                 <div>
                   <label className="auth-label block">Email <span aria-hidden="true">*</span>
-                    <input type="email" autoComplete="email" required value={form.email} onChange={(e) => update('email', e.target.value)} className={inputClass(emailInvalid)} aria-invalid={emailInvalid} aria-describedby={emailInvalid ? 'signup-email-error' : undefined} />
+                    <input ref={emailInputRef} type="email" autoComplete="email" required value={form.email} onChange={(e) => update('email', e.target.value)} className={inputClass(emailInvalid)} aria-invalid={emailInvalid} aria-describedby={emailInvalid ? 'signup-email-error' : undefined} />
                   </label>
                   {emailInvalid && fieldError(form.email ? 'Enter a valid email address.' : 'Email is required.', 'signup-email-error')}
                 </div>
