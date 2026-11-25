@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { useLocation, useNavigate } from 'react-router'
 import { ArrowBackIcon } from '@/components/icons/ionicons'
+import { useBack } from '@/hooks/useBack'
 
 export const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy'
 
@@ -22,21 +22,19 @@ export function TopNavbar({
   backLabel?: string
   titleAs?: 'h1' | 'p'
 }) {
-  const navigate = useNavigate()
-  const location = useLocation()
+  const back = useBack()
   return (
     <header className="sticky top-0 z-10 rounded-b-chrome bg-ivory-surface px-5 pt-[env(safe-area-inset-top)] shadow-topbar">
       <div className="flex h-topbar items-center gap-2">
         <button
           type="button"
-          // Opened from a shared link there's no history to go back to.
-          onClick={() => (onBack ? onBack() : location.key === 'default' ? navigate('/') : navigate(-1))}
+          onClick={onBack ?? back}
           aria-label={backLabel}
           className={`touch-target flex items-center justify-center rounded-full text-navy ${focus}`}
         >
           <ArrowBackIcon />
         </button>
-        <Title className="min-w-0 flex-1 truncate text-center text-2xl font-bold tracking-wide text-navy">{title}</Title>
+        <Title className="min-w-0 flex-1 truncate text-center text-[1.375rem] leading-7 font-bold tracking-[0.01em] text-navy">{title}</Title>
         <div className="flex min-w-12 justify-center">{action}</div>
       </div>
     </header>

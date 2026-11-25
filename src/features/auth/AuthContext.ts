@@ -9,6 +9,7 @@ export type AuthState = {
   user: AuthUser | null
   /** Bearer token for the API. */
   token: string | null
+  isPasswordRecovery?: boolean
   signIn(email: string, password: string): Promise<void>
   /**
    * `date_of_birth` is intentionally absent: it is used only for the 18+ age
@@ -21,6 +22,8 @@ export type AuthState = {
     nationality: string
     bio: string
   }): Promise<{ needsConfirmation: boolean }>
+  /** Resends the Supabase sign-up confirmation email to the given address. */
+  resendConfirmationEmail(email: string): Promise<void>
   /**
    * Google OAuth via Supabase: signs in, or creates the account on first use. A new account has no
    * Terms acceptance, so ProfileGate sends it to /complete-profile (18+, nationality, Terms).

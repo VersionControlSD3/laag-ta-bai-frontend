@@ -45,6 +45,14 @@ Until both steps are done, "Continue with Google" fails with a provider error. G
 sign-ups also skip the sign-up form, so those accounts start without date of birth or
 nationality (added later from the Profile screen).
 
+**Password recovery** uses the frontend origin where the reset request was made. In the
+Supabase Dashboard under **Authentication → URL Configuration → Redirect URLs**, add the
+full reset URL for each origin you use, including `http://localhost:5173/reset-password`
+for local development and `https://laag-ta-bai-frontend.vercel.app/reset-password` for production.
+If you customize the Reset Password email template, use `{{ .ConfirmationURL }}` for its link.
+Users outside the Supabase project team need [custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp)
+to receive reset emails.
+
 To test on a phone on the same Wi-Fi: `npm run dev -- --host`, open the printed network URL,
 and add that origin to the API's `CORS_ORIGINS`. Camera capture and geolocation need HTTPS
 outside `localhost`, so use a deployed preview (or a tunnel) for full device testing.
@@ -69,7 +77,7 @@ therefore **public**. Never put a secret key, database password or account login
 | `VITE_API_URL` | yes | API base URL. Default `http://localhost:3000` |
 | `VITE_SUPABASE_URL` | for real accounts | Supabase project URL |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | for real accounts | Publishable / anon key |
-| `VITE_GOOGLE_MAPS_API_KEY` | not yet used | Reserved for the interactive map |
+| `VITE_GOOGLE_MAPS_API_KEY` | for the Explore map | Browser key with Maps JavaScript API enabled and a website restriction for the app's origin |
 
 ## Screens
 
@@ -77,6 +85,8 @@ therefore **public**. Never put a secret key, database password or account login
 |---|---|
 | `/onboarding` | First-run onboarding (three slides) |
 | `/login`, `/register` | Supabase sign-in / sign-up (or dev sign-in) |
+| `/forgot-password` | Request a password reset email |
+| `/reset-password` | Set a new password with an active recovery session |
 | `/` | Explore: search, filters, nearby (5 km), popular landmarks |
 | `/scan` | Scan-to-Story: camera or gallery photo, validation, result or candidates |
 | `/landmarks/:id` | Landmark detail: facts, story accordions with narration, bookmark, check-in |

@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
 import { mockFetch, renderRoutes } from '@/test/render'
@@ -41,6 +41,14 @@ describe('complete profile for new Google accounts', () => {
     expect(screen.getByText('Nationality is required.')).toBeInTheDocument()
     expect(screen.getByText('You must accept the Terms and Privacy Policy.')).toBeInTheDocument()
     expect(patches).toEqual([])
+
+    // Errors are linked to their controls, and focus moves to the first invalid one.
+    expect(screen.getByRole('combobox', { name: /Nationality/ })).toHaveAccessibleDescription('Nationality is required.')
+    const terms = screen.getByRole('checkbox', { name: /I agree/ })
+    expect(terms).toHaveAttribute('aria-invalid', 'true')
+    expect(terms).toHaveAccessibleDescription('You must accept the Terms and Privacy Policy.')
+    expect(document.activeElement).toHaveAttribute('aria-invalid', 'true')
+    expect(document.activeElement).toHaveAccessibleDescription(/Date of birth is required/)
   })
 
   it('saves nationality and Terms, never the date of birth, then opens the app', async () => {
@@ -51,8 +59,8 @@ describe('complete profile for new Google accounts', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Choose date of birth' }))
     // The picker opens 18 years back; the 1st of that month is always old enough.
     await userEvent.click(screen.getByRole('gridcell', { name: '1' }))
-    await userEvent.type(screen.getByRole('textbox', { name: /Nationality/ }), ' Filipino ')
-    await userEvent.click(screen.getByRole('checkbox'))
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /Nationality/ }), 'Filipino')
+    await userEvent.click(screen.getByRole('checkbox', { name: /I agree/ }))
     await userEvent.click(screen.getByRole('button', { name: 'Continue' }))
 
     expect(await screen.findByRole('navigation', { name: 'Main' })).toBeInTheDocument()
@@ -68,6 +76,23 @@ describe('complete profile for new Google accounts', () => {
     expect(await screen.findByRole('navigation', { name: 'Main' })).toBeInTheDocument()
     // Give the profile request time to land: a redirect would show up here.
     await expect(screen.findByRole('heading', { name: 'Complete your profile' }, { timeout: 500 })).rejects.toThrow()
+  })
+
+  it('shows a loader, not the app, until the first profile arrives', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise(() => {}))
+    renderRoutes(routes, '/')
+    expect(await screen.findByRole('status')).toHaveTextContent('Loading')
+    expect(screen.queryByRole('navigation', { name: 'Main' })).not.toBeInTheDocument()
+  })
+
+  it('lets the user in when the profile request fails', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) =>
+      String(input instanceof Request ? input.url : input).includes('/v1/me')
+        ? new Response(JSON.stringify({ error: { code: 'bad_request', message: 'Nope' } }), { status: 400 })
+        : new Response(JSON.stringify({ data: [] }), { status: 200 }),
+    )
+    renderRoutes(routes, '/')
+    expect(await screen.findByRole('navigation', { name: 'Main' })).toBeInTheDocument()
   })
 
   it('sends a completed profile away from /complete-profile', async () => {

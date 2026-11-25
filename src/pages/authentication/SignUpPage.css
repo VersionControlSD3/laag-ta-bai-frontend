@@ -32,39 +32,75 @@
   outline-offset: 2px;
 }
 
-/* Date of birth field: same 56px sand well as the text fields, coral calendar icon. */
+/*
+ * Date of birth field: same 56px sand well as the text fields. A typeable mm/dd/yyyy input on the
+ * left, a 48px coral calendar button on the right (ClickUp bug #9).
+ */
 .auth-date-field {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
   min-height: 56px;
   border: 1px solid var(--ds-line);
   border-radius: 0.75rem;
   background: var(--ds-ivory-deep);
-  padding: 0 1rem;
-  font-size: 1rem;
-  font-weight: 400;
-  text-align: left;
+  padding: 0 0.25rem 0 1rem;
 }
 
-.auth-date-field:focus-visible {
+.auth-date-field:has(.auth-date-input:focus-visible) {
   outline: 2px solid var(--ds-navy);
   outline-offset: 2px;
 }
 
-.auth-date-field svg {
+.auth-date-input {
+  flex: 1;
+  min-width: 0;
+  height: 54px;
+  background: transparent;
+  color: var(--ds-ink);
+  font-size: 1rem;
+  font-weight: 400;
+  outline: none;
+}
+
+.auth-date-input::placeholder {
+  color: var(--ds-ink-muted);
+}
+
+.auth-date-toggle {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
   color: var(--ds-terracotta);
+}
+
+.auth-date-toggle:hover {
+  background: var(--ds-navy-soft);
+}
+
+.auth-date-toggle:focus-visible {
+  outline: 2px solid var(--ds-navy);
+  outline-offset: 2px;
 }
 
 .auth-date-field-invalid {
   border-color: var(--ds-danger);
 }
 
-/* Calendar popover: a surface card with lagoon selection. */
+/*
+ * Calendar popover: an opaque surface card (never transparent, so the fields behind it can't show
+ * through; ClickUp bug #9) with lagoon selection. Capped to the viewport height so Clear stays
+ * reachable on short screens.
+ */
 .auth-calendar {
   position: absolute;
   z-index: 20;
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
   top: calc(100% + 0.5rem);
   left: 0;
   width: min(360px, calc(100vw - 16px));
