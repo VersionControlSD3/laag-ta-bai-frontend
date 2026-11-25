@@ -122,10 +122,10 @@ export default function ArchivesPage() {
         </>
       )}
 
-      {/* Mounted up front so screen readers announce the toast when it appears. */}
+      {/* Mounted up front so screen readers announce the toast when it appears. bottom-24 per ticket 06, plus the safe area. */}
       <div
         role="status"
-        className="fixed inset-x-4 bottom-[var(--nav-clearance)] z-40 mx-auto max-w-[calc(28rem-2rem)]"
+        className="fixed inset-x-4 bottom-[calc(6rem+env(safe-area-inset-bottom))] z-40 mx-auto max-w-[calc(28rem-2rem)]"
       >
         {removed && (
           <div className="flex items-center gap-2 rounded-2xl border border-on-navy/15 bg-navy py-1 pr-1 pl-4 text-on-navy shadow-navy">
