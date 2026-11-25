@@ -1,7 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { AuthCard, AuthScreen } from '@/components/AuthScreen'
+import { CheckmarkIcon, CloseOutlineIcon } from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
+import { getPasswordRules, passwordValidationError } from '@/features/auth/passwordRules'
 import { signInErrorMessage } from '@/features/auth/signInError'
 import { supabase } from '@/lib/supabase'
 
@@ -17,12 +19,18 @@ export default function ResetPasswordPage() {
   const [updated, setUpdated] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const canReset = auth.status === 'signed-in' && auth.isPasswordRecovery && Boolean(supabase)
+  const passwordRules = useMemo(() => getPasswordRules(password), [password])
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!canReset || !supabase || busy) return
-    if (password.length < 8 || password !== confirmation) {
-      setError(password.length < 8 ? 'Use at least 8 characters.' : 'The passwords must match.')
+    const validationError = passwordValidationError(password)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+    if (password !== confirmation) {
+      setError('The passwords must match.')
       return
     }
 
@@ -65,18 +73,29 @@ export default function ResetPasswordPage() {
             onSubmit={submit}
             className="mt-6 flex flex-col gap-4"
           >
-            <label className="flex flex-col gap-2 text-sm font-bold text-terracotta-light">
-              New password
-              <input
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className={inputStyle}
-              />
-            </label>
+            <div className="flex flex-col gap-2">
+              <label className="flex flex-col gap-2 text-sm font-bold text-terracotta-light">
+                New password
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={8}
+                  aria-describedby="reset-password-rules"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className={inputStyle}
+                />
+              </label>
+              <div id="reset-password-rules" className="grid gap-1 text-xs font-normal" aria-live="polite">
+                {passwordRules.map(([label, valid]) => (
+                  <span key={label} className={`flex items-center gap-1 ${valid ? 'font-semibold text-ivory' : 'text-ivory/70'}`}>
+                    {valid ? <CheckmarkIcon size={14} /> : <CloseOutlineIcon size={14} />}
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
             <label className="flex flex-col gap-2 text-sm font-bold text-terracotta-light">
               Confirm new password
               <input

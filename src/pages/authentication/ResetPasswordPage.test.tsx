@@ -71,6 +71,51 @@ describe('reset password route', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Your password has been updated.')
   })
 
+  it('enforces sign-up password rules (length, uppercase, and digit) before calling updateUser', async () => {
+    const user = userEvent.setup()
+    writeJson('password-recovery-session', 'recovery-session')
+    supabaseAuth.getSession.mockResolvedValueOnce({ data: { session } })
+    renderRoutes(routes, '/reset-password')
+
+    const passwordInput = await screen.findByLabelText('New password', { exact: true })
+    const confirmationInput = screen.getByLabelText('Confirm new password')
+    const submitBtn = screen.getByRole('button', { name: 'Update Password' })
+
+    // Repro #14: lowercase-only 8+ char password must be blocked.
+    await user.type(passwordInput, 'abcdefgh')
+    await user.type(confirmationInput, 'abcdefgh')
+    await user.click(submitBtn)
+    expect(screen.getByRole('alert')).toHaveTextContent('Include at least one uppercase letter and one digit.')
+    expect(supabaseAuth.updateUser).not.toHaveBeenCalled()
+
+    // Missing uppercase letter only.
+    await user.clear(passwordInput)
+    await user.clear(confirmationInput)
+    await user.type(passwordInput, 'abcdefgh1')
+    await user.type(confirmationInput, 'abcdefgh1')
+    await user.click(submitBtn)
+    expect(screen.getByRole('alert')).toHaveTextContent('Include at least one uppercase letter.')
+    expect(supabaseAuth.updateUser).not.toHaveBeenCalled()
+
+    // Missing digit only.
+    await user.clear(passwordInput)
+    await user.clear(confirmationInput)
+    await user.type(passwordInput, 'Abcdefgh')
+    await user.type(confirmationInput, 'Abcdefgh')
+    await user.click(submitBtn)
+    expect(screen.getByRole('alert')).toHaveTextContent('Include at least one digit.')
+    expect(supabaseAuth.updateUser).not.toHaveBeenCalled()
+
+    // Too short.
+    await user.clear(passwordInput)
+    await user.clear(confirmationInput)
+    await user.type(passwordInput, 'Abc1')
+    await user.type(confirmationInput, 'Abc1')
+    await user.click(submitBtn)
+    expect(screen.getByRole('alert')).toHaveTextContent('Use at least 8 characters.')
+    expect(supabaseAuth.updateUser).not.toHaveBeenCalled()
+  })
+
   it('rejects a different session for the same account', async () => {
     writeJson('password-recovery-session', 'recovery-session')
     const other = {

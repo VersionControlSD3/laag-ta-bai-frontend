@@ -13,6 +13,7 @@ import {
 } from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { DevSignIn } from '@/features/auth/DevSignIn'
+import { getPasswordRules } from '@/features/auth/passwordRules'
 import './SignUpPage.css'
 
 // Custom calendar controls keep the date picker consistent across browsers.
@@ -174,11 +175,7 @@ export default function SignUpPage() {
     const now = new Date()
     return new Date(now.getFullYear() - 18, now.getMonth(), now.getDate())
   })()
-  const passwordRules = useMemo(() => [
-    ['At least 8 characters', form.password.length >= 8],
-    ['One uppercase letter', /[A-Z]/.test(form.password)],
-    ['One number', /\d/.test(form.password)],
-  ] as const, [form.password])
+  const passwordRules = useMemo(() => getPasswordRules(form.password), [form.password])
   const passwordValid = passwordRules.every(([, valid]) => valid)
   const confirmValid = form.confirmPassword.length > 0 && form.password === form.confirmPassword
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
