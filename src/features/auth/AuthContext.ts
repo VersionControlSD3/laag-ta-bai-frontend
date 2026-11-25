@@ -22,6 +22,8 @@ export type AuthState = {
     nationality: string
     bio: string
   }): Promise<{ needsConfirmation: boolean }>
+  /** Resends the Supabase sign-up confirmation email to the given address. */
+  resendConfirmationEmail(email: string): Promise<void>
   /** Google OAuth via Supabase: signs in, or creates the account on first use. */
   signInWithGoogle(): Promise<void>
   signInAsDev(displayName?: string): void

@@ -29,6 +29,7 @@ function renderForgotPassword(overrides: Partial<AuthState> = {}) {
     token: null,
     signIn: vi.fn(),
     signUp: vi.fn(),
+    resendConfirmationEmail: vi.fn().mockResolvedValue(undefined),
     signInWithGoogle: vi.fn(),
     signInAsDev: vi.fn(),
     signOut: vi.fn(),

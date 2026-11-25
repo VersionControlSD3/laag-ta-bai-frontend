@@ -1,9 +1,11 @@
 import { useDeferredValue, useEffect, useState, type ReactNode } from 'react'
 import { useLandmarks } from '@/api/hooks'
 import type { LandmarkCategory } from '@/api/types'
-import { LocateOutlineIcon, OptionsOutlineIcon, SearchIcon } from '@/components/icons/ionicons'
+import { ExploreMap } from '@/components/ExploreMap'
+import { OptionsOutlineIcon, SearchIcon } from '@/components/icons/ionicons'
 import { LandmarkRow, LandmarkTile } from '@/components/LandmarkCard'
-import { useGeolocation, type GeoState } from '@/hooks/useGeolocation'
+import { usePreferences } from '@/features/preferences/PreferencesContext'
+import { useGeolocation } from '@/hooks/useGeolocation'
 import { CATEGORY_LABELS } from '@/lib/format'
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as LandmarkCategory[]
@@ -11,7 +13,8 @@ const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visi
 const PRIVACY = 'Your coordinates are sent to our server only to sort nearby landmarks and verify scans.'
 
 export default function ExplorePage() {
-  const geo = useGeolocation()
+  const geo = useGeolocation({ maximumAge: 0 })
+  const { resolvedTheme } = usePreferences()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<LandmarkCategory | undefined>()
   const [freeOnly, setFreeOnly] = useState(false)
@@ -78,6 +81,16 @@ export default function ExplorePage() {
         )}
       </div>
 
+      {/* Google Maps sets its color scheme only when the map is created. */}
+      <ExploreMap
+        key={resolvedTheme}
+        theme={resolvedTheme}
+        hidden={filtering}
+        location={geo.coords}
+        locating={geo.status === 'locating'}
+        onRefreshLocation={geo.request}
+      />
+
       {filtering ? (
         <section className="flex flex-col gap-3 px-6" aria-label="Search results">
           {results.isPending ? (
@@ -92,8 +105,6 @@ export default function ExplorePage() {
         </section>
       ) : (
         <>
-          <MapPreview geo={geo} />
-
           <section className="flex flex-col gap-4" aria-labelledby="nearby-title">
             <div className="px-6">
               <h2 id="nearby-title" className="text-2xl font-bold text-ink">Nearby You</h2>
@@ -109,7 +120,7 @@ export default function ExplorePage() {
                     </button>
                   }
                 >
-                  Share your location to sort landmarks by distance. {PRIVACY}
+                  Share your location to see where you are and sort landmarks by distance. {PRIVACY} Google Maps receives the map area you view.
                 </Notice>
               )}
               {(geo.status === 'denied' || geo.status === 'unavailable') && (
@@ -157,60 +168,6 @@ export default function ExplorePage() {
         </>
       )}
     </div>
-  )
-}
-
-const MAP_LABEL: Record<GeoState['status'], string> = {
-  ready: 'Map of your area. The navy pin marks your current location.',
-  locating: 'Map of your area. Finding your location.',
-  idle: 'Map of Cebu. Share your location to see where you are.',
-  denied: 'Map of Cebu. Location is off.',
-  unavailable: 'Map of Cebu. Your location could not be found.',
-}
-
-/**
- * Static preview, so it never captures drag gestures and the page scrolls straight past it.
- * shortcut: street art is the Figma placeholder, swap in a real map provider once one is chosen.
- */
-function MapPreview({ geo }: { geo: ReturnType<typeof useGeolocation> }) {
-  const located = geo.status === 'ready'
-  return (
-    <section className="px-6" aria-label="Map">
-      <div className="relative h-56 overflow-hidden rounded-3xl border border-ivory-line bg-sage-soft shadow-lg">
-        <div role="img" aria-label={MAP_LABEL[geo.status]} className="absolute inset-0">
-          <svg viewBox="0 0 392 224" preserveAspectRatio="xMidYMid slice" className="size-full" aria-hidden>
-            <path d="M300 224C330 190 360 185 392 170V224H300Z" className="fill-sage/50" />
-            <g fill="none" strokeLinecap="round" className="stroke-ivory-surface">
-              <path strokeWidth={10} d="M-10 200L120 120L260 70L410 20" />
-              <path strokeWidth={5} d="M-10 60L150 90L300 150L410 170M90 -10L120 120L150 240M250 -10L260 70L280 240" />
-              <path strokeWidth={3} d="M-10 140L60 150L200 180L410 200M30 -10L60 150L40 240M340 -10L330 90L360 240M150 90L200 180" />
-            </g>
-          </svg>
-          {(located || geo.status === 'locating') && (
-            <span
-              className={`absolute top-1/2 left-1/2 size-6.5 -translate-1/2 rounded-full border-[3px] border-ivory-surface bg-navy shadow-lg ${located ? '' : 'animate-pulse'}`}
-            />
-          )}
-          {!located && geo.status !== 'locating' && (
-            <span className="absolute top-1/2 left-1/2 -translate-1/2 rounded-full bg-ivory-surface px-3 py-1 text-xs font-bold whitespace-nowrap text-ink shadow-md">
-              {geo.status === 'denied' ? 'Location is off' : 'Location not shared'}
-            </span>
-          )}
-        </div>
-        {/* Bottom-right so it sits under a right thumb; hidden until the rationale has been accepted. */}
-        {geo.status !== 'idle' && geo.status !== 'denied' && (
-          <button
-            type="button"
-            onClick={geo.request}
-            disabled={geo.status === 'locating'}
-            aria-label="Recenter on my location"
-            className={`absolute right-3 bottom-3 flex size-12 items-center justify-center rounded-xl bg-ivory-surface text-navy shadow-lg disabled:opacity-80 ${focus}`}
-          >
-            <LocateOutlineIcon size={20} />
-          </button>
-        )}
-      </div>
-    </section>
   )
 }
 
