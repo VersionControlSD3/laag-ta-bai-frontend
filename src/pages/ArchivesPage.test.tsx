@@ -124,10 +124,38 @@ describe('ArchivesPage', () => {
 
     renderPage(<ArchivesPage />, '/archives')
 
-    expect(await screen.findByText('No visits yet')).toBeInTheDocument()
-    expect(screen.getByText('No saved places yet')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Your archives are empty' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Explore landmarks' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Scan landmarks' })).toHaveAttribute('href', '/scan')
+    // One unified card replaces the two empty sections.
+    expect(screen.queryByText('No saved places yet')).not.toBeInTheDocument()
+    expect(screen.queryByText('No activity history yet')).not.toBeInTheDocument()
     expect(screen.queryByText("Magellan's Cross")).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /load samples|restore examples|reset sample/i })).not.toBeInTheDocument()
+  })
+
+  it('shows the empty bookmarks card with an Explore CTA when only history exists', async () => {
+    signIn()
+    mockApi([visitAt(0, 10)])
+
+    renderPage(<ArchivesPage />, '/archives')
+
+    const favorites = await screen.findByRole('region', { name: /Bookmarked Landmarks/i })
+    expect(within(favorites).getByText('No saved places yet')).toBeInTheDocument()
+    expect(within(favorites).getByText('0 places')).toBeInTheDocument()
+    expect(within(favorites).getByRole('link', { name: 'Explore landmarks' })).toHaveAttribute('href', '/')
+  })
+
+  it('shows the empty history card with a Scan CTA when only bookmarks exist', async () => {
+    signIn()
+    writeJson('bookmarks', [bookmark(cross)])
+    mockApi([])
+
+    renderPage(<ArchivesPage />, '/archives')
+
+    const history = await screen.findByRole('region', { name: /Visit History/i })
+    expect(await within(history).findByText('No activity history yet')).toBeInTheDocument()
+    expect(within(history).getByRole('link', { name: 'Scan a landmark' })).toHaveAttribute('href', '/scan')
   })
 
   it('removes a bookmark and restores it with Undo', async () => {
@@ -138,13 +166,13 @@ describe('ArchivesPage', () => {
     renderPage(<ArchivesPage />, '/archives')
 
     const favorites = await screen.findByRole('region', { name: /Bookmarked Landmarks/i })
-    await screen.findByText('No visits yet')
+    await screen.findByText('No activity history yet')
     await userEvent.click(within(favorites).getByRole('button', { name: "Remove Magellan's Cross from bookmarks" }))
 
     expect(within(favorites).queryByRole('link', { name: "Magellan's Cross" })).not.toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('laagtabai:bookmarks')!)).toEqual([])
 
-    const toast = (await screen.findByText(`Removed "Magellan's Cross"`)).closest(
+    const toast = (await screen.findByText(`Removed "Magellan's Cross" from bookmarks`)).closest(
       '[role="status"]',
     ) as HTMLElement
     expect(toast).not.toBeNull()
@@ -161,8 +189,9 @@ describe('ArchivesPage', () => {
     renderPage(<ArchivesPage />, '/archives')
 
     expect(await screen.findByRole('link', { name: "Magellan's Cross" })).toBeInTheDocument()
-    expect(await screen.findByText('Sign in to keep visit history')).toBeInTheDocument()
+    expect(await screen.findByText('Sign in to keep a history of the places you visit across Cebu.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
+    expect(screen.getByText('1 place')).toBeInTheDocument()
   })
 
   it('labels Scanned, Visited and Viewed by text, not colour alone', async () => {
@@ -175,7 +204,7 @@ describe('ArchivesPage', () => {
 
     renderPage(<ArchivesPage />, '/archives')
 
-    const history = screen.getByRole('region', { name: 'Visit history' })
+    const history = screen.getByRole('region', { name: 'Visit History' })
     const rows = await within(history).findAllByRole('link')
     expect(rows.map((row) => within(row).getByText(/^(Scanned|Visited|Viewed)$/).textContent)).toEqual([
       'Scanned',
@@ -190,8 +219,9 @@ describe('ArchivesPage', () => {
 
     renderPage(<ArchivesPage />, '/archives')
 
-    const today = await screen.findByRole('heading', { name: 'Visit history · Today' })
-    const yesterday = screen.getByRole('heading', { name: 'Visit history · Yesterday' })
+    const today = await screen.findByRole('heading', { name: 'Today' })
+    const yesterday = screen.getByRole('heading', { name: 'Yesterday' })
+    expect(screen.getByText('2 activities')).toBeInTheDocument()
     expect(today.compareDocumentPosition(yesterday)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 
@@ -200,7 +230,7 @@ describe('ArchivesPage', () => {
     mockApi([visitAt(0, 10)])
 
     renderPage(<ArchivesPage />, '/archives')
-    await screen.findByRole('heading', { name: 'Visit history · Today' })
+    await screen.findByRole('heading', { name: 'Today' })
 
     expect(screen.queryByRole('button', { name: /clear.*history/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
@@ -246,7 +276,7 @@ describe('ArchivesPage', () => {
     signIn()
     mockApi([])
     const { container } = renderPage(<ArchivesPage />, '/archives')
-    await screen.findByText('No visits yet')
+    await screen.findByText('Your archives are empty')
 
     const page = container.firstElementChild as HTMLElement
     expect(page).toHaveClass('bg-ivory', 'text-ink')
