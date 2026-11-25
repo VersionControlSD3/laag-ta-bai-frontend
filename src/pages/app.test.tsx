@@ -32,7 +32,7 @@ describe('app routes', () => {
     writeJson('preferences', { onboarded: true })
     mockFetch(() => ({ data: [fort] }))
     renderRoutes(routes, '/')
-    expect(await screen.findByText('Fort San Pedro')).toBeInTheDocument()
+    expect((await screen.findAllByText('Fort San Pedro')).length).toBeGreaterThanOrEqual(1)
     const nav = screen.getByRole('navigation', { name: 'Main' })
     for (const label of ['Explore', 'Archives', 'Mastery', 'Profile']) expect(nav).toHaveTextContent(label)
     expect(screen.getByRole('link', { name: 'Scan' })).toBeInTheDocument()

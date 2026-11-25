@@ -220,6 +220,15 @@ body {
   padding-top: max(16px, env(safe-area-inset-top));
 }
 
+/* Hide scrollbars on horizontal filter/card rails while keeping touch/wheel scroll smooth. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Portrait lock fallback (SRS 3.6.1.2): browsers ignore manifest orientation outside installed PWAs. */
 .landscape-guard {
   display: none;

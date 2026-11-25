@@ -13,6 +13,7 @@ type ExploreMapProps = {
   hidden: boolean
   location: Location | null
   locating: boolean
+  locationStatus?: GeoState['status']
   onRefreshLocation: () => void
   theme: 'light' | 'dark'
 }
@@ -30,7 +31,7 @@ function centerNearLocation(map: GoogleMap, location: Location) {
   })
 }
 
-export function ExploreMap({ hidden, location, locating, onRefreshLocation, theme }: ExploreMapProps) {
+export function ExploreMap({ hidden, location, locating, locationStatus = 'idle', onRefreshLocation, theme }: ExploreMapProps) {
   const apiKey = env.googleMapsApiKey
   const container = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'unavailable'>(apiKey ? 'loading' : 'unavailable')
@@ -121,8 +122,8 @@ export function ExploreMap({ hidden, location, locating, onRefreshLocation, them
   }, [location, status, view])
 
   return (
-    <section className="px-6" aria-label="Explore map" hidden={hidden}>
-      <div className="relative h-56 overflow-hidden rounded-3xl border border-ivory-line bg-sage-soft shadow-lg">
+    <section className="px-5" aria-label="Explore map" hidden={hidden}>
+      <div className="relative h-44 overflow-hidden rounded-[28px] border border-ivory-line bg-sage-soft shadow-card">
         <div ref={container} className="absolute inset-0" hidden={status === 'unavailable'} />
         {status !== 'ready' && (
           <p role="status" className="pointer-events-none absolute inset-0 grid place-items-center bg-sage-soft px-4 text-center text-sm font-semibold text-sage-deep">
@@ -134,6 +135,12 @@ export function ExploreMap({ hidden, location, locating, onRefreshLocation, them
             <span aria-hidden className="size-2 shrink-0 rounded-full bg-navy motion-safe:animate-pulse" />
             Finding your location…
           </p>
+        )}
+        {status === 'ready' && !locating && !location && (
+          <span className="pointer-events-none absolute top-3 left-3 flex items-center gap-1.5 rounded-full border border-ivory-line bg-ivory-surface/95 px-3 py-1.5 text-xs leading-4 font-semibold text-ink-body shadow-xs backdrop-blur-xs">
+            <span aria-hidden className="size-2 shrink-0 rounded-full bg-ink-muted" />
+            {locationStatus === 'denied' ? 'Location is off' : 'Location not shared'}
+          </span>
         )}
         {status === 'ready' && view && location && (
           <button

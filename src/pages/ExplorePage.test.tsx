@@ -44,17 +44,34 @@ describe('ExplorePage', () => {
 
     expect(screen.getByText(/sent to our server only to sort nearby landmarks and verify scans/)).toBeInTheDocument()
     expect(screen.getByText(/Google Maps receives the map area you view/)).toBeInTheDocument()
-    expect(await screen.findAllByRole('link', { name: /Casa Gorordo/ })).toHaveLength(1)
+    // Hero banner: Cebu, PH pill and Saved bookmark button (no redundant top-right Scan button).
+    const hero = screen.getByRole('banner')
+    expect(within(hero).getByText('Cebu, PH')).toBeInTheDocument()
+    expect(within(hero).getAllByRole('link')).toHaveLength(1)
+    expect(within(hero).getByRole('link', { name: 'Saved landmarks' })).toHaveAttribute('href', '/archives')
+    expect(screen.getByRole('link', { name: 'Scan a landmark' })).toHaveAttribute('href', '/scan')
+    expect(screen.getByRole('link', { name: 'AI Mode' })).toHaveAttribute('href', '/scan')
+    // Today spotlight + Popular Landmarks both render Casa Gorordo before Nearby You is shared.
+    const today = await screen.findByRole('region', { name: 'Today' })
+    expect(within(today).getByRole('link', { name: /Casa Gorordo/ })).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Popular Landmarks' })).getByRole('link', { name: /Casa Gorordo/ })).toBeInTheDocument()
     expect(nearbyRequests()).toHaveLength(0)
     expect(within(screen.getByRole('region', { name: 'Explore map' })).getByRole('status')).toHaveTextContent('Map unavailable')
 
+    // Section order: Today -> Explore map -> Nearby You -> Popular Landmarks.
+    const mapRegion = screen.getByRole('region', { name: 'Explore map' })
+    const nearbyRegion = screen.getByRole('region', { name: 'Nearby You' })
+    const popularRegion = screen.getByRole('region', { name: 'Popular Landmarks' })
+    expect(today.compareDocumentPosition(mapRegion)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(mapRegion.compareDocumentPosition(nearbyRegion)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(nearbyRegion.compareDocumentPosition(popularRegion)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+
     await userEvent.click(screen.getByRole('button', { name: 'Share location' }))
 
-    const nearby = screen.getByRole('region', { name: 'Nearby You' })
-    expect(await within(nearby).findByRole('link', { name: /Casa Gorordo/ })).toHaveTextContent('400 m')
+    expect(await within(nearbyRegion).findByRole('link', { name: /Casa Gorordo/ })).toHaveTextContent('400 m')
     expect(nearbyRequests()).toHaveLength(1)
     expect(String(nearbyRequests()[0][0])).toContain('lat=10.29')
-    expect(within(screen.getByRole('region', { name: 'Popular Landmarks' })).getByRole('link', { name: /Casa Gorordo/ })).toBeInTheDocument()
+    expect(within(popularRegion).getByRole('link', { name: /Casa Gorordo/ })).toBeInTheDocument()
   })
 
   it('shows the permission-denied state with a way to retry', async () => {
@@ -68,11 +85,13 @@ describe('ExplorePage', () => {
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
   })
 
-  it('shows an empty state when a search has no matches', async () => {
+  it('shows an empty state when a search has no matches and clears filters', async () => {
     mockFetch((url) => ({ data: url.searchParams.get('q') ? [] : [casa] }))
     renderPage(<ExplorePage />)
 
     await userEvent.type(screen.getByRole('searchbox', { name: 'Search landmarks' }), 'zzz')
     expect(await screen.findByText('No matches')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(await screen.findByRole('region', { name: 'Today' })).toBeInTheDocument()
   })
 })
