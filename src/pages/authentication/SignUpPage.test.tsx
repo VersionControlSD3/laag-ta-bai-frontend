@@ -73,7 +73,7 @@ describe('sign-up page', () => {
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' })
     expect(fullName).toHaveAccessibleDescription('Full name is required.')
     expect(screen.getByRole('textbox', { name: 'Email' })).toHaveAccessibleDescription('Email is required.')
-    expect(screen.getByRole('button', { name: 'Choose date of birth' })).toHaveAccessibleDescription('Date of birth is required.')
+    expect(screen.getByLabelText(/^Date of birth/)).toHaveAccessibleDescription('Date of birth is required.')
     expect(nationality).toHaveAccessibleDescription('Nationality is required.')
     expect(screen.getByLabelText(/^Password\b/)).toHaveAccessibleDescription(/One uppercase letter: required/)
     expect(screen.getByLabelText(/^Confirm password\b/)).toHaveAccessibleDescription('Please confirm your password.')
@@ -88,7 +88,7 @@ describe('sign-up page', () => {
     const user = userEvent.setup()
     await openRegister()
     const submit = screen.getByRole('button', { name: 'Create account' })
-    const datePicker = screen.getByRole('button', { name: 'Choose date of birth' })
+    const datePicker = screen.getByLabelText(/^Date of birth/)
     const [password, confirmation] = document.querySelectorAll<HTMLInputElement>('input[autocomplete="new-password"]')
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Full name' }), { target: { value: 'Test Traveler' } })
@@ -146,7 +146,7 @@ describe('sign-up page', () => {
     expect(screen.getByText('You must accept the Terms and Privacy Policy.')).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent(/before continuing with Google/)
     // Focus moves to the first consent field, as on submit; the email/password fields are not flagged.
-    expect(screen.getByRole('button', { name: 'Choose date of birth' })).toHaveFocus()
+    expect(screen.getByLabelText(/^Date of birth/)).toHaveFocus()
     expect(screen.queryByText('Full name is required.')).not.toBeInTheDocument()
 
     const dateOfBirth = document.querySelector<HTMLInputElement>('input[name="dateOfBirth"]')!
@@ -251,6 +251,42 @@ describe('sign-up page', () => {
     expect(within(dialog).getByRole('button', { name: 'Clear' })).toBeInTheDocument()
   })
 
+  it('lets the date of birth be typed as mm/dd/yyyy and syncs it with the calendar', async () => {
+    const user = userEvent.setup()
+    await openRegister()
+
+    const field = screen.getByLabelText(/Date of birth/)
+    await user.type(field, '01152000')
+    expect(field).toHaveValue('01/15/2000')
+    expect(document.querySelector<HTMLInputElement>('input[name="dateOfBirth"]')).toHaveValue('2000-01-15')
+
+    // The calendar opens on the typed month with that day selected.
+    await user.click(screen.getByRole('button', { name: 'Choose date of birth' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Choose date of birth' })
+    expect(within(dialog).getByRole('button', { name: 'Month' })).toHaveTextContent('January')
+    expect(within(dialog).getByRole('button', { name: 'Year' })).toHaveTextContent('2000')
+    expect(within(dialog).getByRole('gridcell', { name: '15' })).toHaveAttribute('aria-selected', 'true')
+
+    // Escape closes it; Clear empties the typed text too.
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: 'Choose date of birth' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Choose date of birth' }))
+    await user.click(within(await screen.findByRole('dialog', { name: 'Choose date of birth' })).getByRole('button', { name: 'Clear' }))
+    expect(field).toHaveValue('')
+  })
+
+  it('explains a typed date that does not exist instead of calling it missing', async () => {
+    const user = userEvent.setup()
+    await openRegister()
+
+    await user.type(screen.getByLabelText(/Date of birth/), '02312000')
+    await user.click(screen.getByRole('button', { name: 'Create account' }))
+
+    expect(await screen.findByText('Enter a real date as mm/dd/yyyy.')).toBeInTheDocument()
+    expect(screen.queryByText('Date of birth is required.')).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/Date of birth/)).toHaveAttribute('aria-invalid', 'true')
+  })
+
   it('shows 18+ requirement error when an underage date is submitted', async () => {
     const user = userEvent.setup()
     await openRegister()
@@ -275,7 +311,7 @@ describe('sign-up page', () => {
     await user.click(await within(dialog).findByRole('option', { name: String(now.getFullYear() - 19) }))
     const pastDay = within(dialog).getAllByRole('gridcell')[0]
     await user.click(pastDay)
-    expect(screen.getByRole('button', { name: 'Choose date of birth' })).not.toHaveTextContent('mm/dd/yyyy')
+    expect(screen.getByLabelText<HTMLInputElement>(/Date of birth/).value).toMatch(/^\d{2}\/\d{2}\/\d{4}$/)
 
     // Reopening keeps the chosen month instead of jumping back to today.
     await user.click(screen.getByRole('button', { name: 'Choose date of birth' }))

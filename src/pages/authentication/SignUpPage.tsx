@@ -28,6 +28,22 @@ function formatDate(value: string) {
   return `${month}/${day}/${year}`
 }
 
+/** Keeps only digits and inserts the slashes, so typing `01152000` shows `01/15/2000`. */
+function maskDate(text: string) {
+  const digits = text.replace(/\D/g, '').slice(0, 8)
+  return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)].filter(Boolean).join('/')
+}
+
+/** `mm/dd/yyyy` → `yyyy-mm-dd`, or '' when the text isn't a complete, real calendar date. */
+function parseTypedDate(text: string, minYear: number) {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text)
+  if (!match) return ''
+  const [, month, day, year] = match
+  const date = new Date(Number(year), Number(month) - 1, Number(day))
+  const real = date.getFullYear() === Number(year) && date.getMonth() === Number(month) - 1 && date.getDate() === Number(day)
+  return real && Number(year) >= minYear ? `${year}-${month}-${day}` : ''
+}
+
 function CalendarSelect({ label, value, options, open, onToggle, onChange, isDisabled }: { label: string; value: number; options: string[]; open: boolean; onToggle: () => void; onChange: (value: number) => void; isDisabled?: (index: number) => boolean }) {
   return (
     <div className="auth-calendar-select">
@@ -50,7 +66,12 @@ function CalendarSelect({ label, value, options, open, onToggle, onChange, isDis
   )
 }
 
-function CustomDatePicker({ value, onChange, invalid, describedBy }: { value: string; onChange: (value: string) => void; invalid: boolean; describedBy?: string }) {
+/**
+ * Date of birth: a typeable `mm/dd/yyyy` field plus a calendar popover (ClickUp bug #9). Reports
+ * the ISO date, or '' while the text is empty or incomplete; `onTypedInvalid` says whether the
+ * field holds text that isn't a complete, real date, so the page can say that instead of "required".
+ */
+function CustomDatePicker({ id, value, onChange, onTypedInvalid, invalid, describedBy }: { id: string; value: string; onChange: (value: string) => void; onTypedInvalid: (invalid: boolean) => void; invalid: boolean; describedBy?: string }) {
   const today = new Date()
   const maxYear = today.getFullYear() - 18
   // Age gate: latest selectable date is today minus 18 years (PR #17 review).
@@ -62,6 +83,26 @@ function CustomDatePicker({ value, onChange, invalid, describedBy }: { value: st
   const [openSelect, setOpenSelect] = useState<'month' | 'year' | null>(null)
   const [openAbove, setOpenAbove] = useState(false)
   const [viewDate, setViewDate] = useState(() => selected ?? new Date(maxYear, today.getMonth(), 1))
+  const minYear = maxYear - 100
+  const [text, setText] = useState(() => formatDate(value))
+  const [syncedValue, setSyncedValue] = useState(value)
+  // A date picked in the calendar (or set from outside) replaces the typed text.
+  if (value !== syncedValue) {
+    setSyncedValue(value)
+    if (value !== parseTypedDate(text, minYear)) setText(formatDate(value))
+  }
+  const typeDate = (raw: string) => {
+    const masked = maskDate(raw)
+    const iso = parseTypedDate(masked, minYear)
+    setText(masked)
+    onChange(iso)
+    onTypedInvalid(masked.length > 0 && !iso)
+    if (iso) setViewDate(clampViewDate(new Date(`${iso}T00:00:00`)))
+  }
+  const closeCalendar = () => {
+    setOpen(false)
+    setOpenSelect(null)
+  }
   const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay()
   const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate()
   const days = Array.from({ length: firstDay + daysInMonth }, (_, index) => index < firstDay ? null : index - firstDay + 1)
@@ -80,7 +121,8 @@ function CustomDatePicker({ value, onChange, invalid, describedBy }: { value: st
     const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), day)
     const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     onChange(iso)
-    setOpen(false)
+    onTypedInvalid(false)
+    closeCalendar()
   }
   const isSelected = (day: number) => selected?.getDate() === day && selected.getMonth() === viewDate.getMonth() && selected.getFullYear() === viewDate.getFullYear()
 
@@ -92,13 +134,22 @@ function CustomDatePicker({ value, onChange, invalid, describedBy }: { value: st
         setOpenSelect(null)
       }
     }
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setOpen(false)
+      setOpenSelect(null)
+    }
     document.addEventListener('pointerdown', handleOutsidePointerDown)
-    return () => document.removeEventListener('pointerdown', handleOutsidePointerDown)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointerDown)
+      document.removeEventListener('keydown', handleEscape)
+    }
   }, [open])
 
   useEffect(() => {
     if (!open) return
-    const updateCalendarPlacement = () => {
+    const updateCalendarPlacement = (revealIfClipped = false) => {
       const picker = pickerRef.current
       const calendar = calendarRef.current
       if (!picker || !calendar) return
@@ -107,37 +158,57 @@ function CustomDatePicker({ value, onChange, invalid, describedBy }: { value: st
       const spacing = 8
       const bottomSpace = window.innerHeight - pickerRect.bottom
       const topSpace = pickerRect.top
-      setOpenAbove(bottomSpace < calendarHeight + spacing && topSpace >= calendarHeight + spacing)
+      const fitsBelow = bottomSpace >= calendarHeight + spacing
+      const fitsAbove = topSpace >= calendarHeight + spacing
+      setOpenAbove(!fitsBelow && fitsAbove)
+      // Fits neither way (short phone screens): scroll the page so the whole card, Clear
+      // included, is on screen instead of running off the bottom (ClickUp bug #9).
+      if (revealIfClipped && !fitsBelow && !fitsAbove) calendar.scrollIntoView?.({ block: 'nearest' })
     }
-    updateCalendarPlacement()
-    window.addEventListener('resize', updateCalendarPlacement)
-    window.addEventListener('scroll', updateCalendarPlacement, true)
+    updateCalendarPlacement(true)
+    const onViewportChange = () => updateCalendarPlacement()
+    window.addEventListener('resize', onViewportChange)
+    window.addEventListener('scroll', onViewportChange, true)
     return () => {
-      window.removeEventListener('resize', updateCalendarPlacement)
-      window.removeEventListener('scroll', updateCalendarPlacement, true)
+      window.removeEventListener('resize', onViewportChange)
+      window.removeEventListener('scroll', onViewportChange, true)
     }
   }, [open, openSelect])
 
   return (
-    <div ref={pickerRef} className="relative mt-1">
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-invalid={invalid}
-        aria-describedby={describedBy}
-        aria-label="Choose date of birth"
-        onClick={() => {
-          // Open on the chosen date, else on the "18 years ago" default — never
-          // reset to the current month (PR #17 review).
-          if (!open) setViewDate(selected ?? new Date(maxYear, today.getMonth(), 1))
-          setOpen((current) => !current)
-        }}
-        className={`auth-date-field ${invalid ? 'auth-date-field-invalid' : ''}`}
-      >
-        <span className={value ? 'text-ink' : 'text-ink-muted'}>{formatDate(value) || 'mm/dd/yyyy'}</span>
-        <CalendarOutlineIcon size={20} />
-      </button>
+    <div ref={pickerRef} className="relative mt-2">
+      <div className={`auth-date-field ${invalid ? 'auth-date-field-invalid' : ''}`}>
+        <input
+          id={id}
+          type="text"
+          inputMode="numeric"
+          autoComplete="bday"
+          placeholder="mm/dd/yyyy"
+          maxLength={10}
+          required
+          value={text}
+          onChange={(event) => typeDate(event.target.value)}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
+          className="auth-date-input"
+        />
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-label="Choose date of birth"
+          onClick={() => {
+            if (open) return closeCalendar()
+            // Open on the chosen date, else on the "18 years ago" default — never
+            // reset to the current month (PR #17 review).
+            setViewDate(selected ?? new Date(maxYear, today.getMonth(), 1))
+            setOpen(true)
+          }}
+          className="auth-date-toggle"
+        >
+          <CalendarOutlineIcon size={20} aria-hidden="true" />
+        </button>
+      </div>
       {open && (
         <div ref={calendarRef} className={`auth-calendar ${openAbove ? 'auth-calendar-above' : ''}`} role="dialog" aria-label="Choose date of birth">
           <div className="auth-calendar-toolbar">
@@ -153,7 +224,7 @@ function CustomDatePicker({ value, onChange, invalid, describedBy }: { value: st
             ) : <span key={`empty-${index}`} aria-hidden="true" />)}
           </div>
           <div className="auth-calendar-actions">
-            <button type="button" onClick={() => { onChange(''); setOpen(false) }}>Clear</button>
+            <button type="button" onClick={() => { setText(''); onChange(''); onTypedInvalid(false); closeCalendar() }}>Clear</button>
           </div>
         </div>
       )}
@@ -199,6 +270,7 @@ export default function SignUpPage() {
   const [oauthError, setOauthError] = useState<string | null>(null)
   // Google creates the account on first use, so it needs the same consent and 18+ gate as the form.
   const [blockedGoogleCount, setBlockedGoogleCount] = useState(0)
+  const [dobTypedInvalid, setDobTypedInvalid] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const errorRef = useRef<HTMLParagraphElement>(null)
   const submitted = submitCount > 0
@@ -394,12 +466,12 @@ export default function SignUpPage() {
                   {emailInvalid && fieldError(form.email ? 'Enter a valid email address.' : 'Email is required.', 'signup-email-error')}
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
+                  {/* A div, not a <label>: the field holds both the text input and the calendar button. */}
                   <div>
-                    <div className="auth-label">Date of birth <span aria-hidden="true">*</span>
-                      <CustomDatePicker value={form.dateOfBirth} onChange={(value) => update('dateOfBirth', value)} invalid={birthDateInvalid} describedBy={birthDateInvalid ? 'signup-birth-date-error' : undefined} />
-                      <input type="text" className="sr-only" tabIndex={-1} aria-hidden="true" name="dateOfBirth" value={form.dateOfBirth} onChange={(e) => update('dateOfBirth', e.target.value)} />
-                    </div>
-                    {birthDateInvalid && fieldError(isUnderage ? 'You must be at least 18 to create an account.' : 'Date of birth is required.', 'signup-birth-date-error')}
+                    <label htmlFor="signup-dob" className="auth-label block">Date of birth <span aria-hidden="true">*</span></label>
+                    <CustomDatePicker id="signup-dob" value={form.dateOfBirth} onChange={(value) => update('dateOfBirth', value)} onTypedInvalid={setDobTypedInvalid} invalid={birthDateInvalid} describedBy={birthDateInvalid ? 'signup-birth-date-error' : undefined} />
+                    <input type="text" className="sr-only" tabIndex={-1} aria-hidden="true" name="dateOfBirth" value={form.dateOfBirth} onChange={(e) => update('dateOfBirth', e.target.value)} />
+                    {birthDateInvalid && fieldError(isUnderage ? 'You must be at least 18 to create an account.' : dobTypedInvalid ? 'Enter a real date as mm/dd/yyyy.' : 'Date of birth is required.', 'signup-birth-date-error')}
                   </div>
                   <div className="min-w-0">
                     <label htmlFor="signup-nationality" className="auth-label mb-2 block">Nationality <span aria-hidden="true">*</span></label>
