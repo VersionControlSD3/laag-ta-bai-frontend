@@ -59,6 +59,12 @@ describe('reset password route', () => {
 
     await user.type(await screen.findByLabelText('New password', { exact: true }), 'NewPassword123')
     const confirmation = screen.getByLabelText('Confirm new password')
+    expect(confirmation).toHaveAttribute('type', 'password')
+    await user.click(screen.getByRole('button', { name: 'Show confirm new password' }))
+    expect(confirmation).toHaveAttribute('type', 'text')
+    expect(screen.getByLabelText('New password', { exact: true })).toHaveAttribute('type', 'password')
+    await user.click(screen.getByRole('button', { name: 'Hide confirm new password' }))
+    expect(confirmation).toHaveAttribute('type', 'password')
     await user.type(confirmation, 'DifferentPassword123')
     await user.click(screen.getByRole('button', { name: 'Update Password' }))
     expect(screen.getByRole('alert')).toHaveTextContent('The passwords must match.')
