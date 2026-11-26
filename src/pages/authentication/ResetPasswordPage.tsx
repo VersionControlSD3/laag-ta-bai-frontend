@@ -10,7 +10,17 @@ const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visi
 const inputStyle = `h-14 w-full rounded-xl border border-ivory/35 bg-navy-pressed/70 px-4 text-ivory ${focus}`
 const linkStyle = `inline-flex min-h-12 min-w-12 items-center justify-center self-center rounded font-bold text-terracotta-light underline underline-offset-4 ${focus}`
 
-function PasswordField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+function PasswordField({
+  label,
+  value,
+  onChange,
+  minLength,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  minLength?: number
+}) {
   const [visible, setVisible] = useState(false)
   // The toggle sits outside the <label> so its aria-label doesn't leak into the input's name.
   return (
@@ -21,6 +31,7 @@ function PasswordField({ label, value, onChange }: { label: string; value: strin
           type={visible ? 'text' : 'password'}
           autoComplete="new-password"
           required
+          minLength={minLength}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           className={`${inputStyle} pr-14`}
@@ -94,7 +105,7 @@ export default function ResetPasswordPage() {
             onSubmit={submit}
             className="mt-6 flex flex-col gap-4"
           >
-            <PasswordField label="New password" value={password} onChange={setPassword} />
+            <PasswordField label="New password" value={password} onChange={setPassword} minLength={8} />
             <PasswordField label="Confirm new password" value={confirmation} onChange={setConfirmation} />
             <button
               type="submit"
