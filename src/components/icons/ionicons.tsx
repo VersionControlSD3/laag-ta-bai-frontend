@@ -435,6 +435,13 @@ export const InformationCircleOutlineIcon = icon(
   </>,
 )
 
+export const LogInOutlineIcon = icon(
+  <>
+    <path {...stroke} d="M192 176v-40a40 40 0 0140-40h160a40 40 0 0140 40v240a40 40 0 01-40 40H232a40 40 0 01-40-40v-40" />
+    <path {...stroke} d="M288 336l80-80-80-80M80 256h272" />
+  </>,
+)
+
 export const LogOutOutlineIcon = icon(
   <>
     <path {...stroke} d="M304 336v40a40 40 0 01-40 40H104a40 40 0 01-40-40V136a40 40 0 0140-40h160a40 40 0 0140 40v40M384 192l64 64-64 64M448 256H192" />
