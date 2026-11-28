@@ -1,5 +1,13 @@
 import { createContext, useContext } from 'react'
 
+/** Thrown by `signUp` when the email already has an account, so the form can offer Sign in instead. */
+export class EmailTakenError extends Error {
+  constructor() {
+    super('Email used already exists.')
+    this.name = 'EmailTakenError'
+  }
+}
+
 export type AuthUser = { id: string; email: string | null; displayName: string | null }
 
 export type AuthState = {

@@ -5,7 +5,7 @@ import { api } from '@/api/client'
 import type { ProfileUpdate } from '@/api/types'
 import { readJson, removeKey, writeJson } from '@/lib/storage'
 import { hasRecoveryCallback, supabase } from '@/lib/supabase'
-import { AuthContext, type AuthState, type AuthUser } from './AuthContext'
+import { EmailTakenError, AuthContext, type AuthState, type AuthUser } from './AuthContext'
 
 const DEV_KEY = 'dev-user'
 const RECOVERY_SESSION_KEY = 'password-recovery-session'
@@ -141,6 +141,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       async signUp({ email, password, displayName, nationality, bio }) {
         if (!supabase) throw new Error('Supabase is not configured. Use the dev sign-in.')
+        // Supabase hides taken emails: it answers as if the account were new and sends the owner a
+        // "reset your password" email (bugs #11 and #16). Ask the API first. If the API can't answer,
+        // carry on: the identities check below still catches the cases Supabase does report.
+        const registered = await api.emailStatus(email).then((status) => status.registered, () => false)
+        if (registered) throw new EmailTakenError()
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -155,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) throw error
         // With email confirmation on, Supabase hides taken emails: it returns a user with no identities instead of an error.
         if (data.user && data.user.identities?.length === 0) {
-          throw new Error('An account with this email already exists. Please sign in or reset your password.')
+          throw new EmailTakenError()
         }
         if (!data.session) {
           // No session until the email is confirmed; save the profile then.
