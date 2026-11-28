@@ -86,6 +86,7 @@ export default function ExplorePage() {
         key={resolvedTheme}
         theme={resolvedTheme}
         hidden={filtering}
+        landmarks={results.data ?? []}
         location={geo.coords}
         locating={geo.status === 'locating'}
         onRefreshLocation={geo.request}

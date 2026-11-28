@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { AuthCard, AuthScreen } from '@/components/AuthScreen'
+import { EyeOffOutlineIcon, EyeOutlineIcon } from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { signInErrorMessage } from '@/features/auth/signInError'
 import { supabase } from '@/lib/supabase'
@@ -8,6 +9,45 @@ import { supabase } from '@/lib/supabase'
 const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ivory'
 const inputStyle = `h-14 w-full rounded-xl border border-ivory/35 bg-navy-pressed/70 px-4 text-ivory ${focus}`
 const linkStyle = `inline-flex min-h-12 min-w-12 items-center justify-center self-center rounded font-bold text-terracotta-light underline underline-offset-4 ${focus}`
+
+function PasswordField({
+  label,
+  value,
+  onChange,
+  minLength,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  minLength?: number
+}) {
+  const [visible, setVisible] = useState(false)
+  // The toggle sits outside the <label> so its aria-label doesn't leak into the input's name.
+  return (
+    <div className="relative">
+      <label className="flex flex-col gap-2 text-sm font-bold text-terracotta-light">
+        {label}
+        <input
+          type={visible ? 'text' : 'password'}
+          autoComplete="new-password"
+          required
+          minLength={minLength}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={`${inputStyle} pr-14`}
+        />
+      </label>
+      <button
+        type="button"
+        onClick={() => setVisible((shown) => !shown)}
+        aria-label={visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+        className={`touch-target absolute right-1 bottom-1 flex items-center justify-center rounded-full text-ivory/80 hover:text-ivory ${focus}`}
+      >
+        {visible ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}
+      </button>
+    </div>
+  )
+}
 
 export default function ResetPasswordPage() {
   const auth = useAuth()
@@ -65,29 +105,8 @@ export default function ResetPasswordPage() {
             onSubmit={submit}
             className="mt-6 flex flex-col gap-4"
           >
-            <label className="flex flex-col gap-2 text-sm font-bold text-terracotta-light">
-              New password
-              <input
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className={inputStyle}
-              />
-            </label>
-            <label className="flex flex-col gap-2 text-sm font-bold text-terracotta-light">
-              Confirm new password
-              <input
-                type="password"
-                autoComplete="new-password"
-                required
-                value={confirmation}
-                onChange={(event) => setConfirmation(event.target.value)}
-                className={inputStyle}
-              />
-            </label>
+            <PasswordField label="New password" value={password} onChange={setPassword} minLength={8} />
+            <PasswordField label="Confirm new password" value={confirmation} onChange={setConfirmation} />
             <button
               type="submit"
               disabled={busy}

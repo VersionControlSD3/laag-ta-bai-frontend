@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
+import { useQueryClient } from '@tanstack/react-query'
 import { api } from '@/api/client'
 import type { ProfileUpdate } from '@/api/types'
 import { readJson, removeKey, writeJson } from '@/lib/storage'
 import { hasRecoveryCallback, supabase } from '@/lib/supabase'
-import { AuthContext, type AuthState, type AuthUser } from './AuthContext'
+import { EmailTakenError, AuthContext, type AuthState, type AuthUser } from './AuthContext'
 
 const DEV_KEY = 'dev-user'
 const RECOVERY_SESSION_KEY = 'password-recovery-session'
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [recoverySessionId, setRecoverySessionId] = useState<string | null>(null)
   const [devUser, setDevUser] = useState<AuthUser | null>(() => (supabase ? null : readJson<AuthUser | null>(DEV_KEY, null)))
   const [loading, setLoading] = useState(Boolean(supabase))
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     if (!supabase) return
@@ -96,13 +98,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const pending = readJson<PendingProfile | null>(PENDING_PROFILE_KEY, null)
     if (!pending) return
     if (pending.email.toLowerCase() !== (session.user.email ?? '').toLowerCase()) return
+    // A pending profile only comes from the sign-up form, which requires the Terms checkbox.
     api
-      .updateMe({ nationality: pending.nationality, bio: pending.bio }, session.access_token)
-      .then(() => removeKey(PENDING_PROFILE_KEY))
+      .updateMe({ nationality: pending.nationality, bio: pending.bio, acceptTerms: true }, session.access_token)
+      .then(() => {
+        removeKey(PENDING_PROFILE_KEY)
+        // ProfileGate may already have read a profile without terms and sent the user to /complete-profile.
+        void queryClient.invalidateQueries({ queryKey: ['me'] })
+      })
       .catch(() => {
         // Keep it: retried on the next sign-in / token refresh.
       })
-  }, [session])
+  }, [session, queryClient])
 
   const value = useMemo<AuthState>(() => {
     const user = supabase ? fromSession(session) : devUser
@@ -134,6 +141,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       async signUp({ email, password, displayName, nationality, bio }) {
         if (!supabase) throw new Error('Supabase is not configured. Use the dev sign-in.')
+        // Supabase hides taken emails: it answers as if the account were new and sends the owner a
+        // "reset your password" email (bugs #11 and #16). Ask the API first. If the API can't answer,
+        // carry on: the identities check below still catches the cases Supabase does report.
+        const registered = await api.emailStatus(email).then((status) => status.registered, () => false)
+        if (registered) throw new EmailTakenError()
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -148,14 +160,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) throw error
         // With email confirmation on, Supabase hides taken emails: it returns a user with no identities instead of an error.
         if (data.user && data.user.identities?.length === 0) {
-          throw new Error('An account with this email already exists. Please sign in or reset your password.')
+          throw new EmailTakenError()
         }
         if (!data.session) {
           // No session until the email is confirmed; save the profile then.
           writeJson(PENDING_PROFILE_KEY, { email, nationality, bio })
           return { needsConfirmation: true }
         }
-        await api.updateMe({ nationality, bio }, data.session.access_token).catch(() => {
+        await api.updateMe({ nationality, bio, acceptTerms: true }, data.session.access_token).catch(() => {
           writeJson(PENDING_PROFILE_KEY, { email, nationality, bio })
         })
         return { needsConfirmation: false }
