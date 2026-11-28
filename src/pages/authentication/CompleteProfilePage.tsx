@@ -5,6 +5,8 @@ import { AuthScreen } from '@/components/AuthScreen'
 import { NationalitySelect } from '@/components/NationalitySelect'
 import { Loading } from '@/components/StateMessage'
 import { useAuth } from '@/features/auth/AuthContext'
+import { useT } from '@/i18n'
+import { errorText } from '@/i18n/errors'
 import { nationalityOptions } from '@/lib/nationality'
 import { CustomDatePicker } from './SignUpPage'
 
@@ -14,6 +16,8 @@ import { CustomDatePicker } from './SignUpPage'
  */
 export default function CompleteProfilePage() {
   const auth = useAuth()
+  const t = useT()
+  const { signUp: s, complete: c } = t.auth
   const me = useMe()
   const save = useUpdateMe()
   const [form, setForm] = useState({ dateOfBirth: '', nationality: '', acceptedTerms: false })
@@ -54,13 +58,13 @@ export default function CompleteProfilePage() {
   return (
     <AuthScreen>
       <div className="auth-signup">
-        <h1 className="text-center font-display text-[2.25rem] leading-[1.15] font-bold tracking-tight text-ink">Complete your profile</h1>
-        <p className="mt-1 text-center text-ink-muted">A few details before you start exploring.</p>
+        <h1 className="text-center font-display text-[2.25rem] leading-[1.15] font-bold tracking-tight text-ink">{c.title}</h1>
+        <p className="mt-1 text-center text-ink-muted">{c.intro}</p>
 
         <form ref={formRef} onSubmit={submit} noValidate className="mt-7 space-y-4">
           {/* A div, not a <label>: the field holds both the text input and the calendar button. */}
           <div>
-            <label htmlFor="complete-dob" className="auth-label block">Date of birth <span aria-hidden="true">*</span></label>
+            <label htmlFor="complete-dob" className="auth-label block">{s.dateOfBirth} <span aria-hidden="true">*</span></label>
             <CustomDatePicker
               id="complete-dob"
               value={form.dateOfBirth}
@@ -69,11 +73,11 @@ export default function CompleteProfilePage() {
               invalid={birthDateInvalid}
               describedBy={birthDateInvalid ? 'complete-dob-hint complete-dob-error' : 'complete-dob-hint'}
             />
-            <span id="complete-dob-hint" className="mt-1 block text-xs text-ink-muted">Only used to check you are 18 or older. It is not stored or sent to our servers.</span>
-            {birthDateInvalid && fieldError(isUnderage ? 'You must be at least 18 to use Laag ta bAI.' : dobTypedInvalid ? 'Enter a real date as mm/dd/yyyy.' : 'Date of birth is required.', 'complete-dob-error')}
+            <span id="complete-dob-hint" className="mt-1 block text-xs text-ink-muted">{c.dobHint}</span>
+            {birthDateInvalid && fieldError(isUnderage ? c.underage : dobTypedInvalid ? s.dateInvalid : s.dateRequired, 'complete-dob-error')}
           </div>
           <div className="min-w-0">
-            <label htmlFor="complete-nationality" className="auth-label mb-2 block">Nationality <span aria-hidden="true">*</span></label>
+            <label htmlFor="complete-nationality" className="auth-label mb-2 block">{s.nationality} <span aria-hidden="true">*</span></label>
             <NationalitySelect
               id="complete-nationality"
               required
@@ -83,21 +87,21 @@ export default function CompleteProfilePage() {
               aria-invalid={nationalityInvalid}
               aria-describedby={nationalityInvalid ? 'complete-nationality-error' : undefined}
             />
-            {nationalityInvalid && fieldError('Nationality is required.', 'complete-nationality-error')}
+            {nationalityInvalid && fieldError(s.nationalityRequired, 'complete-nationality-error')}
           </div>
           <label className="flex min-h-12 items-center gap-3 text-sm text-ink-body">
             <input type="checkbox" checked={form.acceptedTerms} onChange={(e) => update('acceptedTerms', e.target.checked)} aria-invalid={termsInvalid} aria-describedby={termsInvalid ? 'complete-terms-error' : undefined} className={`auth-terms-checkbox size-5 shrink-0 accent-navy ${termsInvalid ? 'auth-terms-checkbox-invalid' : ''}`} />
-            <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Terms</a> and <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
+            <span>{s.agree} <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">{s.terms}</a> {s.and} <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">{s.privacy}</a>. <span aria-hidden="true">*</span></span>
           </label>
-          {termsInvalid && <p id="complete-terms-error" className="text-sm font-semibold text-danger" role="alert">You must accept the Terms and Privacy Policy.</p>}
-          {save.error && <p role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-semibold text-danger">{save.error.message}</p>}
+          {termsInvalid && <p id="complete-terms-error" className="text-sm font-semibold text-danger" role="alert">{s.termsRequired}</p>}
+          {save.error && <p role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-semibold text-danger">{errorText(save.error, t)}</p>}
 
-          <button type="submit" disabled={save.isPending} className="min-h-14 w-full rounded-xl bg-navy text-base font-bold text-on-navy shadow-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">{save.isPending ? 'Saving…' : 'Continue'}</button>
+          <button type="submit" disabled={save.isPending} className="min-h-14 w-full rounded-xl bg-navy text-base font-bold text-on-navy shadow-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">{save.isPending ? c.saving : c.submit}</button>
         </form>
 
         <p className="mt-4 flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-ink-muted">
-          Not you, or not ready?
-          <button type="button" onClick={() => void auth.signOut()} className="flex min-h-12 items-center rounded-lg font-bold text-navy underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-navy">Sign out</button>
+          {c.notReady}
+          <button type="button" onClick={() => void auth.signOut()} className="flex min-h-12 items-center rounded-lg font-bold text-navy underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-navy">{c.signOut}</button>
         </p>
       </div>
     </AuthScreen>

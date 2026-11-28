@@ -1,0 +1,136 @@
+import { defineMessages } from '../types'
+
+export const common = defineMessages(
+  {
+    nav: {
+      main: 'Main',
+      explore: 'Explore',
+      archives: 'Archives',
+      scan: 'Scan',
+      mastery: 'Mastery',
+      profile: 'Profile',
+    },
+    goBack: 'Go back',
+    backToExplore: 'Back to Explore',
+    loading: 'Loading…',
+    tryAgain: 'Try again',
+    signIn: 'Sign in',
+    rotatePortrait: 'Please rotate your phone to portrait',
+    rated: 'Rated',
+    free: 'Free',
+    minutes: (n: number) => `${n} min`,
+    categories: {
+      church: 'Church',
+      fort: 'Fort',
+      monument: 'Monument',
+      museum: 'Museum',
+      heritage_house: 'Heritage House',
+      temple: 'Temple',
+    } as Record<string, string>,
+    errors: {
+      generic: 'Something went wrong.',
+      network: "Can't reach the server. Check your connection and try again.",
+      busy: 'The service is busy. Please try again.',
+    },
+    xp: {
+      progress: 'XP progress',
+      maxRank: (xp: number) => `${xp} XP · Max rank`,
+      toNext: (xp: number, next: number) => `${xp} / ${next} XP to next level`,
+    },
+    celebrate: {
+      level: (level: number) => `Level ${level}!`,
+      badgeUnlocked: 'Badge unlocked!',
+      nowRank: (title: string) => `You are now a ${title}.`,
+      badge: (name: string) => `${name} Unlocked`,
+      continue: 'Padayon! (Continue)',
+    },
+    pwa: {
+      ready: 'New version of Laag ta bAI ready.',
+      later: 'Later',
+      reload: 'Reload',
+    },
+    notFound: {
+      message: "Na-laag ka, bai! This page doesn't exist.",
+    },
+    nationality: {
+      select: 'Select nationality',
+      none: 'No nationality selected',
+    },
+    location: {
+      unsupported: 'Location is not supported on this device.',
+      denied: 'Location permission was denied.',
+      failed: 'Could not get your location.',
+    },
+    image: {
+      type: 'Use a JPEG, PNG or HEIC photo.',
+      size: 'That photo is over 10 MB. Try a smaller one.',
+      dimensions: 'The photo needs to be at least 1280×720. Try a sharper shot.',
+    },
+  },
+  {
+    nav: {
+      main: 'Panguna',
+      explore: 'Suroy',
+      archives: 'Archives',
+      scan: 'Scan',
+      mastery: 'Kahanas',
+      profile: 'Profile',
+    },
+    goBack: 'Balik',
+    backToExplore: 'Balik sa Suroy',
+    loading: 'Nag-load…',
+    tryAgain: 'Sulayi pag-usab',
+    signIn: 'Mag-sign in',
+    rotatePortrait: 'Palihug ituyok ang imong phone ngadto sa portrait',
+    rated: 'Rating',
+    free: 'Libre',
+    minutes: (n: number) => `${n} min`,
+    categories: {
+      church: 'Simbahan',
+      fort: 'Kuta',
+      monument: 'Monumento',
+      museum: 'Museyo',
+      heritage_house: 'Karaang Balay',
+      temple: 'Templo',
+    },
+    errors: {
+      generic: 'Naay sayop nga nahitabo.',
+      network: 'Dili maabot ang server. Susiha ang imong koneksyon ug sulayi pag-usab.',
+      busy: 'Busy ang serbisyo. Palihug sulayi pag-usab.',
+    },
+    xp: {
+      progress: 'Pag-uswag sa XP',
+      maxRank: (xp: number) => `${xp} XP · Pinakataas nga ranggo`,
+      toNext: (xp: number, next: number) => `${xp} / ${next} XP para sa sunod nga level`,
+    },
+    celebrate: {
+      level: (level: number) => `Level ${level}!`,
+      badgeUnlocked: 'Na-unlock ang badge!',
+      nowRank: (title: string) => `Ikaw na karon usa ka ${title}.`,
+      badge: (name: string) => `Na-unlock ang ${name}`,
+      continue: 'Padayon!',
+    },
+    pwa: {
+      ready: 'Andam na ang bag-ong bersyon sa Laag ta bAI.',
+      later: 'Unya na',
+      reload: 'I-reload',
+    },
+    notFound: {
+      message: 'Na-laag ka, bai! Wala kini nga panid.',
+    },
+    nationality: {
+      select: 'Pilia ang nasyonalidad',
+      none: 'Walay napiling nasyonalidad',
+    },
+    location: {
+      unsupported: 'Dili suportado ang lokasyon niini nga device.',
+      denied: 'Gibalibaran ang pagtugot sa lokasyon.',
+      failed: 'Wala makuha ang imong lokasyon.',
+    },
+    image: {
+      type: 'Gamita ang JPEG, PNG o HEIC nga litrato.',
+      size: 'Labaw sa 10 MB kana nga litrato. Sulayi ang mas gamay.',
+      dimensions: 'Kinahanglan dili moubos sa 1280×720 ang litrato. Sulayi ang mas klaro nga kuha.',
+    },
+  },
+)

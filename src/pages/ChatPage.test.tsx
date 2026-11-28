@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import type { Landmark } from '@/api/types'
+import { writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
 import { mockFetch, renderRoutes } from '@/test/render'
 
@@ -42,11 +43,32 @@ describe('Ask bAI chat', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Where is this place?' }))
     expect(await screen.findByText('Plaza Sugbo')).toBeInTheDocument()
     // The local greeting is not sent; the conversation starts with the traveller.
-    expect(sent[0]).toMatchObject({ landmarkId: 'magellans-cross', messages: [{ role: 'user', content: 'Where is this place?' }] })
+    expect(sent[0]).toMatchObject({ landmarkId: 'magellans-cross', messages: [{ role: 'user', content: 'Where is this place?' }], language: 'en' })
 
     await userEvent.click(screen.getByRole('button', { name: 'Helpful' }))
     expect(screen.getByRole('button', { name: 'Helpful' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Needs improvement' })).toHaveAttribute('aria-pressed', 'false')
     expect(JSON.parse(localStorage.getItem('laagtabai:chat:magellans-cross')!).at(-1).feedback).toBe('helpful')
+  })
+
+  it('asks in Cebuano and tells the guide to reply in Cebuano when the app is in Cebuano', async () => {
+    writeJson('preferences', { onboarded: true, language: 'ceb' })
+    const sent: unknown[] = []
+    mockFetch((url, init) => {
+      if (url.pathname.endsWith('/chat')) {
+        sent.push(JSON.parse(String(init?.body)))
+        return { data: { message: { role: 'model', content: 'Naa ni sa **Plaza Sugbo**.' }, progress: null } }
+      }
+      return { data: cross }
+    })
+    renderRoutes(routes, '/landmarks/magellans-cross/chat')
+
+    expect(await screen.findByRole('heading', { level: 1, name: "Pangutan-a si bAI bahin sa Magellan's Cross" })).toBeInTheDocument()
+    expect(screen.getByText(/Ako ang imong giya/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Libre · 4\.8 · Downtown Cebu · 25 min/ })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Asa ni nga lugar?' }))
+    expect(await screen.findByText('Plaza Sugbo')).toBeInTheDocument()
+    expect(sent[0]).toMatchObject({ messages: [{ role: 'user', content: 'Asa ni nga lugar?' }], language: 'ceb' })
   })
 })

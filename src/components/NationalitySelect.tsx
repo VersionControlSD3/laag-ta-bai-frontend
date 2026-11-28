@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react'
 import { ChevronForwardOutlineIcon } from '@/components/icons/ionicons'
+import { useT } from '@/i18n'
 import { nationalityOptions } from '@/lib/nationality'
 
 type NationalitySelectProps = Pick<
@@ -18,6 +19,7 @@ export function NationalitySelect({
   className,
   ...props
 }: NationalitySelectProps) {
+  const t = useT()
   const legacyValue = savedValue && !nationalityOptions.includes(savedValue) ? savedValue : null
 
   return (
@@ -31,7 +33,7 @@ export function NationalitySelect({
         className={`block min-w-0 appearance-none truncate pr-10 data-[empty=true]:text-ink-muted forced-colors:appearance-auto ${className ?? ''}`}
       >
         <option value="" disabled={props.required}>
-          {props.required ? 'Select nationality' : 'No nationality selected'}
+          {props.required ? t.common.nationality.select : t.common.nationality.none}
         </option>
         {legacyValue && <option value={legacyValue} className="[color:FieldText]">{legacyValue}</option>}
         {nationalityOptions.map((name) => <option key={name} value={name} className="[color:FieldText]">{name}</option>)}

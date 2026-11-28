@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router'
+import { useT } from '@/i18n'
 
 /**
  * First-launch splash (UI Redesign #1). It stays ivory in both themes: the installed PWA's own
@@ -8,6 +9,7 @@ import { useNavigate } from 'react-router'
  */
 export default function SplashScreenPage() {
   const navigate = useNavigate()
+  const t = useT().onboarding.splash
   const goToOnboarding = useCallback(() => {
     navigate('/onboarding', { replace: true })
   }, [navigate])
@@ -26,7 +28,7 @@ export default function SplashScreenPage() {
     <main
       data-theme="light"
       className="flex min-h-dvh cursor-pointer flex-col items-center justify-center bg-ivory px-6 text-ink focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-navy"
-      aria-label="Preparing your Cebu journey"
+      aria-label={t.preparing}
       onClick={goToOnboarding}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -36,7 +38,7 @@ export default function SplashScreenPage() {
       }}
       tabIndex={0}
     >
-      <section className="flex w-full max-w-sm flex-col items-center" aria-label="Loading">
+      <section className="flex w-full max-w-sm flex-col items-center" aria-label={t.loading}>
         <img
           src="/brand/NewLogo.png"
           alt="Laag ta bAI"
@@ -56,12 +58,12 @@ export default function SplashScreenPage() {
           <div
             className="h-1 w-[min(13.5rem,46vw)] overflow-hidden rounded-full bg-navy/10"
             role="progressbar"
-            aria-label="Loading progress"
+            aria-label={t.progress}
           >
             <div className="h-full w-2/5 animate-[splash-progress_1.5s_ease-in-out_infinite] rounded-full bg-linear-to-r from-terracotta to-sage motion-reduce:translate-x-[75%] motion-reduce:animate-none" />
           </div>
           <p className="mt-4 text-xs font-bold tracking-[0.12em] text-ink-muted uppercase">
-            Preparing your Cebu journey
+            {t.preparing}
           </p>
         </div>
       </section>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { GRANTED_KEY } from '@/hooks/useGeolocation'
+import { useT } from '@/i18n'
 import { writeJson } from '@/lib/storage'
 import {
   CameraOutlineIcon,
@@ -16,15 +17,16 @@ type PermissionId = 'camera' | 'location'
 type Result = 'granted' | 'denied' | 'dismissed'
 
 // Notifications are asked in context later (a prompt needs a fresh tap); photos need no permission on the web.
-const PERMISSIONS: { id: PermissionId; title: string; benefit: string; Icon: typeof CameraOutlineIcon }[] = [
-  { id: 'camera', title: 'Camera', benefit: 'To scan landmarks and hear their stories.', Icon: CameraOutlineIcon },
-  { id: 'location', title: 'Location', benefit: 'To show the landmarks around you.', Icon: LocationIcon },
+// Titles and benefits are in `t.onboarding.permissions`, keyed by id.
+const PERMISSIONS: { id: PermissionId; Icon: typeof CameraOutlineIcon }[] = [
+  { id: 'camera', Icon: CameraOutlineIcon },
+  { id: 'location', Icon: LocationIcon },
 ]
 
-const PILL: Record<Result, { label: string; className: string }> = {
-  granted: { label: 'Allowed', className: 'bg-sage-soft text-sage-deep' },
-  denied: { label: 'Blocked', className: 'bg-terracotta-soft text-terracotta-ink' },
-  dismissed: { label: 'Not now', className: 'bg-navy-soft text-navy' },
+const PILL: Record<Result, { label: 'allowed' | 'blocked' | 'notNow'; className: string }> = {
+  granted: { label: 'allowed', className: 'bg-sage-soft text-sage-deep' },
+  denied: { label: 'blocked', className: 'bg-terracotta-soft text-terracotta-ink' },
+  dismissed: { label: 'notNow', className: 'bg-navy-soft text-navy' },
 }
 
 function attempt(id: PermissionId): Promise<boolean> {
@@ -64,6 +66,8 @@ async function ask(id: PermissionId): Promise<Result> {
 /** Asks for device permissions after onboarding, explaining what each one unlocks. */
 export default function PermissionsPage() {
   const navigate = useNavigate()
+  const p = useT().onboarding.permissions
+  const title = (id: PermissionId) => p[id]
   const next = (useLocation().state as { next?: string } | null)?.next ?? '/'
   const [selected, setSelected] = useState<Record<PermissionId, boolean>>({ camera: true, location: true })
   const [results, setResults] = useState<Partial<Record<PermissionId, Result>> | null>(null)
@@ -81,61 +85,61 @@ export default function PermissionsPage() {
     setResults(outcome)
   }
 
-  const missing = PERMISSIONS.filter((p) => results?.[p.id] && results[p.id] !== 'granted')
-  const anyGranted = PERMISSIONS.some((p) => results?.[p.id] === 'granted')
+  const missing = PERMISSIONS.filter((m) => results?.[m.id] && results[m.id] !== 'granted')
+  const anyGranted = PERMISSIONS.some((m) => results?.[m.id] === 'granted')
   const copy = !results
     ? {
-        eyebrow: 'ANDAM NA KA?',
-        title: 'Ready to explore?',
-        body: "bAI needs a few permissions to scan landmarks and show you what's nearby.",
+        eyebrow: p.readyEyebrow,
+        title: p.readyTitle,
+        body: p.readyBody,
       }
     : anyGranted
       ? {
-          eyebrow: 'SIGE LANG',
-          title: 'Almost set',
-          body: `${missing.map((p) => p.title).join(' and ')} isn't on yet. You can still explore and turn it on later.`,
+          eyebrow: p.okEyebrow,
+          title: p.almostTitle,
+          body: p.almostBody(missing.map((m) => title(m.id))),
         }
       : {
-          eyebrow: 'SIGE LANG',
-          title: 'No worries',
-          body: 'You can still browse landmarks and their stories. Turn permissions on whenever you like.',
+          eyebrow: p.okEyebrow,
+          title: p.noWorriesTitle,
+          body: p.noWorriesBody,
         }
 
   const frame = 'flex w-full items-center gap-4 rounded-2xl bg-ivory-surface p-4'
-  const row = (p: (typeof PERMISSIONS)[number]) => {
-    const result = results?.[p.id]
-    const on = selected[p.id]
+  const row = (perm: (typeof PERMISSIONS)[number]) => {
+    const result = results?.[perm.id]
+    const on = selected[perm.id]
     const body = (
       <>
         <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-sage-soft">
-          <p.Icon className="text-sage-deep" />
+          <perm.Icon className="text-sage-deep" />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-1 text-left">
-          <span className="text-lg leading-7 font-bold text-ink">{p.title}</span>
-          <span className="text-sm leading-5 text-ink-muted">{p.benefit}</span>
+          <span className="text-lg leading-7 font-bold text-ink">{title(perm.id)}</span>
+          <span className="text-sm leading-5 text-ink-muted">{p[`${perm.id}Benefit`]}</span>
         </span>
       </>
     )
 
     if (results) {
       return (
-        <li key={p.id} className={`${frame} border border-ivory-line`}>
+        <li key={perm.id} className={`${frame} border border-ivory-line`}>
           {body}
           {result && (
             <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${PILL[result].className}`}>
-              {PILL[result].label}
+              {p[PILL[result].label]}
             </span>
           )}
         </li>
       )
     }
     return (
-      <li key={p.id}>
+      <li key={perm.id}>
         <button
           type="button"
           role="checkbox"
           aria-checked={on}
-          onClick={() => setSelected((s) => ({ ...s, [p.id]: !s[p.id] }))}
+          onClick={() => setSelected((s) => ({ ...s, [perm.id]: !s[perm.id] }))}
           className={`${frame} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
             on
               ? 'border-[1.5px] border-navy'
@@ -167,7 +171,7 @@ export default function PermissionsPage() {
 
         <section className="flex flex-col gap-3">
           <h2 className="pl-2 text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink">
-            NEEDED TO EXPLORE
+            {p.needed}
           </h2>
           <ul className="flex flex-col gap-3">{PERMISSIONS.map(row)}</ul>
         </section>
@@ -175,8 +179,8 @@ export default function PermissionsPage() {
         <p className="flex gap-3 px-2 text-sm leading-5 text-ink-muted">
           <LockClosedIcon size={16} className="mt-0.5 shrink-0 self-start" />
           {results
-            ? 'To turn one on, allow it for Laag ta bAI in your browser or phone settings, then tap Try again.'
-            : 'We use your location only to sort nearby landmarks and verify scans. It is never sold. You can change any of these later in your browser settings.'}
+            ? p.turnOn
+            : p.privacy}
         </p>
       </main>
 
@@ -188,18 +192,18 @@ export default function PermissionsPage() {
         <button
           type="button"
           disabled={asking}
-          onClick={() => (results ? finish() : request(PERMISSIONS.filter((p) => selected[p.id]).map((p) => p.id)))}
+          onClick={() => (results ? finish() : request(PERMISSIONS.filter((m) => selected[m.id]).map((m) => m.id)))}
           className="h-14 w-full rounded-xl bg-navy px-6 text-lg leading-7 font-bold tracking-[0.05em] text-on-navy shadow-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy active:bg-navy-pressed disabled:opacity-80"
         >
-          {asking ? 'ASKING…' : results ? 'CONTINUE' : 'ALLOW PERMISSIONS'}
+          {asking ? p.asking : results ? p.continue : p.allow}
         </button>
         <button
           type="button"
           disabled={asking}
-          onClick={() => (results ? request(missing.map((p) => p.id)) : finish())}
+          onClick={() => (results ? request(missing.map((m) => m.id)) : finish())}
           className="touch-target px-4 py-3 text-sm leading-5 font-bold text-terracotta-ink underline focus-visible:outline-2 focus-visible:outline-navy"
         >
-          {results ? 'Try again' : 'Maybe later'}
+          {results ? p.tryAgain : p.later}
         </button>
       </footer>
     </div>

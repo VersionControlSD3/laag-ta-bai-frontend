@@ -1,7 +1,8 @@
 import { Link } from 'react-router'
 import type { LandmarkSummary } from '@/api/types'
 import { MapOutlineIcon, StarIcon } from '@/components/icons/ionicons'
-import { CATEGORY_LABELS, formatDistance } from '@/lib/format'
+import { useT } from '@/i18n'
+import { formatDistance } from '@/lib/format'
 
 export function LandmarkImage({ src, alt, className }: { src: string | null; alt: string; className?: string }) {
   return src ? (
@@ -25,10 +26,11 @@ function Media({ landmark, className }: { landmark: LandmarkSummary; className: 
 }
 
 function Rating({ value }: { value: number }) {
+  const t = useT()
   return (
     <span className="flex items-center gap-1 text-xs leading-4 font-bold text-ink">
       <StarIcon size={10} className="text-terracotta" />
-      <span className="sr-only">Rated</span>
+      <span className="sr-only">{t.common.rated}</span>
       {value.toFixed(1)}
     </span>
   )
@@ -59,6 +61,7 @@ export function LandmarkTile({ landmark }: { landmark: LandmarkSummary }) {
 
 /** Figma "Landmark Row": full-width row with an 80 px thumbnail (Popular Landmarks, search results). */
 export function LandmarkRow({ landmark }: { landmark: LandmarkSummary }) {
+  const t = useT()
   const distance = formatDistance(landmark.distanceMeters)
   return (
     <Link
@@ -79,7 +82,7 @@ export function LandmarkRow({ landmark }: { landmark: LandmarkSummary }) {
           {distance && ` · ${distance}`}
         </p>
         <span className="mt-1 self-start rounded-md bg-terracotta-soft px-2 py-1 text-[0.625rem] leading-[0.875rem] font-bold tracking-wide text-terracotta-ink uppercase">
-          {CATEGORY_LABELS[landmark.category]}
+          {t.common.categories[landmark.category]}
         </span>
       </div>
     </Link>

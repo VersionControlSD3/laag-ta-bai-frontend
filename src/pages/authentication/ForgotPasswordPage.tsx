@@ -5,6 +5,7 @@ import { MailOutlineIcon } from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { signInErrorMessage } from '@/features/auth/signInError'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
+import { useT } from '@/i18n'
 import { supabase } from '@/lib/supabase'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -18,6 +19,8 @@ const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visi
 export function ForgotPasswordPage() {
   const auth = useAuth()
   const night = usePreferences().resolvedTheme === 'dark'
+  const t = useT()
+  const f = t.auth.forgot
   const emailId = useId()
   const statusId = `${emailId}-status`
   const [email, setEmail] = useState('')
@@ -34,13 +37,13 @@ export function ForgotPasswordPage() {
 
     if (!normalizedEmail) {
       setSubmitted(false)
-      setError('Please enter your email address.')
+      setError(f.emailRequired)
       return
     }
 
     if (!EMAIL.test(normalizedEmail)) {
       setSubmitted(false)
-      setError('Please enter a valid email address.')
+      setError(f.emailInvalid)
       return
     }
 
@@ -48,7 +51,7 @@ export function ForgotPasswordPage() {
 
     if (!supabase) {
       setSubmitted(false)
-      setError('Password reset is not available right now.')
+      setError(f.unavailable)
       return
     }
 
@@ -60,12 +63,12 @@ export function ForgotPasswordPage() {
         })
         if (resetError) {
           setSubmitted(false)
-          setError(signInErrorMessage(resetError, 'Could not send reset link. Please try again.'))
+          setError(signInErrorMessage(resetError, t, f.failed))
           return
         }
       } catch (err) {
         setSubmitted(false)
-        setError(signInErrorMessage(err, 'Could not send reset link. Please try again.'))
+        setError(signInErrorMessage(err, t, f.failed))
         return
       } finally {
         setBusy(false)
@@ -95,10 +98,10 @@ export function ForgotPasswordPage() {
             id="forgot-password-title"
             className="pt-4 text-[2rem] leading-[1.2] font-black text-ivory"
           >
-            Forgot Password?
+            {f.title}
           </h1>
           <p className="pt-2 text-base leading-6 text-ivory/85">
-            Enter your email and we&apos;ll send you a secure reset link.
+            {f.intro}
           </p>
         </header>
 
@@ -115,7 +118,7 @@ export function ForgotPasswordPage() {
               htmlFor={emailId}
               className="text-xs leading-[1.4] font-bold tracking-[0.14em] text-terracotta-light uppercase"
             >
-              Email
+              {t.auth.fields.email}
             </label>
             <div
               className={`flex h-14 items-center gap-3 rounded-xl border px-4 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ivory ${well} ${
@@ -152,11 +155,11 @@ export function ForgotPasswordPage() {
             disabled={busy}
             className={`min-h-14 w-full cursor-pointer rounded-xl bg-terracotta text-[0.9375rem] leading-[1.3125rem] font-bold tracking-[0.08em] text-ivory uppercase shadow-lg transition-colors hover:bg-terracotta/90 disabled:opacity-70 ${focus}`}
           >
-            {busy ? 'Sending…' : 'Send Reset Link'}
+            {busy ? f.sending : f.submit}
           </button>
 
           <p id={statusId} role="status" className="text-center text-sm leading-5 text-ivory">
-            {submitted ? 'Your secure reset link is on its way.' : ''}
+            {submitted ? f.sent : ''}
           </p>
           <p id={`${statusId}-error`} role="alert" className="text-center text-sm leading-5 font-semibold text-danger-line">
             {error ?? ''}

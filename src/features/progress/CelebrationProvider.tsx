@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import type { ProgressUpdate } from '@/api/types'
 import { RibbonIcon, TrophyIcon } from '@/components/icons/ionicons'
+import { useT } from '@/i18n'
 import { CelebrationContext } from './CelebrationContext'
 
 /**
@@ -8,6 +9,7 @@ import { CelebrationContext } from './CelebrationContext'
  * with a short vibration as a haptic cue where supported.
  */
 export function CelebrationProvider({ children }: { children: ReactNode }) {
+  const t = useT()
   const [toast, setToast] = useState<string | null>(null)
   const [dialog, setDialog] = useState<ProgressUpdate | null>(null)
 
@@ -50,11 +52,11 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
               <TrophyIcon size={30} aria-hidden />
             </div>
             <h2 id="celebrate-title" className="text-3xl leading-9 font-extrabold tracking-tight text-ink">
-              {dialog.leveledUp ? `Level ${dialog.rank.level}!` : 'Badge unlocked!'}
+              {dialog.leveledUp ? t.common.celebrate.level(dialog.rank.level) : t.common.celebrate.badgeUnlocked}
             </h2>
             {dialog.leveledUp && (
               <p className="text-[0.9375rem] leading-[1.375rem] font-bold text-ink-body">
-                You are now a {dialog.rank.title}.
+                {t.common.celebrate.nowRank(dialog.rank.title)}
               </p>
             )}
             {dialog.newBadges.map((badge) => (
@@ -63,7 +65,7 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
                 className="inline-flex items-center gap-1.5 rounded-xl bg-terracotta-soft px-4 py-2 text-xs leading-4 font-bold text-terracotta-ink"
               >
                 <RibbonIcon size={14} aria-hidden />
-                <span>{badge} Unlocked</span>
+                <span>{t.common.celebrate.badge(badge)}</span>
               </p>
             ))}
             {dialog.xpAwarded > 0 && <p className="font-mono text-xs leading-4 font-bold text-ink-muted">+{dialog.xpAwarded} XP</p>}
@@ -72,7 +74,7 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
               onClick={() => setDialog(null)}
               className="touch-target mt-2 flex min-h-12 w-full items-center justify-center rounded-2xl bg-navy px-4 py-3.5 text-[0.9375rem] leading-5 font-bold tracking-[0.04em] text-on-navy shadow-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
-              Padayon! (Continue)
+              {t.common.celebrate.continue}
             </button>
           </div>
         </div>

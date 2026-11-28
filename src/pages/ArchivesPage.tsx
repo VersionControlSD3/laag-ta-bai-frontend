@@ -22,7 +22,8 @@ import {
 } from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useBookmarks, type Bookmark } from '@/features/bookmarks/useBookmarks'
-import { CATEGORY_LABELS, formatDistance } from '@/lib/format'
+import { LOCALES, useLanguage, useT, type Messages } from '@/i18n'
+import { formatDistance } from '@/lib/format'
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy'
 const eyebrow = 'text-xs font-bold tracking-[0.1em] text-terracotta-ink uppercase'
@@ -31,8 +32,6 @@ const countPill = 'shrink-0 rounded-full border border-ivory-line bg-navy-soft p
 const primaryCta = `flex min-h-12 items-center justify-center gap-2 rounded-full bg-navy px-5 text-sm font-bold whitespace-nowrap text-on-navy transition-colors hover:bg-navy-pressed ${focusRing}`
 const secondaryCta = `flex min-h-12 items-center justify-center gap-2 rounded-full border border-ivory-line bg-ivory-surface px-5 text-sm font-bold whitespace-nowrap text-ink transition-colors hover:bg-navy-soft ${focusRing}`
 
-const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`
-
 /**
  * Archives (UI Redesign #6, Figma 558:3513 / 558:3553): bookmarks saved on landmark pages
  * (`useBookmarks`) and the visit history from the API (`useMe().recentVisits`). Nothing here is
@@ -40,6 +39,7 @@ const plural = (count: number, one: string, many: string) => `${count} ${count =
  */
 export default function ArchivesPage() {
   const auth = useAuth()
+  const a = useT().archives
   const { bookmarks, toggle } = useBookmarks()
   const me = useMe()
   const landmarks = useLandmarks()
@@ -84,10 +84,10 @@ export default function ArchivesPage() {
   const bothEmpty = auth.status === 'signed-in' && me.isSuccess && bookmarks.length === 0 && visits.length === 0
 
   let history: ReactNode
-  if (auth.status === 'loading') history = <Loading label="Checking your account…" />
+  if (auth.status === 'loading') history = <Loading label={a.checkingAccount} />
   else if (auth.status !== 'signed-in')
-    history = <SignInPrompt message="Sign in to keep a history of the places you visit across Cebu." />
-  else if (me.isPending) history = <Loading label="Loading your visit history…" />
+    history = <SignInPrompt message={a.signInPrompt} />
+  else if (me.isPending) history = <Loading label={a.loadingHistory} />
   else if (me.isError) history = <ErrorMessage error={me.error} onRetry={() => me.refetch()} />
   else if (visits.length === 0) history = <EmptyHistoryView />
   else history = <HistoryList visits={visits} landmarkById={landmarkById} />
@@ -97,9 +97,9 @@ export default function ArchivesPage() {
       {isOffline && <OfflineBanner />}
 
       <header className="flex flex-col gap-1">
-        <p className={eyebrow}>Your collection</p>
-        <h1 className="text-3xl font-extrabold tracking-[-0.02em]">Saved Places</h1>
-        <p className="text-sm text-ink-body">Places and stories you saved for later.</p>
+        <p className={eyebrow}>{a.eyebrow}</p>
+        <h1 className="text-3xl font-extrabold tracking-[-0.02em]">{a.title}</h1>
+        <p className="text-sm text-ink-body">{a.subtitle}</p>
       </header>
 
       {bothEmpty ? (
@@ -110,12 +110,12 @@ export default function ArchivesPage() {
           <hr className="border-t-2 border-ivory-line" />
           <section aria-labelledby="history-heading" className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <SectionHeading id="history-heading" icon={<TimeOutlineIcon size={20} />} title="Visit History">
+              <SectionHeading id="history-heading" icon={<TimeOutlineIcon size={20} />} title={a.history}>
                 {auth.status === 'signed-in' && visits.length > 0 && (
-                  <span className={countPill}>{plural(visits.length, 'activity', 'activities')}</span>
+                  <span className={countPill}>{a.activities(visits.length)}</span>
                 )}
               </SectionHeading>
-              <p className="text-xs text-ink-muted">Your scans, visits and viewed stories, newest first.</p>
+              <p className="text-xs text-ink-muted">{a.historyHint}</p>
             </div>
             {history}
           </section>
@@ -129,19 +129,19 @@ export default function ArchivesPage() {
       >
         {removed && (
           <div className="flex items-center gap-2 rounded-2xl border border-on-navy/15 bg-navy py-1 pr-1 pl-4 text-on-navy shadow-navy">
-            <p className="min-w-0 flex-1 truncate text-xs font-semibold">Removed "{removed.name}" from bookmarks</p>
+            <p className="min-w-0 flex-1 truncate text-xs font-semibold">{a.removed(removed.name)}</p>
             <button
               type="button"
               onClick={undoRemove}
               className={`flex min-h-12 min-w-12 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-terracotta-soft px-3 text-xs font-bold text-terracotta-ink ${focusRing} focus-visible:outline-on-navy`}
             >
               <ArrowUndoOutlineIcon size={16} />
-              Undo
+              {a.undo}
             </button>
             <button
               type="button"
               onClick={() => setRemoved(null)}
-              aria-label="Dismiss"
+              aria-label={a.dismiss}
               className={`flex size-12 shrink-0 items-center justify-center rounded-xl text-on-navy ${focusRing} focus-visible:outline-on-navy`}
             >
               <CloseOutlineIcon size={20} />
@@ -154,6 +154,7 @@ export default function ArchivesPage() {
 }
 
 function OfflineBanner() {
+  const a = useT().archives
   return (
     <div
       role="status"
@@ -163,11 +164,11 @@ function OfflineBanner() {
         <CloudOfflineOutlineIcon size={18} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold">Offline mode active</p>
-        <p className="text-xs text-ink-body">Showing bookmarked landmarks and cached visit history.</p>
+        <p className="text-sm font-bold">{a.offline}</p>
+        <p className="text-xs text-ink-body">{a.offlineBody}</p>
       </div>
       <span className="shrink-0 rounded-full border border-terracotta/30 bg-ivory-surface px-2.5 py-1 text-xs font-bold tracking-wider uppercase">
-        Cached
+        {a.cached}
       </span>
     </div>
   )
@@ -186,20 +187,21 @@ function SectionHeading({ id, icon, title, children }: { id: string; icon: React
 }
 
 function BookmarksSection({ bookmarks, onRemove }: { bookmarks: Bookmark[]; onRemove: (bookmark: Bookmark) => void }) {
+  const a = useT().archives
   return (
     <section aria-labelledby="bookmarks-heading" className="flex flex-col gap-4">
-      <SectionHeading id="bookmarks-heading" icon={<BookmarkOutlineIcon size={20} />} title="Bookmarked Landmarks">
-        <span className={countPill}>{plural(bookmarks.length, 'place', 'places')}</span>
+      <SectionHeading id="bookmarks-heading" icon={<BookmarkOutlineIcon size={20} />} title={a.bookmarks}>
+        <span className={countPill}>{a.places(bookmarks.length)}</span>
       </SectionHeading>
       {bookmarks.length === 0 ? (
         <EmptyCard
           icon={<BookmarkOutlineIcon size={28} />}
           iconTone="bg-terracotta-soft text-terracotta-ink"
-          title="No saved places yet"
+          title={a.noSaved}
           to="/"
-          cta="Explore landmarks"
+          cta={a.exploreLandmarks}
         >
-          Tap the bookmark on any landmark to save it here for quick offline access and itinerary planning.
+          {a.noSavedBody}
         </EmptyCard>
       ) : (
         bookmarks.map((bookmark) => (
@@ -211,6 +213,7 @@ function BookmarksSection({ bookmarks, onRemove }: { bookmarks: Bookmark[]; onRe
 }
 
 function PlaceCard({ bookmark, onRemove }: { bookmark: Bookmark; onRemove: () => void }) {
+  const t = useT()
   const distance = formatDistance(bookmark.distanceMeters)
   return (
     <article className="relative overflow-hidden rounded-3xl border border-ivory-line bg-ivory-surface">
@@ -224,12 +227,12 @@ function PlaceCard({ bookmark, onRemove }: { bookmark: Bookmark; onRemove: () =>
         )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-navy/60 to-transparent" />
         <span className="absolute top-3 left-3 flex h-7 items-center rounded-full bg-terracotta-soft px-3 text-xs font-bold tracking-wide text-terracotta-ink">
-          {CATEGORY_LABELS[bookmark.category] ?? bookmark.category}
+          {t.common.categories[bookmark.category] ?? bookmark.category}
         </span>
         <button
           type="button"
           onClick={onRemove}
-          aria-label={`Remove ${bookmark.name} from bookmarks`}
+          aria-label={t.archives.remove(bookmark.name)}
           aria-pressed="true"
           className={`absolute top-2 right-2 z-10 flex min-h-12 min-w-12 items-center justify-center rounded-full border border-on-navy/30 bg-navy/85 text-on-navy shadow-navy backdrop-blur-md transition-colors hover:bg-navy ${focusRing}`}
         >
@@ -256,7 +259,7 @@ function PlaceCard({ bookmark, onRemove }: { bookmark: Bookmark; onRemove: () =>
         </div>
         <p className="flex shrink-0 items-center gap-1 rounded-xl border border-ivory-line bg-navy-soft px-2.5 py-1.5 text-xs font-bold text-terracotta-ink">
           <StarIcon size={14} className="text-terracotta" />
-          <span className="sr-only">Rating </span>
+          <span className="sr-only">{t.archives.rating}</span>
           {bookmark.rating.toFixed(1)}
         </p>
       </div>
@@ -265,25 +268,27 @@ function PlaceCard({ bookmark, onRemove }: { bookmark: Bookmark; onRemove: () =>
 }
 
 function HistoryList({ visits, landmarkById }: { visits: Visit[]; landmarkById: Map<string, LandmarkSummary> }) {
-  const groups = useMemo(() => groupByDay(visits), [visits])
+  const t = useT()
+  const locales = LOCALES[useLanguage()]
+  const groups = useMemo(() => groupByDay(visits, t, locales), [visits, t, locales])
   return groups.map(([label, items]) => (
     <div key={label} className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <h3 className={eyebrow}>{label}</h3>
         <span className="h-px flex-1 bg-ivory-line" />
-        <span className="text-xs font-semibold text-ink-muted">{plural(items.length, 'activity', 'activities')}</span>
+        <span className="text-xs font-semibold text-ink-muted">{t.archives.activities(items.length)}</span>
       </div>
       <ul className="flex flex-col gap-2.5">
         {items.map((visit) => (
-          <HistoryRow key={visit.id} visit={visit} landmark={landmarkById.get(visit.landmarkId)} />
+          <HistoryRow key={visit.id} visit={visit} landmark={landmarkById.get(visit.landmarkId)} locales={locales} />
         ))}
       </ul>
     </div>
   ))
 }
 
-function HistoryRow({ visit, landmark }: { visit: Visit; landmark?: LandmarkSummary }) {
-  const time = new Date(visit.createdAt).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })
+function HistoryRow({ visit, landmark, locales }: { visit: Visit; landmark?: LandmarkSummary; locales: string[] }) {
+  const time = new Date(visit.createdAt).toLocaleTimeString(locales, { hour: 'numeric', minute: '2-digit' })
   return (
     <li>
       <Link
@@ -320,12 +325,13 @@ function HistoryRow({ visit, landmark }: { visit: Visit; landmark?: LandmarkSumm
 
 /** Scanned / Visited / Viewed differ by icon and label, not colour alone (WCAG 1.4.1). */
 function ActivityBadge({ source }: { source: Visit['source'] }) {
+  const a = useT().archives
   const [label, Icon, tone] =
     source === 'scan'
-      ? (['Scanned', CameraOutlineIcon, 'border-navy/25 bg-navy-soft text-navy'] as const)
+      ? ([a.scanned, CameraOutlineIcon, 'border-navy/25 bg-navy-soft text-navy'] as const)
       : source === 'manual'
-        ? (['Visited', CheckmarkCircleOutlineIcon, 'border-sage-deep/35 bg-sage-soft text-sage-deep'] as const)
-        : (['Viewed', EyeOutlineIcon, 'border-terracotta/35 bg-terracotta-soft text-terracotta-ink'] as const)
+        ? ([a.visited, CheckmarkCircleOutlineIcon, 'border-sage-deep/35 bg-sage-soft text-sage-deep'] as const)
+        : ([a.viewed, EyeOutlineIcon, 'border-terracotta/35 bg-terracotta-soft text-terracotta-ink'] as const)
   return (
     <span className={`mt-1 inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-bold ${tone}`}>
       <Icon size={14} />
@@ -362,39 +368,40 @@ function EmptyCard({
 }
 
 function EmptyHistoryView() {
+  const a = useT().archives
   return (
     <EmptyCard
       icon={<TimeOutlineIcon size={28} />}
       iconTone="bg-sage-soft text-sage-deep"
-      title="No activity history yet"
+      title={a.noHistory}
       to="/scan"
-      cta="Scan a landmark"
+      cta={a.scanLandmark}
     >
-      Landmarks you scan with the camera, check into, or read about will appear here chronologically.
+      {a.noHistoryBody}
     </EmptyCard>
   )
 }
 
 function EmptyBothView() {
+  const a = useT().archives
   return (
     <div className="flex flex-col items-center rounded-3xl border border-ivory-line bg-ivory-surface px-6 py-10 text-center">
       <span className="mb-4 flex size-16 items-center justify-center rounded-3xl bg-terracotta-soft text-terracotta-ink">
         <BookOutlineIcon size={32} />
       </span>
-      <h2 className="text-2xl font-extrabold">Your archives are empty</h2>
+      <h2 className="text-2xl font-extrabold">{a.empty}</h2>
       <p className="mt-2 max-w-sm text-sm leading-relaxed text-ink-body">
-        Start building your Cebu journey! Bookmark heritage sites to read offline and scan landmarks with your camera as
-        you explore to grow your travel history.
+        {a.emptyBody}
       </p>
       {/* Stacked full-width on phones; side by side only when there is room for both labels. */}
       <div className="mt-6 flex w-full flex-col gap-3 min-[420px]:w-auto min-[420px]:flex-row">
         <Link to="/" className={primaryCta}>
           <CompassOutlineIcon size={18} />
-          Explore landmarks
+          {a.exploreLandmarks}
         </Link>
         <Link to="/scan" className={secondaryCta}>
           <CameraOutlineIcon size={18} />
-          Scan landmarks
+          {a.scanLandmarks}
         </Link>
       </div>
     </div>
@@ -402,11 +409,11 @@ function EmptyBothView() {
 }
 
 /** Groups visits into Today / Yesterday / date, newest first. */
-function groupByDay(visits: Visit[]): [string, Visit[]][] {
+function groupByDay(visits: Visit[], t: Messages, locales: string[]): [string, Visit[]][] {
   const sorted = [...visits].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   const groups = new Map<string, Visit[]>()
   for (const visit of sorted) {
-    const label = dayLabel(new Date(visit.createdAt))
+    const label = dayLabel(new Date(visit.createdAt), t, locales)
     const items = groups.get(label)
     if (items) items.push(visit)
     else groups.set(label, [visit])
@@ -414,11 +421,11 @@ function groupByDay(visits: Visit[]): [string, Visit[]][] {
   return [...groups.entries()]
 }
 
-function dayLabel(date: Date): string {
+function dayLabel(date: Date, t: Messages, locales: string[]): string {
   const startOfDay = (value: Date) => new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime()
   const today = new Date()
   const days = Math.round((startOfDay(today) - startOfDay(date)) / 86_400_000)
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  return date.toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
+  if (days === 0) return t.archives.today
+  if (days === 1) return t.archives.yesterday
+  return date.toLocaleDateString(locales, { month: 'long', day: 'numeric', year: 'numeric' })
 }

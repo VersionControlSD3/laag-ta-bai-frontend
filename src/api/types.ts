@@ -64,6 +64,9 @@ export type ScanResult = {
 
 export type ChatMessage = { role: 'user' | 'model'; content: string }
 
+/** `POST /v1/chat`. `language` is the app language; the guide replies in it (English when omitted). */
+export type ChatRequest = { landmarkId: string; messages: ChatMessage[]; language?: Profile['language'] }
+
 export type Profile = {
   id: string
   displayName: string

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useCelebrate } from '@/features/progress/CelebrationContext'
 import { api } from './client'
-import type { ChatMessage, LandmarkQuery, ProfileUpdate, ProgressUpdate } from './types'
+import type { ChatRequest, LandmarkQuery, ProfileUpdate, ProgressUpdate } from './types'
 
 export const queryKeys = {
   landmarks: (query: LandmarkQuery) => ['landmarks', query] as const,
@@ -75,7 +75,7 @@ export function useChat() {
   const { token } = useAuth()
   const onProgress = useProgressHandler()
   return useMutation({
-    mutationFn: (input: { landmarkId: string; messages: ChatMessage[] }) => api.chat(input, token),
+    mutationFn: (input: ChatRequest) => api.chat(input, token),
     onSuccess: (result) => onProgress(result.progress),
   })
 }

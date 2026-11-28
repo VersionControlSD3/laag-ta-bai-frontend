@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { ArrowBackIcon } from '@/components/icons/ionicons'
 import { useBack } from '@/hooks/useBack'
+import { useT } from '@/i18n'
 
 export const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy'
 
@@ -13,7 +14,7 @@ export function TopNavbar({
   title,
   action,
   onBack,
-  backLabel = 'Go back',
+  backLabel,
   titleAs: Title = 'p',
 }: {
   title: string
@@ -23,13 +24,14 @@ export function TopNavbar({
   titleAs?: 'h1' | 'p'
 }) {
   const back = useBack()
+  const t = useT()
   return (
     <header className="sticky top-0 z-10 rounded-b-chrome bg-ivory-surface px-5 pt-[env(safe-area-inset-top)] shadow-topbar">
       <div className="flex h-topbar items-center gap-2">
         <button
           type="button"
           onClick={onBack ?? back}
-          aria-label={backLabel}
+          aria-label={backLabel ?? t.common.goBack}
           className={`touch-target flex items-center justify-center rounded-full text-navy ${focus}`}
         >
           <ArrowBackIcon />
