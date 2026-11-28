@@ -7,7 +7,6 @@ import {
   BookmarkOutlineIcon,
   CameraOutlineIcon,
   LocationOutlineIcon,
-  OptionsOutlineIcon,
   SearchIcon,
 } from '@/components/icons/ionicons'
 import { FeaturedLandmarkCard, LandmarkRow, LandmarkTile } from '@/components/LandmarkCard'
@@ -25,7 +24,6 @@ export default function ExplorePage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<LandmarkCategory | undefined>()
   const [freeOnly, setFreeOnly] = useState(false)
-  const [showFilters, setShowFilters] = useState(false)
   const q = useDeferredValue(search)
 
   const { rationaleAccepted, status, request } = geo
@@ -44,6 +42,11 @@ export default function ExplorePage() {
     [results.data],
   )
   const featured = sortedPopular[0]
+  // When multiple landmarks exist, omit the Today spotlight landmark from Popular so it isn't shown twice.
+  const popularLandmarks = useMemo(
+    () => (sortedPopular.length > 1 ? sortedPopular.slice(1) : sortedPopular),
+    [sortedPopular],
+  )
 
   const chip = (pressed: boolean) =>
     `flex h-12 shrink-0 items-center justify-center rounded-full border px-4 text-xs leading-4 font-bold whitespace-nowrap transition-colors ${focus} ${
@@ -56,6 +59,8 @@ export default function ExplorePage() {
     setFreeOnly(false)
   }
 
+  const heroImage = resolvedTheme === 'dark' ? '/authenticationBG/LoginNight.webp' : '/authenticationBG/LoginDay.webp'
+
   return (
     <div className="bleed-under-nav flex min-h-dvh flex-col gap-5.5 bg-ivory pb-[calc(var(--nav-clearance)+1.5rem)]">
       {/* Top Hero Banner + Overlapping Search Bar */}
@@ -65,29 +70,29 @@ export default function ExplorePage() {
           className="relative -mb-7 flex flex-col gap-5 overflow-hidden px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-14"
         >
           <div aria-hidden className="pointer-events-none absolute inset-0">
-            <img src="/authenticationBG/LoginDay.webp" alt="" className="size-full object-cover" />
-            <div className="absolute inset-0 bg-linear-to-b from-[#0d5c63]/65 via-[#0d5c63]/25 to-[#e76f51]/50" />
+            <img src={heroImage} alt="" className="size-full object-cover" />
+            <div className="absolute inset-0 bg-linear-to-b from-navy/65 via-navy/25 to-terracotta/50" />
           </div>
 
           <div className="relative flex items-center justify-between gap-2">
-            <span className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs leading-4 font-semibold text-[#0d5c63] shadow-xs">
-              <LocationOutlineIcon size={14} className="shrink-0 text-[#e46b4d]" />
+            <span className="flex items-center gap-1.5 rounded-full bg-ivory-surface/95 px-3 py-1.5 text-xs leading-4 font-semibold text-navy shadow-xs">
+              <LocationOutlineIcon size={14} className="shrink-0 text-terracotta" />
               Cebu, PH
             </span>
             <Link
               to="/archives"
               aria-label="Saved landmarks"
-              className={`touch-target flex size-12 items-center justify-center rounded-full bg-white/95 text-[#0d5c63] shadow-xs transition-transform active:scale-95 ${focus}`}
+              className={`touch-target flex size-12 items-center justify-center rounded-full bg-ivory-surface/95 text-navy shadow-xs transition-transform active:scale-95 ${focus}`}
             >
               <BookmarkOutlineIcon size={20} />
             </Link>
           </div>
 
-          <div className="relative flex flex-col items-center gap-1 text-center text-white">
+          <div className="relative flex flex-col items-center gap-1 text-center text-on-navy">
             <h1 className="font-display text-[2.875rem] leading-[3.125rem] font-bold tracking-tight drop-shadow-xs">
               Explore
             </h1>
-            <p className="font-display text-lg leading-[1.375rem] italic text-white/95 drop-shadow-xs">
+            <p className="font-display text-lg leading-[1.375rem] italic text-on-navy/95 drop-shadow-xs">
               Discover the heart of Cebu
             </p>
           </div>
@@ -95,43 +100,22 @@ export default function ExplorePage() {
 
         {/* Overlapping Floating Search Bar + Quick Filter Chips */}
         <div className="relative z-10 flex flex-col gap-3 px-5">
-          {/* The Scan & Filters buttons sit outside the <label> so their names don't join the input's. */}
-          <div className="flex h-14 items-center gap-1 rounded-full border border-ivory-line bg-ivory-surface pr-1.5 pl-3.5 shadow-card focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-navy">
-            <label className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex h-14 items-center gap-2 rounded-full border border-ivory-line bg-ivory-surface px-4 shadow-card focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-navy">
+            <label className="flex min-w-0 flex-1 items-center gap-2.5">
               <SearchIcon size={18} className="shrink-0 text-terracotta" />
               <span className="sr-only">Search landmarks</span>
               <input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search landmarks, museums..."
-                className="h-12 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-[13px] placeholder:text-ink-muted"
+                placeholder="Search landmarks"
+                className="h-12 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-muted"
               />
             </label>
-            <Link
-              to="/scan"
-              aria-label="Scan a landmark"
-              className={`touch-target flex size-12 shrink-0 items-center justify-center rounded-full bg-terracotta-soft text-terracotta-ink transition-colors hover:bg-terracotta/20 ${focus}`}
-            >
-              <CameraOutlineIcon size={20} />
-            </Link>
-            <button
-              type="button"
-              onClick={() => setShowFilters((v) => !v)}
-              aria-expanded={showFilters}
-              aria-label="Filters"
-              className={`touch-target flex size-12 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-ivory-deep ${focus}`}
-            >
-              <OptionsOutlineIcon size={20} />
-            </button>
           </div>
 
-          {/* Horizontal Quick Filter Chips Row (hidden scrollbar, smooth swipe) */}
-          <div
-            className="no-scrollbar -mx-5 flex items-center gap-2 overflow-x-auto px-5"
-            role="group"
-            aria-label="Quick filters"
-          >
+          {/* Horizontal Quick Filter Chips Row (AI Mode link sits outside the filter group) */}
+          <div className="no-scrollbar -mx-5 flex items-center gap-2 overflow-x-auto px-5">
             <Link
               to="/scan"
               className={`flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-full border border-terracotta bg-terracotta-soft px-4 text-xs leading-4 font-bold whitespace-nowrap text-terracotta-ink transition-colors hover:bg-terracotta/20 ${focus}`}
@@ -139,28 +123,10 @@ export default function ExplorePage() {
               <CameraOutlineIcon size={15} />
               AI Mode
             </Link>
-            <button type="button" onClick={() => setFreeOnly((v) => !v)} aria-pressed={freeOnly} className={chip(freeOnly)}>
-              Free entry
-            </button>
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setCategory(category === c ? undefined : c)}
-                aria-pressed={category === c}
-                className={chip(category === c)}
-              >
-                {CATEGORY_LABELS[c]}
+            <div className="flex items-center gap-2" role="group" aria-label="Quick filters">
+              <button type="button" onClick={() => setFreeOnly((v) => !v)} aria-pressed={freeOnly} className={chip(freeOnly)}>
+                Free entry
               </button>
-            ))}
-          </div>
-
-          {showFilters && (
-            <div
-              className="flex flex-wrap gap-2 rounded-2xl border border-ivory-line bg-ivory-surface p-3 shadow-card"
-              role="group"
-              aria-label="Filter by category"
-            >
               {CATEGORIES.map((c) => (
                 <button
                   key={c}
@@ -172,11 +138,8 @@ export default function ExplorePage() {
                   {CATEGORY_LABELS[c]}
                 </button>
               ))}
-              <button type="button" onClick={() => setFreeOnly((v) => !v)} aria-pressed={freeOnly} className={chip(freeOnly)}>
-                Free entry
-              </button>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -223,6 +186,7 @@ export default function ExplorePage() {
             key={resolvedTheme}
             theme={resolvedTheme}
             hidden={false}
+            landmarks={results.data ?? []}
             location={geo.coords}
             locating={geo.status === 'locating'}
             locationStatus={geo.status}
@@ -287,9 +251,9 @@ export default function ExplorePage() {
               <h2 id="popular-title" className="font-display text-[1.625rem] leading-8 font-bold text-ink">
                 Popular Landmarks
               </h2>
-              {sortedPopular.length > 0 && (
+              {popularLandmarks.length > 0 && (
                 <span className="font-mono text-xs leading-4 font-medium text-ink-muted">
-                  {sortedPopular.length} {sortedPopular.length === 1 ? 'spot' : 'spots'}
+                  {popularLandmarks.length} {popularLandmarks.length === 1 ? 'spot' : 'spots'}
                 </span>
               )}
             </div>
@@ -297,11 +261,11 @@ export default function ExplorePage() {
               <RowSkeletons label="Loading popular landmarks" />
             ) : results.isError ? (
               <ErrorNotice onRetry={() => results.refetch()} />
-            ) : sortedPopular.length === 0 ? (
+            ) : popularLandmarks.length === 0 ? (
               <Notice title="No landmarks yet">Check back soon.</Notice>
             ) : (
               <ul className="flex flex-col gap-3.5">
-                {sortedPopular.map((l) => (
+                {popularLandmarks.map((l) => (
                   <li key={l.id}>
                     <LandmarkRow landmark={l} />
                   </li>
@@ -319,7 +283,7 @@ function Notice({ title, children, action, alert }: { title: string; children?: 
   return (
     <div
       role={alert ? 'alert' : undefined}
-      className={`flex flex-col gap-2 rounded-[20px] border px-[18px] py-4 ${
+      className={`flex flex-col gap-2 rounded-2xl border px-4 py-4 ${
         alert ? 'border-danger-line bg-danger-soft text-danger' : 'border-ivory-line bg-ivory-surface'
       }`}
     >
@@ -353,7 +317,7 @@ function TileSkeletons() {
       {[0, 1].map((i) => (
         <div
           key={i}
-          className="h-64 w-52 shrink-0 animate-pulse rounded-[28px] border border-ivory-line bg-sage-soft motion-reduce:animate-none"
+          className="h-64 w-52 shrink-0 animate-pulse rounded-3xl border border-ivory-line bg-sage-soft motion-reduce:animate-none"
           aria-hidden
         />
       ))}
@@ -368,7 +332,7 @@ function RowSkeletons({ label }: { label: string }) {
       {[0, 1].map((i) => (
         <div
           key={i}
-          className="h-72 animate-pulse rounded-[28px] border border-ivory-line bg-ivory-surface p-3 motion-reduce:animate-none"
+          className="h-72 animate-pulse rounded-3xl border border-ivory-line bg-ivory-surface p-3 motion-reduce:animate-none"
           aria-hidden
         >
           <div className="h-48 rounded-2xl bg-sage-soft" />

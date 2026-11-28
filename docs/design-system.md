@@ -201,12 +201,12 @@ Each component in Figma has a written spec next to it. Read it before building.
 | Button | Full width; one navy primary per screen; large = UPPERCASE | ❌ |
 | IconButton | One Ionicon in a 40–48 px disc; always has an accessible label | ❌ |
 | Tag | Heritage, navy, rating, locked / unlocked pills | ❌ |
-| LandmarkCard / LandmarkRow | 160 px rail tile / 80 px thumbnail row | ⚠️ scaffold version |
+| LandmarkCard / LandmarkRow | `FeaturedLandmarkCard` (Today 240 px spotlight), `LandmarkTile` (208 × 256 px Nearby rail card), `LandmarkRow` (192 px photo + details Popular card) | ✅ `LandmarkCard.tsx` |
 | PaginationDots | 8 px sage dots, current 24 px terracotta | ❌ |
 | TopNavbar | Back, centred navy title, optional action; 40 px bottom corners; 60 px + inset | ✅ `TopNavbar.tsx` |
 | **BottomNav** (was ScreenNavbar) | Floating pill: four tabs + navy Scan disc; 62 px, 14 px off the edges | ✅ `BottomNav.tsx` |
 | TextField | Uppercase label, surface well, line-strong border, terracotta icon; 56 / 48 px | ❌ |
-| SearchBar | Surface field, terracotta search icon, filter button on Explore | ❌ |
+| SearchBar | Floating pill search field overlapping the Explore hero, followed by horizontal quick filter chips | ✅ inline in `ExplorePage.tsx` |
 | Switch | Ivory-deep track off; navy or sage-deep on | ❌ |
 | ChatComposer / ChatBubble | Sage camera, send turns navy; guide in surface, traveller in navy | ✅ inline in `ChatPage.tsx` |
 | InfoSection | Terracotta-ink title, ink-body text; Trivia callout in terracotta-soft | ⚠️ inline in `LandmarkPage.tsx` |
@@ -242,6 +242,17 @@ old ScreenNavbar slab (`151:122`). Implemented in `src/components/BottomNav.tsx`
 details, chat), auth, splash, onboarding, permissions and 404, which use a TopNavbar or nothing. Keep
 new tab-level screens inside `AppShell` and pushed screens outside it. The designer still needs to
 show these rules in the prototype (ticket #27).
+
+### Explore and landmark cards (UI Redesign #3.1)
+
+Built in `src/pages/ExplorePage.tsx`, `src/components/LandmarkCard.tsx` and `src/components/ExploreMap.tsx` from Figma `03.1 · Explore` (`638:10770` / `638:10783` / `638:10789`) and ClickUp `#3.1`:
+
+- **Hero banner.** Full-bleed Cebu photo (`LoginDay.webp` in light mode, `LoginNight.webp` in dark mode) with `from-navy/65 via-navy/25 to-terracotta/50` scrim and `data-palette="light"`. Top row: `Cebu, PH` pill (`bg-ivory-surface/95 text-navy`, coral pin icon) and `Saved landmarks` button (`→ /archives`). Centred `font-display` `Explore` heading and italic `Discover the heart of Cebu` subtitle in `text-on-navy`.
+- **Overlapping search bar & quick filter strip.** 56 px pill search bar (`rounded-full`, `bg-ivory-surface`, `shadow-card`, `-mt-7` overlap) with `rem`-scaled `placeholder="Search landmarks"`, followed by a horizontal `.no-scrollbar` strip containing the coral `AI Mode` link (`→ /scan`, outside the filter group) and the `Quick filters` button group (`Free entry` + categories).
+- **Section order.** `Today` → `Explore map` (`rounded-3xl`, `h-44` preview with full-screen expand, landmark pins, and `Location not shared` / `Location is off` pill) → `Nearby You` (`Within a 5 km radius`) → `Popular Landmarks` (starts after the `Today` spotlight when multiple landmarks exist).
+- **`FeaturedLandmarkCard` (Today spotlight).** 240 px (`h-60`) `rounded-3xl` full-photo card with `data-palette="light"`, `from-ink/10 via-navy/30 to-navy/92` scrim, top-left `bg-terracotta-ink text-on-navy` category pill (WCAG AA ≥ 4.5:1), `font-display` 24/28 title, and `font-mono` rating (`text-gold` star) · district · fee metadata.
+- **`LandmarkTile` (Nearby You rail).** 208 × 256 px (`w-52 h-64`) `rounded-3xl` photo card with `data-palette="light"`, `from-terracotta/20 via-navy/25 to-navy/92` scrim, top distance/district pill (`bg-ivory-surface/95 text-navy`) and rating pill (`bg-ivory-surface/95 text-terracotta-ink`), bottom 2-line `font-display` title and category · fee caption.
+- **`LandmarkRow` (Popular Landmarks & search results).** Full-width `rounded-3xl` `bg-ivory-surface` card with a 192 px (`h-48`) photo header (`bg-sage-soft/95 text-sage-deep` fee pill, `bg-ivory-surface/95 text-terracotta-ink` rating pill, bottom-right `bg-terracotta-ink text-on-navy` category tag) and a `p-4` details body (`font-display` 24/28 title, coral pin + district/distance, `Read story →` in `terracotta-ink`, and `Hours · {visitingHours}` in `font-mono`).
 
 ### Archives (UI Redesign #6)
 

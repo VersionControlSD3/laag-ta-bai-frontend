@@ -1,5 +1,13 @@
 import { createContext, useContext } from 'react'
 
+/** Thrown by `signUp` when the email already has an account, so the form can offer Sign in instead. */
+export class EmailTakenError extends Error {
+  constructor() {
+    super('Email used already exists.')
+    this.name = 'EmailTakenError'
+  }
+}
+
 export type AuthUser = { id: string; email: string | null; displayName: string | null }
 
 export type AuthState = {
@@ -24,7 +32,10 @@ export type AuthState = {
   }): Promise<{ needsConfirmation: boolean }>
   /** Resends the Supabase sign-up confirmation email to the given address. */
   resendConfirmationEmail(email: string): Promise<void>
-  /** Google OAuth via Supabase: signs in, or creates the account on first use. */
+  /**
+   * Google OAuth via Supabase: signs in, or creates the account on first use. A new account has no
+   * Terms acceptance, so ProfileGate sends it to /complete-profile (18+, nationality, Terms).
+   */
   signInWithGoogle(): Promise<void>
   signInAsDev(displayName?: string): void
   signOut(): Promise<void>

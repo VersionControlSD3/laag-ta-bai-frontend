@@ -2,13 +2,36 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import type { LandmarkSummary, Visit } from '@/api/types'
 import { useLandmarks, useMe } from '@/api/hooks'
-import { BookmarkIcon, CompassOutlineIcon, LocationIcon, LocationOutlineIcon, StarIcon } from '@/components/icons/ionicons'
+import { SignInPrompt } from '@/components/SignInPrompt'
+import { ErrorMessage, Loading } from '@/components/StateMessage'
+import {
+  ArrowUndoOutlineIcon,
+  BookOutlineIcon,
+  BookmarkIcon,
+  BookmarkOutlineIcon,
+  CameraOutlineIcon,
+  CheckmarkCircleOutlineIcon,
+  CloseOutlineIcon,
+  CloudOfflineOutlineIcon,
+  CompassOutlineIcon,
+  EyeOutlineIcon,
+  LocationIcon,
+  LocationOutlineIcon,
+  StarIcon,
+  TimeOutlineIcon,
+} from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useBookmarks, type Bookmark } from '@/features/bookmarks/useBookmarks'
 import { CATEGORY_LABELS, formatDistance } from '@/lib/format'
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy'
 const eyebrow = 'text-xs font-bold tracking-[0.1em] text-terracotta-ink uppercase'
+const countPill = 'shrink-0 rounded-full border border-ivory-line bg-navy-soft px-2.5 py-1 text-xs font-bold text-ink-muted'
+// whitespace-nowrap keeps each CTA label on one line; the buttons stack on narrow screens instead.
+const primaryCta = `flex min-h-12 items-center justify-center gap-2 rounded-full bg-navy px-5 text-sm font-bold whitespace-nowrap text-on-navy transition-colors hover:bg-navy-pressed ${focusRing}`
+const secondaryCta = `flex min-h-12 items-center justify-center gap-2 rounded-full border border-ivory-line bg-ivory-surface px-5 text-sm font-bold whitespace-nowrap text-ink transition-colors hover:bg-navy-soft ${focusRing}`
+
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`
 
 /**
  * Archives (UI Redesign #6, Figma 558:3513 / 558:3553): bookmarks saved on landmark pages
@@ -57,13 +80,21 @@ export default function ArchivesPage() {
     [landmarks.data],
   )
 
+  const visits = me.data?.recentVisits ?? []
+  const bothEmpty = auth.status === 'signed-in' && me.isSuccess && bookmarks.length === 0 && visits.length === 0
+
+  let history: ReactNode
+  if (auth.status === 'loading') history = <Loading label="Checking your account…" />
+  else if (auth.status !== 'signed-in')
+    history = <SignInPrompt message="Sign in to keep a history of the places you visit across Cebu." />
+  else if (me.isPending) history = <Loading label="Loading your visit history…" />
+  else if (me.isError) history = <ErrorMessage error={me.error} onRetry={() => me.refetch()} />
+  else if (visits.length === 0) history = <EmptyHistoryView />
+  else history = <HistoryList visits={visits} landmarkById={landmarkById} />
+
   return (
-    <div className="bleed-under-nav flex min-h-dvh flex-col gap-4 bg-ivory px-6 pt-[max(3rem,env(safe-area-inset-top))] text-ink">
-      {isOffline && (
-        <Notice tone="offline" role="status" title="Offline mode active">
-          Showing bookmarked landmarks and cached visit history.
-        </Notice>
-      )}
+    <div className="bleed-under-nav flex min-h-dvh flex-col gap-6 bg-ivory px-6 pt-[max(3rem,env(safe-area-inset-top))] text-ink">
+      {isOffline && <OfflineBanner />}
 
       <header className="flex flex-col gap-1">
         <p className={eyebrow}>Your collection</p>
@@ -71,59 +102,49 @@ export default function ArchivesPage() {
         <p className="text-sm text-ink-body">Places and stories you saved for later.</p>
       </header>
 
-      <BookmarksSection bookmarks={bookmarks} onRemove={removeBookmark} />
+      {bothEmpty ? (
+        <EmptyBothView />
+      ) : (
+        <>
+          <BookmarksSection bookmarks={bookmarks} onRemove={removeBookmark} />
+          <hr className="border-t-2 border-ivory-line" />
+          <section aria-labelledby="history-heading" className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <SectionHeading id="history-heading" icon={<TimeOutlineIcon size={20} />} title="Visit History">
+                {auth.status === 'signed-in' && visits.length > 0 && (
+                  <span className={countPill}>{plural(visits.length, 'activity', 'activities')}</span>
+                )}
+              </SectionHeading>
+              <p className="text-xs text-ink-muted">Your scans, visits and viewed stories, newest first.</p>
+            </div>
+            {history}
+          </section>
+        </>
+      )}
 
-      <section aria-label="Visit history" className="flex flex-col gap-4">
-        {auth.status === 'loading' ? (
-          <Notice role="status" title="Checking your account…" />
-        ) : auth.status !== 'signed-in' ? (
-          <Notice
-            title="Sign in to keep visit history"
-            action={
-              <Link to="/login" className={`${actionLink} ${focusRing}`}>
-                Sign in
-              </Link>
-            }
-          >
-            Sign in to keep a history of the places you visit across Cebu.
-          </Notice>
-        ) : me.isPending ? (
-          <Notice role="status" title="Loading your visit history…" />
-        ) : me.isError ? (
-          <Notice
-            tone="error"
-            role="alert"
-            title="Couldn't load your visit history"
-            action={
-              <button type="button" onClick={() => me.refetch()} className={`${actionLink} ${focusRing}`}>
-                Try again
-              </button>
-            }
-          >
-            {me.error instanceof Error ? me.error.message : 'Something went wrong.'}
-          </Notice>
-        ) : me.data.recentVisits.length === 0 ? (
-          <Notice title="No visits yet">Landmarks you scan, check into or read about will appear here.</Notice>
-        ) : (
-          <HistoryList visits={me.data.recentVisits} landmarkById={landmarkById} />
-        )}
-      </section>
-
-      {/* Mounted up front so screen readers announce the toast when it appears. */}
+      {/* Mounted up front so screen readers announce the toast when it appears. bottom-24 per ticket 06, plus the safe area. */}
       <div
         role="status"
-        className="fixed inset-x-6 bottom-[var(--nav-clearance)] z-40 mx-auto max-w-[calc(28rem-3rem)]"
+        className="fixed inset-x-4 bottom-[calc(6rem+env(safe-area-inset-bottom))] z-40 mx-auto max-w-[calc(28rem-2rem)]"
       >
         {removed && (
-          <div className="flex items-center justify-between gap-3 rounded-2xl bg-navy py-3 pr-3 pl-4 text-on-navy shadow-navy">
-            <p className="min-w-0 truncate text-xs font-bold">Removed "{removed.name}"</p>
-            {/* The ::before box stretches the 28px pill to a 48px tap target without changing the layout. */}
+          <div className="flex items-center gap-2 rounded-2xl border border-on-navy/15 bg-navy py-1 pr-1 pl-4 text-on-navy shadow-navy">
+            <p className="min-w-0 flex-1 truncate text-xs font-semibold">Removed "{removed.name}" from bookmarks</p>
             <button
               type="button"
               onClick={undoRemove}
-              className={`relative shrink-0 rounded-[10px] bg-terracotta-soft px-3 py-1.5 text-xs font-bold text-terracotta-ink before:absolute before:inset-x-0 before:-inset-y-2.5 ${focusRing}`}
+              className={`flex min-h-12 min-w-12 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-terracotta-soft px-3 text-xs font-bold text-terracotta-ink ${focusRing} focus-visible:outline-on-navy`}
             >
+              <ArrowUndoOutlineIcon size={16} />
               Undo
+            </button>
+            <button
+              type="button"
+              onClick={() => setRemoved(null)}
+              aria-label="Dismiss"
+              className={`flex size-12 shrink-0 items-center justify-center rounded-xl text-on-navy ${focusRing} focus-visible:outline-on-navy`}
+            >
+              <CloseOutlineIcon size={20} />
             </button>
           </div>
         )}
@@ -132,53 +153,58 @@ export default function ArchivesPage() {
   )
 }
 
-// -my-2.5 keeps the 48px tap target without adding that height to the notice.
-const actionLink = '-my-2.5 inline-flex min-h-12 min-w-12 items-center text-sm font-bold text-navy underline underline-offset-4'
-
-const NOTICE_TONES = {
-  card: 'border-ivory-line bg-ivory-surface text-ink',
-  offline: 'border-terracotta bg-terracotta-soft text-terracotta-ink',
-  error: 'border-danger-line bg-danger-soft text-danger',
+function OfflineBanner() {
+  return (
+    <div
+      role="status"
+      className="flex items-center gap-3 rounded-2xl border border-terracotta/30 bg-terracotta-soft p-3.5 text-terracotta-ink"
+    >
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-ivory-surface">
+        <CloudOfflineOutlineIcon size={18} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold">Offline mode active</p>
+        <p className="text-xs text-ink-body">Showing bookmarked landmarks and cached visit history.</p>
+      </div>
+      <span className="shrink-0 rounded-full border border-terracotta/30 bg-ivory-surface px-2.5 py-1 text-xs font-bold tracking-wider uppercase">
+        Cached
+      </span>
+    </div>
+  )
 }
 
-/** The Figma StateNotice: a 20px-radius card with a bold title and a caption, for empty, offline and error states. */
-function Notice({
-  title,
-  children,
-  tone = 'card',
-  role,
-  action,
-}: {
-  title: string
-  children?: ReactNode
-  tone?: keyof typeof NOTICE_TONES
-  role?: 'status' | 'alert'
-  action?: ReactNode
-}) {
+function SectionHeading({ id, icon, title, children }: { id: string; icon: ReactNode; title: string; children?: ReactNode }) {
   return (
-    <div role={role} className={`flex flex-col items-start gap-1.5 rounded-[20px] border px-4.5 py-4 ${NOTICE_TONES[tone]}`}>
-      <p className="text-[0.9375rem] leading-[1.375rem] font-bold">{title}</p>
-      {children && <p className="text-xs font-medium text-ink-body">{children}</p>}
-      {action}
+    <div className="flex items-center justify-between gap-3">
+      <h2 id={id} className="flex items-center gap-2 text-xl font-bold tracking-tight">
+        <span className="shrink-0 text-terracotta">{icon}</span>
+        {title}
+      </h2>
+      {children}
     </div>
   )
 }
 
 function BookmarksSection({ bookmarks, onRemove }: { bookmarks: Bookmark[]; onRemove: (bookmark: Bookmark) => void }) {
   return (
-    <section aria-label="Bookmarked landmarks" className="flex flex-col gap-4">
+    <section aria-labelledby="bookmarks-heading" className="flex flex-col gap-4">
+      <SectionHeading id="bookmarks-heading" icon={<BookmarkOutlineIcon size={20} />} title="Bookmarked Landmarks">
+        <span className={countPill}>{plural(bookmarks.length, 'place', 'places')}</span>
+      </SectionHeading>
       {bookmarks.length === 0 ? (
-        <Notice title="No saved places yet">Tap the bookmark on any landmark to save it here for offline access.</Notice>
+        <EmptyCard
+          icon={<BookmarkOutlineIcon size={28} />}
+          iconTone="bg-terracotta-soft text-terracotta-ink"
+          title="No saved places yet"
+          to="/"
+          cta="Explore landmarks"
+        >
+          Tap the bookmark on any landmark to save it here for quick offline access and itinerary planning.
+        </EmptyCard>
       ) : (
-        <>
-          <h2 className="flex items-start gap-2 text-lg leading-6 font-bold">
-            <BookmarkIcon size={18} className="mt-[3px] shrink-0 text-terracotta" />
-            Bookmarked Landmarks ({bookmarks.length} {bookmarks.length === 1 ? 'place' : 'places'})
-          </h2>
-          {bookmarks.map((bookmark) => (
-            <PlaceCard key={bookmark.id} bookmark={bookmark} onRemove={() => onRemove(bookmark)} />
-          ))}
-        </>
+        bookmarks.map((bookmark) => (
+          <PlaceCard key={bookmark.id} bookmark={bookmark} onRemove={() => onRemove(bookmark)} />
+        ))
       )}
     </section>
   )
@@ -188,7 +214,7 @@ function PlaceCard({ bookmark, onRemove }: { bookmark: Bookmark; onRemove: () =>
   const distance = formatDistance(bookmark.distanceMeters)
   return (
     <article className="relative overflow-hidden rounded-3xl border border-ivory-line bg-ivory-surface">
-      <div className="relative h-36 bg-sage-soft">
+      <div className="relative h-44 bg-sage-soft">
         {bookmark.imageUrl ? (
           <img src={bookmark.imageUrl} alt="" className="size-full object-cover" loading="lazy" />
         ) : (
@@ -196,7 +222,8 @@ function PlaceCard({ bookmark, onRemove }: { bookmark: Bookmark; onRemove: () =>
             <CompassOutlineIcon size={40} />
           </div>
         )}
-        <span className="absolute top-3 left-3 rounded-full bg-terracotta-soft px-2.5 py-1 text-[0.625rem] leading-[0.875rem] font-bold tracking-wide text-terracotta-ink">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-navy/60 to-transparent" />
+        <span className="absolute top-3 left-3 flex h-7 items-center rounded-full bg-terracotta-soft px-3 text-xs font-bold tracking-wide text-terracotta-ink">
           {CATEGORY_LABELS[bookmark.category] ?? bookmark.category}
         </span>
         <button
@@ -204,33 +231,31 @@ function PlaceCard({ bookmark, onRemove }: { bookmark: Bookmark; onRemove: () =>
           onClick={onRemove}
           aria-label={`Remove ${bookmark.name} from bookmarks`}
           aria-pressed="true"
-          className={`absolute top-1 right-1 z-10 flex size-12 items-center justify-center rounded-full ${focusRing}`}
+          className={`absolute top-2 right-2 z-10 flex min-h-12 min-w-12 items-center justify-center rounded-full border border-on-navy/30 bg-navy/85 text-on-navy shadow-navy backdrop-blur-md transition-colors hover:bg-navy ${focusRing}`}
         >
-          <span className="flex size-10 items-center justify-center rounded-full bg-terracotta text-on-navy shadow-navy">
-            <BookmarkIcon size={18} />
-          </span>
+          <BookmarkIcon size={20} />
         </button>
       </div>
 
-      <div className="flex items-center justify-between gap-3 px-4 py-3.5">
-        <div className="flex min-w-0 flex-col gap-0.5">
+      <div className="flex items-center justify-between gap-3 p-4">
+        <div className="flex min-w-0 flex-col gap-1">
           {/* The ::after box makes the whole card open the landmark; the remove button sits above it. */}
           <Link
             to={`/landmarks/${bookmark.id}`}
-            className={`line-clamp-2 rounded-md font-display text-xl leading-[1.625rem] font-bold tracking-[-0.005em] after:absolute after:inset-0 ${focusRing}`}
+            className={`line-clamp-2 rounded-md text-lg leading-6 font-bold after:absolute after:inset-0 ${focusRing}`}
           >
             {bookmark.name}
           </Link>
-          <p className="flex items-center gap-1 text-xs font-medium text-ink-muted">
-            <LocationIcon size={12} className="shrink-0 text-terracotta-ink" />
+          <p className="flex items-center gap-1.5 text-xs font-medium text-ink-muted">
+            <LocationIcon size={14} className="shrink-0 text-terracotta-ink" />
             <span className="truncate">
               {bookmark.district}
               {distance && ` · ${distance}`}
             </span>
           </p>
         </div>
-        <p className="flex shrink-0 items-center gap-1 rounded-[10px] bg-navy-soft px-2.5 py-[5px] font-mono text-[0.6875rem] leading-[0.875rem] font-bold tracking-[0.02em] text-terracotta-ink">
-          <StarIcon size={12} className="text-terracotta" />
+        <p className="flex shrink-0 items-center gap-1 rounded-xl border border-ivory-line bg-navy-soft px-2.5 py-1.5 text-xs font-bold text-terracotta-ink">
+          <StarIcon size={14} className="text-terracotta" />
           <span className="sr-only">Rating </span>
           {bookmark.rating.toFixed(1)}
         </p>
@@ -242,9 +267,13 @@ function PlaceCard({ bookmark, onRemove }: { bookmark: Bookmark; onRemove: () =>
 function HistoryList({ visits, landmarkById }: { visits: Visit[]; landmarkById: Map<string, LandmarkSummary> }) {
   const groups = useMemo(() => groupByDay(visits), [visits])
   return groups.map(([label, items]) => (
-    <div key={label} className="flex flex-col gap-4">
-      <h2 className={eyebrow}>Visit history · {label}</h2>
-      <ul className="flex flex-col gap-4">
+    <div key={label} className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <h3 className={eyebrow}>{label}</h3>
+        <span className="h-px flex-1 bg-ivory-line" />
+        <span className="text-xs font-semibold text-ink-muted">{plural(items.length, 'activity', 'activities')}</span>
+      </div>
+      <ul className="flex flex-col gap-2.5">
         {items.map((visit) => (
           <HistoryRow key={visit.id} visit={visit} landmark={landmarkById.get(visit.landmarkId)} />
         ))}
@@ -259,9 +288,9 @@ function HistoryRow({ visit, landmark }: { visit: Visit; landmark?: LandmarkSumm
     <li>
       <Link
         to={`/landmarks/${visit.landmarkId}`}
-        className={`flex items-center gap-3 rounded-2xl border border-ivory-line bg-ivory-surface p-3 ${focusRing}`}
+        className={`flex items-center gap-3 rounded-2xl border border-ivory-line bg-ivory-surface p-3 transition-colors hover:bg-navy-soft ${focusRing}`}
       >
-        <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-sage-soft text-sage-deep">
+        <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-ivory-line bg-sage-soft text-sage-deep">
           {landmark?.imageUrl ? (
             <img src={landmark.imageUrl} alt="" className="size-full object-cover" loading="lazy" />
           ) : (
@@ -269,29 +298,107 @@ function HistoryRow({ visit, landmark }: { visit: Visit; landmark?: LandmarkSumm
           )}
         </span>
         <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
-          <span className="text-[0.9375rem] leading-[1.375rem] font-bold">
-            {landmark?.name ?? visit.landmarkId}
-            {visit.xpAwarded > 0 && <span className="ml-2 whitespace-nowrap">+{visit.xpAwarded} XP</span>}
+          <span className="flex max-w-full items-center gap-2">
+            <span className="truncate text-sm font-bold">{landmark?.name ?? visit.landmarkId}</span>
+            {visit.xpAwarded > 0 && (
+              <span className="shrink-0 rounded-md bg-sage-soft px-1.5 py-0.5 text-xs font-bold text-sage-deep">
+                +{visit.xpAwarded} XP
+              </span>
+            )}
           </span>
-          <span className="text-xs font-medium text-ink-muted">
-            {time} · {landmark?.district ?? 'Cebu'}
+          <span className="flex max-w-full items-center gap-1.5 text-xs text-ink-muted">
+            <span className="shrink-0">{time}</span>
+            <span aria-hidden="true">•</span>
+            <span className="truncate">{landmark?.district ?? 'Cebu'}</span>
           </span>
-          <ActivityPill source={visit.source} />
+          <ActivityBadge source={visit.source} />
         </span>
       </Link>
     </li>
   )
 }
 
-/** The Figma StatusPill. Scanned / Visited / Viewed differ by label, not colour alone (WCAG 1.4.1). */
-function ActivityPill({ source }: { source: Visit['source'] }) {
-  const [label, tone] =
+/** Scanned / Visited / Viewed differ by icon and label, not colour alone (WCAG 1.4.1). */
+function ActivityBadge({ source }: { source: Visit['source'] }) {
+  const [label, Icon, tone] =
     source === 'scan'
-      ? ['Scanned', 'bg-navy-soft text-navy']
+      ? (['Scanned', CameraOutlineIcon, 'border-navy/25 bg-navy-soft text-navy'] as const)
       : source === 'manual'
-        ? ['Visited', 'bg-sage-soft text-sage-deep']
-        : ['Viewed', 'bg-terracotta-soft text-terracotta-ink']
-  return <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${tone}`}>{label}</span>
+        ? (['Visited', CheckmarkCircleOutlineIcon, 'border-sage-deep/35 bg-sage-soft text-sage-deep'] as const)
+        : (['Viewed', EyeOutlineIcon, 'border-terracotta/35 bg-terracotta-soft text-terracotta-ink'] as const)
+  return (
+    <span className={`mt-1 inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-bold ${tone}`}>
+      <Icon size={14} />
+      <span>{label}</span>
+    </span>
+  )
+}
+
+function EmptyCard({
+  icon,
+  iconTone,
+  title,
+  to,
+  cta,
+  children,
+}: {
+  icon: ReactNode
+  iconTone: string
+  title: string
+  to: string
+  cta: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex flex-col items-center rounded-3xl border border-ivory-line bg-ivory-surface p-8 text-center">
+      <span className={`mb-3 flex size-14 items-center justify-center rounded-2xl ${iconTone}`}>{icon}</span>
+      <h3 className="text-base font-bold">{title}</h3>
+      <p className="mt-1 max-w-xs text-xs leading-relaxed text-ink-muted">{children}</p>
+      <Link to={to} className={`mt-5 ${primaryCta}`}>
+        {cta}
+      </Link>
+    </div>
+  )
+}
+
+function EmptyHistoryView() {
+  return (
+    <EmptyCard
+      icon={<TimeOutlineIcon size={28} />}
+      iconTone="bg-sage-soft text-sage-deep"
+      title="No activity history yet"
+      to="/scan"
+      cta="Scan a landmark"
+    >
+      Landmarks you scan with the camera, check into, or read about will appear here chronologically.
+    </EmptyCard>
+  )
+}
+
+function EmptyBothView() {
+  return (
+    <div className="flex flex-col items-center rounded-3xl border border-ivory-line bg-ivory-surface px-6 py-10 text-center">
+      <span className="mb-4 flex size-16 items-center justify-center rounded-3xl bg-terracotta-soft text-terracotta-ink">
+        <BookOutlineIcon size={32} />
+      </span>
+      <h2 className="text-2xl font-extrabold">Your archives are empty</h2>
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-ink-body">
+        Start building your Cebu journey! Bookmark heritage sites to read offline and scan landmarks with your camera as
+        you explore to grow your travel history.
+      </p>
+      {/* Stacked full-width on phones; side by side only when there is room for both labels. */}
+      <div className="mt-6 flex w-full flex-col gap-3 min-[420px]:w-auto min-[420px]:flex-row">
+        <Link to="/" className={primaryCta}>
+          <CompassOutlineIcon size={18} />
+          Explore landmarks
+        </Link>
+        <Link to="/scan" className={secondaryCta}>
+          <CameraOutlineIcon size={18} />
+          Scan landmarks
+        </Link>
+      </div>
+    </div>
+  )
 }
 
 /** Groups visits into Today / Yesterday / date, newest first. */

@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { AuthContext, type AuthState } from '@/features/auth/AuthContext'
+import { AuthContext, EmailTakenError, type AuthState } from '@/features/auth/AuthContext'
 import { writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
 import { renderPage, renderRoutes } from '@/test/render'
@@ -107,6 +107,33 @@ describe('sign-up page', () => {
     expect(screen.queryByText('Please confirm your password.')).not.toBeInTheDocument()
     await user.click(submit)
     expect(screen.getByRole('checkbox')).toHaveFocus()
+  })
+
+  it('says an already-registered email exists and links to Sign in, instead of the confirmation screen (bug #16)', async () => {
+    const user = userEvent.setup()
+    const auth = supabaseAuth({ signUp: vi.fn().mockRejectedValue(new EmailTakenError()) })
+    renderPage(
+      <AuthContext.Provider value={auth}>
+        <SignUpPage />
+      </AuthContext.Provider>,
+      '/register',
+    )
+    await fillAndSubmitValidForm(user, 'taken@example.com')
+
+    const email = screen.getByRole('textbox', { name: 'Email' })
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Email used already exists. Sign in instead?')
+    expect(within(alert).getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
+    expect(email).toHaveAttribute('aria-invalid', 'true')
+    expect(email).toHaveAccessibleDescription('Email used already exists. Sign in instead?')
+    await vi.waitFor(() => expect(email).toHaveFocus())
+    expect(screen.queryByRole('heading', { name: 'Check your email' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Create Account' })).toBeInTheDocument()
+
+    // A different email clears the message.
+    fireEvent.change(email, { target: { value: 'fresh@example.com' } })
+    expect(screen.queryByText(/Email used already exists/)).not.toBeInTheDocument()
+    expect(email).toHaveAttribute('aria-invalid', 'false')
   })
 
   it('focuses the signup error after every failed request', async () => {

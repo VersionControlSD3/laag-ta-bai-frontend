@@ -14,11 +14,27 @@ const casa: LandmarkSummary = {
   longitude: 123.9,
   imageUrl: null,
   admissionFee: 0,
-  rating: 4.7,
+  rating: 4.9,
   visitCount: 3,
   estimatedVisitMinutes: 45,
   visitingHours: '9:00 AM - 5:00 PM',
   distanceMeters: 400,
+}
+
+const fort: LandmarkSummary = {
+  id: 'fort-san-pedro',
+  name: 'Fort San Pedro',
+  category: 'fort',
+  district: 'Cebu City',
+  latitude: 10.29,
+  longitude: 123.9,
+  imageUrl: null,
+  admissionFee: 30,
+  rating: 4.7,
+  visitCount: 12,
+  estimatedVisitMinutes: 60,
+  visitingHours: '8:00 AM - 7:00 PM',
+  distanceMeters: 650,
 }
 
 function mockGeolocation(result: 'granted' | 'denied') {
@@ -38,7 +54,7 @@ afterEach(() => vi.unstubAllGlobals())
 describe('ExplorePage', () => {
   it('explains location use before asking, then shows nearby landmarks with distances', async () => {
     mockGeolocation('granted')
-    const fetchSpy = mockFetch(() => ({ data: [casa] }))
+    const fetchSpy = mockFetch(() => ({ data: [casa, fort] }))
     const nearbyRequests = () => fetchSpy.mock.calls.filter(([input]) => String(input).includes('radiusKm'))
     renderPage(<ExplorePage />)
 
@@ -49,19 +65,24 @@ describe('ExplorePage', () => {
     expect(within(hero).getByText('Cebu, PH')).toBeInTheDocument()
     expect(within(hero).getAllByRole('link')).toHaveLength(1)
     expect(within(hero).getByRole('link', { name: 'Saved landmarks' })).toHaveAttribute('href', '/archives')
-    expect(screen.getByRole('link', { name: 'Scan a landmark' })).toHaveAttribute('href', '/scan')
+    // AI Mode sits outside the Quick filters group, and there are no duplicate category buttons.
+    const quickFilters = screen.getByRole('group', { name: 'Quick filters' })
+    expect(within(quickFilters).queryByRole('link', { name: 'AI Mode' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'AI Mode' })).toHaveAttribute('href', '/scan')
-    // Today spotlight + Popular Landmarks both render Casa Gorordo before Nearby You is shared.
+    expect(screen.getAllByRole('button', { name: 'Free entry' })).toHaveLength(1)
+
+    // Today spotlight shows the top-rated landmark (Casa Gorordo) and Popular Landmarks starts after it (Fort San Pedro).
     const today = await screen.findByRole('region', { name: 'Today' })
+    const popularRegion = screen.getByRole('region', { name: 'Popular Landmarks' })
     expect(within(today).getByRole('link', { name: /Casa Gorordo/ })).toBeInTheDocument()
-    expect(within(screen.getByRole('region', { name: 'Popular Landmarks' })).getByRole('link', { name: /Casa Gorordo/ })).toBeInTheDocument()
+    expect(within(popularRegion).queryByRole('link', { name: /Casa Gorordo/ })).not.toBeInTheDocument()
+    expect(within(popularRegion).getByRole('link', { name: /Fort San Pedro/ })).toHaveTextContent('Hours · 8:00 AM - 7:00 PM')
     expect(nearbyRequests()).toHaveLength(0)
     expect(within(screen.getByRole('region', { name: 'Explore map' })).getByRole('status')).toHaveTextContent('Map unavailable')
 
     // Section order: Today -> Explore map -> Nearby You -> Popular Landmarks.
     const mapRegion = screen.getByRole('region', { name: 'Explore map' })
     const nearbyRegion = screen.getByRole('region', { name: 'Nearby You' })
-    const popularRegion = screen.getByRole('region', { name: 'Popular Landmarks' })
     expect(today.compareDocumentPosition(mapRegion)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
     expect(mapRegion.compareDocumentPosition(nearbyRegion)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
     expect(nearbyRegion.compareDocumentPosition(popularRegion)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
@@ -71,7 +92,7 @@ describe('ExplorePage', () => {
     expect(await within(nearbyRegion).findByRole('link', { name: /Casa Gorordo/ })).toHaveTextContent('400 m')
     expect(nearbyRequests()).toHaveLength(1)
     expect(String(nearbyRequests()[0][0])).toContain('lat=10.29')
-    expect(within(popularRegion).getByRole('link', { name: /Casa Gorordo/ })).toBeInTheDocument()
+    expect(within(popularRegion).getByRole('link', { name: /Fort San Pedro/ })).toBeInTheDocument()
   })
 
   it('shows the permission-denied state with a way to retry', async () => {
