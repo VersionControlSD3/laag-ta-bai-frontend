@@ -124,8 +124,12 @@ it('loads once, draws the permitted location, and falls back if Google rejects a
   }))
   act(() => google.listeners.tilesloaded?.())
   expect(screen.queryByRole('status')).toBeNull()
+  expect(screen.getByText('Location not shared')).toBeInTheDocument()
   expect(screen.queryByRole('img', { name: 'Your current location' })).toBeNull()
   expect(moveCamera).not.toHaveBeenCalled()
+
+  rerender(<ExploreMap {...props} locationStatus="denied" />)
+  expect(screen.getByText('Location is off')).toBeInTheDocument()
 
   const location = { lat: 10.29312, lng: 123.90456 }
   rerender(<ExploreMap {...props} locating />)

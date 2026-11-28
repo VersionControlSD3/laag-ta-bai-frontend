@@ -29,6 +29,7 @@ type ExploreMapProps = {
   landmarks: LandmarkSummary[]
   location: Location | null
   locating: boolean
+  locationStatus?: GeoState['status']
   onRefreshLocation: () => void
   theme: 'light' | 'dark'
 }
@@ -61,7 +62,7 @@ function frameLandmarks(map: GoogleMap, landmarks: LandmarkSummary[]) {
   }
 }
 
-export function ExploreMap({ hidden, landmarks, location, locating, onRefreshLocation, theme }: ExploreMapProps) {
+export function ExploreMap({ hidden, landmarks, location, locating, locationStatus = 'idle', onRefreshLocation, theme }: ExploreMapProps) {
   const apiKey = env.googleMapsApiKey
   const container = useRef<HTMLDivElement>(null)
   const frame = useRef<HTMLDivElement>(null)
@@ -211,7 +212,7 @@ export function ExploreMap({ hidden, landmarks, location, locating, onRefreshLoc
   )
 
   return (
-    <section className="px-6" aria-label="Explore map" hidden={hidden}>
+    <section className="px-5" aria-label="Explore map" hidden={hidden}>
       <div
         ref={frame}
         role={fullscreen ? 'dialog' : undefined}
@@ -220,7 +221,7 @@ export function ExploreMap({ hidden, landmarks, location, locating, onRefreshLoc
         onKeyDown={trapFocus}
         className={`overflow-hidden bg-sage-soft ${fullscreen
           ? 'fixed inset-0 z-50 mx-auto h-dvh max-w-md'
-          : 'relative h-56 rounded-3xl border border-ivory-line shadow-lg'}`}
+          : 'relative h-44 rounded-3xl border border-ivory-line shadow-card'}`}
       >
         <div ref={container} className="absolute inset-0" hidden={status === 'unavailable'} />
         {ready && (
@@ -237,6 +238,11 @@ export function ExploreMap({ hidden, landmarks, location, locating, onRefreshLoc
               <span aria-hidden className="size-2 shrink-0 rounded-full bg-navy motion-safe:animate-pulse" />
               Finding your location…
             </p>
+          ) : status === 'ready' && !location ? (
+            <span className="flex items-center gap-1.5 rounded-full border border-ivory-line bg-ivory-surface/95 px-3 py-1.5 text-xs leading-4 font-semibold text-ink-body shadow-xs backdrop-blur-xs">
+              <span aria-hidden className="size-2 shrink-0 rounded-full bg-ink-muted" />
+              {locationStatus === 'denied' ? 'Location is off' : 'Location not shared'}
+            </span>
           ) : <span />}
           {(ready || fullscreen) && (
             <button
