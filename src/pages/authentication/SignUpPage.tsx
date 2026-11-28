@@ -71,7 +71,7 @@ function CalendarSelect({ label, value, options, open, onToggle, onChange, isDis
  * the ISO date, or '' while the text is empty or incomplete; `onTypedInvalid` says whether the
  * field holds text that isn't a complete, real date, so the page can say that instead of "required".
  */
-function CustomDatePicker({ id, value, onChange, onTypedInvalid, invalid, describedBy }: { id: string; value: string; onChange: (value: string) => void; onTypedInvalid: (invalid: boolean) => void; invalid: boolean; describedBy?: string }) {
+export function CustomDatePicker({ id, value, onChange, onTypedInvalid, invalid, describedBy }: { id: string; value: string; onChange: (value: string) => void; onTypedInvalid: (invalid: boolean) => void; invalid: boolean; describedBy?: string }) {
   const today = new Date()
   const maxYear = today.getFullYear() - 18
   // Age gate: latest selectable date is today minus 18 years (PR #17 review).

@@ -32,6 +32,7 @@ const me = (overrides: Partial<Me['rank']> = {}, badges: Me['badges'] = [{ quest
     xp: 1240,
     streakCount: 7,
     lastActiveDate: null,
+    termsAcceptedAt: '2026-11-01T00:00:00.000Z',
   },
   email: null,
   rank: { level: 8, title: 'Cebuano Explorer', xp: 1240, currentLevelXp: 1000, nextLevelXp: 1500, ...overrides },

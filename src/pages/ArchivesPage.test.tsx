@@ -72,6 +72,7 @@ function meWith(recentVisits: Visit[]): Me {
       xp: 100,
       streakCount: 1,
       lastActiveDate: null,
+      termsAcceptedAt: '2026-11-01T00:00:00.000Z',
     },
     email: null,
     rank: { level: 1, title: 'Explorer', xp: 100, currentLevelXp: 0, nextLevelXp: 200 },
