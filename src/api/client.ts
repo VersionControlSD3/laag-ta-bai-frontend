@@ -87,6 +87,9 @@ function toQuery(params: Record<string, string | number | boolean | undefined>):
 }
 
 export const api = {
+  /** Bugs #11/#16: whether an email already has an account. One attempt: sign-up must not wait on retries. */
+  emailStatus: (email: string) =>
+    apiRequest<{ registered: boolean }>('/v1/auth/email-status', { method: 'POST', json: { email } }, 1),
   login: (input: { email: string; password: string }) =>
     apiRequest<AuthResult>('/v1/auth/login', { method: 'POST', json: input }),
   listLandmarks: (query: LandmarkQuery = {}, signal?: AbortSignal) =>

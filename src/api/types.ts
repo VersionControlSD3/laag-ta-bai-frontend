@@ -74,9 +74,14 @@ export type Profile = {
   xp: number
   streakCount: number
   lastActiveDate: string | null
+  /** When the user accepted the Terms; null for a new Google account until it completes its profile. */
+  termsAcceptedAt: string | null
 }
 
-export type ProfileUpdate = Partial<Pick<Profile, 'displayName' | 'avatarUrl' | 'nationality' | 'bio' | 'language'>>
+export type ProfileUpdate = Partial<Pick<Profile, 'displayName' | 'avatarUrl' | 'nationality' | 'bio' | 'language'>> & {
+  /** The API stamps `termsAcceptedAt` once; there is no way to withdraw from the client. */
+  acceptTerms?: true
+}
 
 export type Visit = {
   id: string

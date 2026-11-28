@@ -10,9 +10,8 @@ export function getPasswordRules(password: string): readonly PasswordRule[] {
 }
 
 export function passwordValidationError(password: string): string | null {
-  if (password.length < 8) return 'Use at least 8 characters.'
-  const hasUpper = /[A-Z]/.test(password)
-  const hasDigit = /\d/.test(password)
+  const [[, hasLength], [, hasUpper], [, hasDigit]] = getPasswordRules(password)
+  if (!hasLength) return 'Use at least 8 characters.'
   if (!hasUpper && !hasDigit) return 'Include at least one uppercase letter and one digit.'
   if (!hasUpper) return 'Include at least one uppercase letter.'
   if (!hasDigit) return 'Include at least one digit.'

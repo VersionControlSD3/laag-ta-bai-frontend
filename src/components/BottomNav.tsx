@@ -27,7 +27,7 @@ const TABS: Tab[] = [
  * Thumb-reach bottom navigation (SRS 3.2.1.1): the floating pill BottomNav from Figma (Components
  * page, node 551:971; UI Redesign #6). The active tab gets a navy-soft pill, a filled navy icon and
  * a visible label; the others show an outline icon in ink-muted and keep their label for screen
- * readers only. Scan is a navy disc that turns coral, with a ring, while Scan is open.
+ * readers only. Scan is a coral-to-lagoon gradient disc that turns solid coral, with a ring, while Scan is open.
  */
 export function BottomNav() {
   const { pathname } = useLocation()
@@ -85,7 +85,7 @@ function TabLink({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClic
   )
 }
 
-/** Scan: a 48px navy disc inside the bar; coral with a ring while Scan is open, so the state isn't colour alone. */
+/** Scan: a 48px coral-to-lagoon disc inside the bar; solid coral with a ring while Scan is open, so the state isn't colour alone. */
 function ScanTab({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClick: () => void }) {
   return (
     <NavLink
@@ -96,7 +96,7 @@ function ScanTab({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClic
         `flex size-[48px] shrink-0 items-center justify-center rounded-full text-on-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
           isActive
             ? 'bg-terracotta ring-2 ring-terracotta ring-offset-2 ring-offset-ivory-surface'
-            : 'bg-navy active:bg-navy-pressed'
+            : 'bg-linear-to-br from-terracotta to-navy active:to-navy-pressed'
         }`
       }
     >

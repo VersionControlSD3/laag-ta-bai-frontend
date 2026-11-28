@@ -24,7 +24,7 @@ function Media({ landmark, className }: { landmark: LandmarkSummary; className: 
   )
 }
 
-function Rating({ value }: { value: number }) {
+export function Rating({ value }: { value: number }) {
   return (
     <span className="flex items-center gap-1 text-xs leading-4 font-bold text-ink">
       <StarIcon size={10} className="text-terracotta" />

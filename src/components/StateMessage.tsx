@@ -28,7 +28,7 @@ export function ErrorMessage({ error, onRetry }: { error: unknown; onRetry?: () 
         <button
           type="button"
           onClick={onRetry}
-          className="touch-target mt-2 inline-flex min-h-12 items-center text-sm font-bold text-danger underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+          className="mt-3 inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border border-danger-line bg-ivory-surface px-5 text-sm font-bold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
         >
           Try again
         </button>

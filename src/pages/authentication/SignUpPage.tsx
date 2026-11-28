@@ -12,7 +12,7 @@ import {
   EyeOffOutlineIcon,
   EyeOutlineIcon,
 } from '@/components/icons/ionicons'
-import { useAuth } from '@/features/auth/AuthContext'
+import { EmailTakenError, useAuth } from '@/features/auth/AuthContext'
 import { DevSignIn } from '@/features/auth/DevSignIn'
 import { getPasswordRules } from '@/features/auth/passwordRules'
 import { nationalityOptions } from '@/lib/nationality'
@@ -72,7 +72,7 @@ function CalendarSelect({ label, value, options, open, onToggle, onChange, isDis
  * the ISO date, or '' while the text is empty or incomplete; `onTypedInvalid` says whether the
  * field holds text that isn't a complete, real date, so the page can say that instead of "required".
  */
-function CustomDatePicker({ id, value, onChange, onTypedInvalid, invalid, describedBy }: { id: string; value: string; onChange: (value: string) => void; onTypedInvalid: (invalid: boolean) => void; invalid: boolean; describedBy?: string }) {
+export function CustomDatePicker({ id, value, onChange, onTypedInvalid, invalid, describedBy }: { id: string; value: string; onChange: (value: string) => void; onTypedInvalid: (invalid: boolean) => void; invalid: boolean; describedBy?: string }) {
   const today = new Date()
   const maxYear = today.getFullYear() - 18
   // Age gate: latest selectable date is today minus 18 years (PR #17 review).
@@ -260,6 +260,8 @@ export default function SignUpPage() {
   const focusEmailOnReturnRef = useRef(false)
   const [form, setForm] = useState({ displayName: '', email: '', dateOfBirth: '', nationality: '', password: '', confirmPassword: '', bio: '', acceptedTerms: false })
   const [error, setError] = useState<{ message: string } | null>(null)
+  // The email the API or Supabase reported as already registered (bug #16); cleared when it changes.
+  const [takenEmail, setTakenEmail] = useState<string | null>(null)
   const [confirmEmail, setConfirmEmail] = useState(false)
   const [busy, setBusy] = useState(false)
   const [resending, setResending] = useState(false)
@@ -317,7 +319,8 @@ export default function SignUpPage() {
   const isUnderage = Boolean(form.dateOfBirth) && new Date(`${form.dateOfBirth}T00:00:00`) > maxBirthDate
   const fieldError = (message: string, id: string) => <span id={id} className="auth-field-error" role="alert">{message}</span>
   const nameInvalid = submitted && !form.displayName
-  const emailInvalid = submitted && !emailValid
+  const emailTaken = takenEmail !== null && takenEmail === form.email
+  const emailInvalid = (submitted && !emailValid) || emailTaken
   const birthDateInvalid = consentChecked && (!form.dateOfBirth || isUnderage)
   const passwordInvalid = submitted && !passwordValid
   const confirmationInvalid = submitted && !confirmValid
@@ -345,7 +348,13 @@ export default function SignUpPage() {
         navigate('/')
       }
     } catch (e) {
-      setError({ message: e instanceof Error ? e.message || 'Sign up failed.' : 'Sign up failed.' })
+      if (e instanceof EmailTakenError) {
+        setTakenEmail(form.email)
+        // The error sits on the email field, so send the traveller there (like a failed submit does).
+        requestAnimationFrame(() => emailInputRef.current?.focus())
+      } else {
+        setError({ message: e instanceof Error ? e.message || 'Sign up failed.' : 'Sign up failed.' })
+      }
     } finally {
       setBusy(false)
     }
@@ -460,7 +469,13 @@ export default function SignUpPage() {
                   <label className="auth-label block">Email <span aria-hidden="true">*</span>
                     <input ref={emailInputRef} type="email" autoComplete="email" required value={form.email} onChange={(e) => update('email', e.target.value)} className={inputClass(emailInvalid)} aria-invalid={emailInvalid} aria-describedby={emailInvalid ? 'signup-email-error' : undefined} />
                   </label>
-                  {emailInvalid && fieldError(form.email ? 'Enter a valid email address.' : 'Email is required.', 'signup-email-error')}
+                  {emailTaken ? (
+                    <span id="signup-email-error" className="auth-field-error" role="alert">
+                      Email used already exists.{' '}
+                      <Link to="/login" className="font-bold text-navy underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-navy">Sign in</Link>{' '}
+                      instead?
+                    </span>
+                  ) : emailInvalid && fieldError(form.email ? 'Enter a valid email address.' : 'Email is required.', 'signup-email-error')}
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {/* A div, not a <label>: the field holds both the text input and the calendar button. */}

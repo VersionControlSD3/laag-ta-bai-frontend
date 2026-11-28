@@ -17,6 +17,7 @@ const sampleMe = (overrides: Partial<Me> = {}): Me => ({
     xp: 340,
     streakCount: 5,
     lastActiveDate: '2026-11-10',
+    termsAcceptedAt: '2026-11-01T00:00:00.000Z',
   },
   email: 'carlos@cebu.ph',
   rank: {
