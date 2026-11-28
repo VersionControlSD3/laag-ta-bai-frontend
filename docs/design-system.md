@@ -243,6 +243,17 @@ details, chat), auth, splash, onboarding, permissions and 404, which use a TopNa
 new tab-level screens inside `AppShell` and pushed screens outside it. The designer still needs to
 show these rules in the prototype (ticket #27).
 
+### Scan and live camera lens (UI Redesign #4.1)
+
+Built in `src/pages/ScanPage.tsx` (`/scan`) from Figma `04.1 · Scan` and ClickUp `#4.1`:
+
+- **Lagoon lens header (`data-palette="light"`).** `bg-linear-to-b from-navy-pressed via-navy to-navy-pressed` container with a 48 × 48 `Back to Explore` button, `font-display` `Laag ta bAI Lens` title (`text-terracotta-light`), and a 48 px GPS toggle pill showing both icon and text (`GPS on` with `CheckmarkIcon` on `bg-sage-soft text-sage-deep`, or `GPS off` with `LocationOutlineIcon` on `bg-on-navy/15 text-on-navy`) so state is never shown by colour alone.
+- **Live `<video>` viewfinder (`rounded-3xl`, `bg-ink`).**
+  - **Camera rationale (`prompt`).** Before requesting `getUserMedia` (unless `navigator.permissions.query({ name: 'camera' })` is already `granted` or the rationale was accepted), the lens explains why camera access is used and shows a `Start camera` button (`bg-terracotta-ink text-on-navy`).
+  - **Active stream (`ready`).** Rear camera (`environment`) by default, with a top-left `Live Camera` pill (`bg-navy/90`, pulsing `bg-sage` dot, `text-[0.6875rem]`), top-right 48 × 48 `Switch camera` button (`CameraReverseOutlineIcon`, mirroring the front preview with `-scale-x-100`), and `border-on-navy/90` corner framing brackets. Falls back to `{ video: true }` only on `OverconstrainedError` / `NotFoundError`, and listens for track `ended` events.
+  - **Capture & Upload buttons.** Side-by-side 48 px pill buttons: `Take photo` (`bg-terracotta-ink text-on-navy`, 5.6:1 WCAG AA contrast) captures the `<video>` frame onto a `<canvas>` when the stream is at least `1280 × 720` (falling back to `<input type="file" capture="environment">` for lower-resolution streams or when unavailable), and `Upload` opens the gallery picker.
+- **Bottom sheet (`rounded-t-3xl`, `bg-ivory-surface`).** Holds the opt-in GPS verification rationale card (explaining in all states that coordinates are sent to our server only to confirm landmark proximity and sort nearby spots), validation/API error alerts, low-confidence / not-nearby candidate `LandmarkRow` cards, and the default `AI Overview` + suggested Cebu spots.
+
 ### Archives (UI Redesign #6)
 
 Built in `src/pages/ArchivesPage.tsx` from Final Pages → `06 · Archives` (`558:3513` / `558:3567`

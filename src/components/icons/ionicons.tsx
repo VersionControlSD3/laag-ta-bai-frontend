@@ -506,6 +506,32 @@ export const NotificationsIcon = icon(
   />,
 )
 
+export const CameraReverseOutlineIcon = icon(
+  <>
+    <path
+      {...stroke}
+      d="M350.54 148.68l-26.62-42.06C318.31 100.08 310.62 96 302 96h-92c-8.62 0-16.31 4.08-21.92 10.62l-26.62 42.06C155.85 155.23 148.62 160 140 160H80a32 32 0 00-32 32v192a32 32 0 0032 32h352a32 32 0 0032-32V192a32 32 0 00-32-32h-59c-8.65 0-16.85-4.77-22.46-11.32z"
+    />
+    <path {...stroke} d="M124 158v-22h-24v22M335.76 285.22v-13.31a80 80 0 00-131-61.6M176 258.78v13.31a80 80 0 00130.73 61.8" />
+    <path {...stroke} d="M196 272l-20-20-20 20M356 272l-20 20-20-20" />
+  </>,
+)
+
+export const ImageOutlineIcon = icon(
+  <>
+    <rect {...stroke} x="48" y="80" width="416" height="352" rx="48" ry="48" />
+    <circle cx="336" cy="176" r="32" {...stroke} />
+    <path {...stroke} d="M304 335.79l-90.66-90.49a32 32 0 00-43.87-1.3L48 352M224 432l123.34-123.34a32 32 0 0143.11-2L464 368" />
+  </>,
+)
+
+export const ScanOutlineIcon = icon(
+  <path
+    {...stroke}
+    d="M336 448h56a56 56 0 0056-56v-56M448 176v-56a56 56 0 00-56-56h-56M176 448h-56a56 56 0 01-56-56v-56M64 176v-56a56 56 0 0156-56h56"
+  />,
+)
+
 export const ExpandOutlineIcon = icon(
   <path {...stroke} d="M432 320v112H320M421.8 421.77L304 304M80 192V80h112M90.2 90.23L208 208M320 80h112v112M421.77 90.2L304 208M192 432H80V320M90.23 421.8L208 304" />,
 )
