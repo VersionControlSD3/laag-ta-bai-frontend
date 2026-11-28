@@ -1,20 +1,24 @@
 import type { ReactNode } from 'react'
+import { useT } from '@/i18n'
+import { errorText } from '@/i18n/errors'
 import { InformationCircleOutlineIcon } from './icons/ionicons'
 
-export function Loading({ label = 'Loading…' }: { label?: string }) {
+export function Loading({ label }: { label?: string }) {
+  const t = useT()
   return (
     <div role="status" className="flex items-center justify-center gap-2.5 py-10 text-sm font-medium text-ink-muted">
       <span
         aria-hidden="true"
         className="size-5 animate-spin rounded-full border-2 border-navy/25 border-t-navy motion-reduce:animate-none"
       />
-      <span>{label}</span>
+      <span>{label ?? t.common.loading}</span>
     </div>
   )
 }
 
 export function ErrorMessage({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
-  const message = error instanceof Error ? error.message : 'Something went wrong.'
+  const t = useT()
+  const message = errorText(error, t)
   return (
     <div
       role="alert"
@@ -30,7 +34,7 @@ export function ErrorMessage({ error, onRetry }: { error: unknown; onRetry?: () 
           onClick={onRetry}
           className="mt-3 inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border border-danger-line bg-ivory-surface px-5 text-sm font-bold text-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
         >
-          Try again
+          {t.common.tryAgain}
         </button>
       )}
     </div>

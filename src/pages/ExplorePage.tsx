@@ -6,15 +6,16 @@ import { OptionsOutlineIcon, SearchIcon } from '@/components/icons/ionicons'
 import { LandmarkRow, LandmarkTile } from '@/components/LandmarkCard'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
 import { useGeolocation } from '@/hooks/useGeolocation'
-import { CATEGORY_LABELS } from '@/lib/format'
+import { useT } from '@/i18n'
+import { CATEGORIES } from '@/lib/format'
 
-const CATEGORIES = Object.keys(CATEGORY_LABELS) as LandmarkCategory[]
 const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy'
-const PRIVACY = 'Your coordinates are sent to our server only to sort nearby landmarks and verify scans.'
 
 export default function ExplorePage() {
   const geo = useGeolocation({ maximumAge: 0 })
   const { resolvedTheme } = usePreferences()
+  const t = useT()
+  const e = t.explore
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<LandmarkCategory | undefined>()
   const [freeOnly, setFreeOnly] = useState(false)
@@ -38,8 +39,8 @@ export default function ExplorePage() {
   return (
     <div className="bleed-under-nav flex min-h-dvh flex-col gap-6 bg-ivory pt-[max(3rem,env(safe-area-inset-top))]">
       <header className="flex flex-col items-center gap-1 px-6 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight text-ink">Explore</h1>
-        <p className="text-base text-ink-muted">Discover the heart of Cebu</p>
+        <h1 className="text-4xl font-extrabold tracking-tight text-ink">{e.title}</h1>
+        <p className="text-base text-ink-muted">{e.subtitle}</p>
       </header>
 
       <div className="px-6">
@@ -47,12 +48,12 @@ export default function ExplorePage() {
         <div className="flex items-center gap-3 rounded-2xl border border-line-strong bg-ivory-surface pl-4 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-navy">
           <label className="flex min-w-0 flex-1 items-center gap-3">
             <SearchIcon size={20} className="shrink-0 text-terracotta" />
-            <span className="sr-only">Search landmarks</span>
+            <span className="sr-only">{e.search}</span>
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search landmarks, museums..."
+              placeholder={e.searchPlaceholder}
               className="h-12 min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-ink-muted"
             />
           </label>
@@ -60,7 +61,7 @@ export default function ExplorePage() {
             type="button"
             onClick={() => setShowFilters((v) => !v)}
             aria-expanded={showFilters}
-            aria-label="Filters"
+            aria-label={e.filters}
             className={`touch-target flex shrink-0 items-center justify-center rounded-2xl text-terracotta ${focus}`}
           >
             <OptionsOutlineIcon size={20} />
@@ -68,14 +69,14 @@ export default function ExplorePage() {
         </div>
 
         {showFilters && (
-          <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filter by category">
+          <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label={e.filterByCategory}>
             {CATEGORIES.map((c) => (
               <button key={c} type="button" onClick={() => setCategory(category === c ? undefined : c)} aria-pressed={category === c} className={chip(category === c)}>
-                {CATEGORY_LABELS[c]}
+                {t.common.categories[c]}
               </button>
             ))}
             <button type="button" onClick={() => setFreeOnly((v) => !v)} aria-pressed={freeOnly} className={chip(freeOnly)}>
-              Free entry
+              {e.freeEntry}
             </button>
           </div>
         )}
@@ -92,13 +93,13 @@ export default function ExplorePage() {
       />
 
       {filtering ? (
-        <section className="flex flex-col gap-3 px-6" aria-label="Search results">
+        <section className="flex flex-col gap-3 px-6" aria-label={e.results}>
           {results.isPending ? (
-            <RowSkeletons label="Searching landmarks" />
+            <RowSkeletons label={e.searching} />
           ) : results.isError ? (
             <ErrorNotice onRetry={() => results.refetch()} />
           ) : results.data.length === 0 ? (
-            <Notice title="No matches">Try another name, or clear the filters.</Notice>
+            <Notice title={e.noMatches}>{e.noMatchesBody}</Notice>
           ) : (
             results.data.map((l) => <LandmarkRow key={l.id} landmark={l} />)
           )}
@@ -107,32 +108,32 @@ export default function ExplorePage() {
         <>
           <section className="flex flex-col gap-4" aria-labelledby="nearby-title">
             <div className="px-6">
-              <h2 id="nearby-title" className="text-2xl font-bold text-ink">Nearby You</h2>
-              <p className="text-sm text-ink-muted">Within a 5 km radius</p>
+              <h2 id="nearby-title" className="text-2xl font-bold text-ink">{e.nearby}</h2>
+              <p className="text-sm text-ink-muted">{e.radius}</p>
             </div>
             <div className="px-6 empty:hidden">
               {geo.status === 'idle' && (
                 <Notice
-                  title="See what's near you"
+                  title={e.seeNear}
                   action={
                     <button type="button" onClick={geo.request} className={`h-12 w-full rounded-xl bg-navy px-6 text-base font-bold tracking-[0.05em] text-on-navy uppercase shadow-navy active:bg-navy-pressed ${focus}`}>
-                      Share location
+                      {e.shareLocation}
                     </button>
                   }
                 >
-                  Share your location to see where you are and sort landmarks by distance. {PRIVACY} Google Maps receives the map area you view.
+                  {e.rationale}
                 </Notice>
               )}
               {(geo.status === 'denied' || geo.status === 'unavailable') && (
-                <Notice title={geo.status === 'denied' ? 'Location is off' : "We couldn't find you"} action={<RetryButton onClick={geo.request} />}>
+                <Notice title={geo.status === 'denied' ? e.locationOff : e.notFound} action={<RetryButton onClick={geo.request} />}>
                   {geo.status === 'denied'
-                    ? 'To see landmarks near you, allow location for Laag ta bAI in your browser or phone settings, then tap Try again.'
-                    : geo.error}
+                    ? e.deniedBody
+                    : geo.error && t.common.location[geo.error]}
                 </Notice>
               )}
               {geo.status === 'ready' && nearby.isError && <ErrorNotice onRetry={() => nearby.refetch()} />}
               {geo.status === 'ready' && nearby.data?.length === 0 && (
-                <Notice title="Nothing within 5 km">No heritage sites are close by yet. Browse the popular ones below.</Notice>
+                <Notice title={e.nothingNear}>{e.nothingNearBody}</Notice>
               )}
             </div>
             {(geo.status === 'locating' || (geo.status === 'ready' && nearby.isPending)) && <TileSkeletons />}
@@ -148,13 +149,13 @@ export default function ExplorePage() {
           </section>
 
           <section className="flex flex-col gap-4 px-6" aria-labelledby="popular-title">
-            <h2 id="popular-title" className="text-2xl font-bold text-ink">Popular Landmarks</h2>
+            <h2 id="popular-title" className="text-2xl font-bold text-ink">{e.popular}</h2>
             {results.isPending ? (
-              <RowSkeletons label="Loading popular landmarks" />
+              <RowSkeletons label={e.loadingPopular} />
             ) : results.isError ? (
               <ErrorNotice onRetry={() => results.refetch()} />
             ) : results.data.length === 0 ? (
-              <Notice title="No landmarks yet">Check back soon.</Notice>
+              <Notice title={e.noLandmarks}>{e.checkBack}</Notice>
             ) : (
               <ul className="flex flex-col gap-3">
                 {[...results.data].sort((a, b) => b.rating - a.rating).map((l) => (
@@ -182,25 +183,28 @@ function Notice({ title, children, action, alert }: { title: string; children?: 
 }
 
 function RetryButton({ onClick }: { onClick: () => void }) {
+  const t = useT()
   return (
     <button type="button" onClick={onClick} className={`touch-target self-start text-sm font-bold text-terracotta-ink underline ${focus}`}>
-      Try again
+      {t.common.tryAgain}
     </button>
   )
 }
 
 function ErrorNotice({ onRetry }: { onRetry: () => void }) {
+  const e = useT().explore
   return (
-    <Notice alert title="Couldn't load landmarks" action={<RetryButton onClick={onRetry} />}>
-      Check your connection and try again.
+    <Notice alert title={e.loadFailed} action={<RetryButton onClick={onRetry} />}>
+      {e.checkConnection}
     </Notice>
   )
 }
 
 function TileSkeletons() {
+  const e = useT().explore
   return (
     <div role="status" className="flex gap-4 overflow-hidden px-6 pb-4">
-      <span className="sr-only">Loading nearby landmarks</span>
+      <span className="sr-only">{e.loadingNearby}</span>
       {[0, 1, 2].map((i) => (
         <div key={i} className="h-53 w-40 shrink-0 animate-pulse rounded-2xl border border-ivory-line bg-ivory-surface p-3" aria-hidden>
           <div className="h-32 rounded-xl bg-sage-soft" />

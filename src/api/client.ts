@@ -2,6 +2,7 @@ import { env } from '@/lib/env'
 import type {
   AuthResult,
   ChatMessage,
+  ChatRequest,
   Landmark,
   LandmarkQuery,
   LandmarkSummary,
@@ -13,6 +14,10 @@ import type {
   ScanResult,
   Visit,
 } from './types'
+import { MESSAGES } from '@/i18n'
+
+// English on purpose: `errorText` (i18n/errors.ts) recognises these and shows them in the app language.
+const CLIENT_ERRORS = MESSAGES.en.common.errors
 
 export class ApiError extends Error {
   constructor(
@@ -58,19 +63,19 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}, 
       })
     } catch (error) {
       if (options.signal?.aborted) throw error
-      lastError = new ApiError(0, 'network_error', "Can't reach the server. Check your connection and try again.")
+      lastError = new ApiError(0, 'network_error', CLIENT_ERRORS.network)
       continue
     }
 
     if (RETRYABLE.has(response.status) && attempt < attempts - 1) {
-      lastError = new ApiError(response.status, 'unavailable', 'The service is busy. Please try again.')
+      lastError = new ApiError(response.status, 'unavailable', CLIENT_ERRORS.busy)
       continue
     }
 
     const body = await response.json().catch(() => null)
     if (!response.ok) {
       const error = body?.error ?? {}
-      throw new ApiError(response.status, error.code ?? 'error', error.message ?? 'Something went wrong.')
+      throw new ApiError(response.status, error.code ?? 'error', error.message ?? CLIENT_ERRORS.generic)
     }
     return (body as { data: T }).data
   }
@@ -103,7 +108,7 @@ export const api = {
     }
     return apiRequest<ScanResult>('/v1/scan', { method: 'POST', form, token })
   },
-  chat: (input: { landmarkId: string; messages: ChatMessage[] }, token: string | null) =>
+  chat: (input: ChatRequest, token: string | null) =>
     apiRequest<{ message: ChatMessage; progress: ProgressUpdate | null }>('/v1/chat', {
       method: 'POST',
       json: input,

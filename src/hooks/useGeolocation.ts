@@ -4,7 +4,8 @@ import { readJson, writeJson } from '@/lib/storage'
 export type GeoState = {
   status: 'idle' | 'locating' | 'ready' | 'denied' | 'unavailable'
   coords: { lat: number; lng: number } | null
-  error: string | null
+  /** Key of `t.common.location`. */
+  error: 'unsupported' | 'denied' | 'failed' | null
 }
 
 export const GRANTED_KEY = 'location-rationale-accepted'
@@ -20,7 +21,7 @@ export function useGeolocation({ maximumAge = 60_000 } = {}) {
 
   const request = useCallback(() => {
     if (!('geolocation' in navigator)) {
-      setState({ status: 'unavailable', coords: null, error: 'Location is not supported on this device.' })
+      setState({ status: 'unavailable', coords: null, error: 'unsupported' })
       return
     }
     writeJson(GRANTED_KEY, true)
@@ -36,7 +37,7 @@ export function useGeolocation({ maximumAge = 60_000 } = {}) {
         setState({
           status: error.code === error.PERMISSION_DENIED ? 'denied' : 'unavailable',
           coords: null,
-          error: error.code === error.PERMISSION_DENIED ? 'Location permission was denied.' : 'Could not get your location.',
+          error: error.code === error.PERMISSION_DENIED ? 'denied' : 'failed',
         }),
       { enableHighAccuracy: true, timeout: 10_000, maximumAge },
     )

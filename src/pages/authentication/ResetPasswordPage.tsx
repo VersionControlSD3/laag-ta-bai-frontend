@@ -4,6 +4,7 @@ import { AuthCard, AuthScreen } from '@/components/AuthScreen'
 import { EyeOffOutlineIcon, EyeOutlineIcon } from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { signInErrorMessage } from '@/features/auth/signInError'
+import { useT } from '@/i18n'
 import { supabase } from '@/lib/supabase'
 
 const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ivory'
@@ -22,6 +23,7 @@ function PasswordField({
   minLength?: number
 }) {
   const [visible, setVisible] = useState(false)
+  const t = useT().auth.reset
   // The toggle sits outside the <label> so its aria-label doesn't leak into the input's name.
   return (
     <div className="relative">
@@ -40,7 +42,7 @@ function PasswordField({
       <button
         type="button"
         onClick={() => setVisible((shown) => !shown)}
-        aria-label={visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+        aria-label={visible ? t.hide(label) : t.show(label)}
         className={`touch-target absolute right-1 bottom-1 flex items-center justify-center rounded-full text-ivory/80 hover:text-ivory ${focus}`}
       >
         {visible ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}
@@ -51,6 +53,8 @@ function PasswordField({
 
 export default function ResetPasswordPage() {
   const auth = useAuth()
+  const t = useT()
+  const r = t.auth.reset
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [busy, setBusy] = useState(false)
@@ -62,7 +66,7 @@ export default function ResetPasswordPage() {
     event.preventDefault()
     if (!canReset || !supabase || busy) return
     if (password.length < 8 || password !== confirmation) {
-      setError(password.length < 8 ? 'Use at least 8 characters.' : 'The passwords must match.')
+      setError(password.length < 8 ? r.tooShort : r.mismatch)
       return
     }
 
@@ -75,7 +79,7 @@ export default function ResetPasswordPage() {
       setConfirmation('')
       setUpdated(true)
     } catch (err) {
-      setError(signInErrorMessage(err, 'Could not update your password. Please try again.'))
+      setError(signInErrorMessage(err, t, r.failed))
     } finally {
       setBusy(false)
     }
@@ -85,15 +89,15 @@ export default function ResetPasswordPage() {
     <AuthScreen centered>
       <AuthCard>
         <h1 id="reset-password-title" className="text-center text-[2rem] font-black text-ivory">
-          Reset Password
+          {r.title}
         </h1>
         <p role="status" className="mt-6 text-center text-ivory">
-          {updated ? 'Your password has been updated.' : auth.status === 'loading' ? 'Checking your reset link…' : ''}
+          {updated ? r.updated : auth.status === 'loading' ? r.checking : ''}
         </p>
         <p role="alert" className="text-center text-sm font-semibold text-danger-line">{error ?? ''}</p>
         {updated ? (
           <div className="mt-6 flex flex-col gap-4 text-center text-ivory">
-            <Link to="/" replace className={linkStyle}>Continue to Explore</Link>
+            <Link to="/" replace className={linkStyle}>{r.continue}</Link>
           </div>
         ) : auth.status === 'loading' ? (
           null
@@ -105,23 +109,23 @@ export default function ResetPasswordPage() {
             onSubmit={submit}
             className="mt-6 flex flex-col gap-4"
           >
-            <PasswordField label="New password" value={password} onChange={setPassword} minLength={8} />
-            <PasswordField label="Confirm new password" value={confirmation} onChange={setConfirmation} />
+            <PasswordField label={r.newPassword} value={password} onChange={setPassword} minLength={8} />
+            <PasswordField label={r.confirm} value={confirmation} onChange={setConfirmation} />
             <button
               type="submit"
               disabled={busy}
               className={`min-h-14 rounded-xl bg-terracotta-ink font-bold text-ivory disabled:opacity-70 ${focus}`}
             >
-              {busy ? 'Updating…' : 'Update Password'}
+              {busy ? r.updating : r.submit}
             </button>
           </form>
         ) : (
           <div className="mt-6 flex flex-col gap-4 text-center text-ivory">
-            <p>This reset link is invalid or expired.</p>
+            <p>{r.invalid}</p>
             {auth.status === 'signed-in' ? (
-              <Link to="/" replace className={linkStyle}>Continue to Explore</Link>
+              <Link to="/" replace className={linkStyle}>{r.continue}</Link>
             ) : (
-              <Link to="/forgot-password" replace className={linkStyle}>Request a new reset link</Link>
+              <Link to="/forgot-password" replace className={linkStyle}>{r.requestNew}</Link>
             )}
           </div>
         )}

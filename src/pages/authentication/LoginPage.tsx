@@ -11,6 +11,7 @@ import {
 import { useAuth } from '@/features/auth/AuthContext'
 import { DevSignIn } from '@/features/auth/DevSignIn'
 import { signInErrorMessage } from '@/features/auth/signInError'
+import { useT } from '@/i18n'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy'
@@ -22,6 +23,8 @@ const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visi
  */
 export default function LoginPage() {
   const auth = useAuth()
+  const t = useT()
+  const { fields, login } = t.auth
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -33,8 +36,8 @@ export default function LoginPage() {
   if (auth.status === 'signed-in') return <Navigate to="/" replace />
 
   const emailValid = EMAIL.test(email.trim())
-  const emailError = submitted && !emailValid ? (email.trim() ? 'Enter a valid email address.' : 'Enter your email.') : null
-  const passwordError = submitted && !password ? 'Enter your password.' : null
+  const emailError = submitted && !emailValid ? (email.trim() ? fields.emailInvalid : fields.emailRequired) : null
+  const passwordError = submitted && !password ? fields.passwordRequired : null
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
@@ -46,7 +49,7 @@ export default function LoginPage() {
       await auth.signIn(email.trim(), password)
       navigate('/', { replace: true })
     } catch (e) {
-      setError(signInErrorMessage(e))
+      setError(signInErrorMessage(e, t))
       setBusy(null)
     }
   }
@@ -58,7 +61,7 @@ export default function LoginPage() {
       // Redirects to Google and back; the session arrives through onAuthStateChange.
       await auth.signInWithGoogle()
     } catch (e) {
-      setError(signInErrorMessage(e, 'Google sign-in failed. Please try again.'))
+      setError(signInErrorMessage(e, t, t.auth.errors.googleFailed))
       setBusy(null)
     }
   }
@@ -67,13 +70,13 @@ export default function LoginPage() {
     <AuthScreen>
       <header className="flex flex-col items-center text-center">
         <p lang="ceb" className="font-display text-base text-ink-muted italic">
-          Maayong pagbalik
+          {login.welcome}
         </p>
-        <h1 className="pt-1 font-display text-[2.25rem] leading-[1.15] font-bold tracking-tight text-ink">Log In</h1>
+        <h1 className="pt-1 font-display text-[2.25rem] leading-[1.15] font-bold tracking-tight text-ink">{login.title}</h1>
       </header>
 
       <form noValidate onSubmit={submit} aria-busy={busy === 'password'} className="mt-6 flex flex-col gap-4">
-        <Field label="Email" icon={<MailOutlineIcon size={20} />} error={emailError}>
+        <Field label={fields.email} icon={<MailOutlineIcon size={20} />} error={emailError}>
           {(props) => (
             <input
               {...props}
@@ -89,14 +92,14 @@ export default function LoginPage() {
           )}
         </Field>
         <Field
-          label="Password"
+          label={fields.password}
           icon={<LockClosedOutlineIcon size={20} />}
           error={passwordError}
           action={
             <button
               type="button"
               onClick={() => setShowPassword((visible) => !visible)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? fields.hidePassword : fields.showPassword}
               className={`touch-target -mr-3 flex shrink-0 items-center justify-center rounded-full text-ink-muted hover:text-ink ${focus}`}
             >
               {showPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}
@@ -119,7 +122,7 @@ export default function LoginPage() {
           to="/forgot-password"
           className={`-mt-2 flex min-h-12 items-center self-end rounded-lg text-sm font-bold text-navy underline underline-offset-4 ${focus}`}
         >
-          Forgot password?
+          {login.forgot}
         </Link>
 
         {error && (
@@ -133,7 +136,7 @@ export default function LoginPage() {
           disabled={busy !== null}
           className={`mt-2 min-h-14 w-full rounded-xl bg-navy text-base font-bold text-on-navy shadow-navy transition-colors hover:bg-navy-pressed disabled:opacity-70 ${focus}`}
         >
-          {busy === 'password' ? 'Logging in…' : 'Log in'}
+          {busy === 'password' ? login.submitting : login.submit}
         </button>
       </form>
 
@@ -149,7 +152,7 @@ export default function LoginPage() {
         to="/"
         className={`mt-4 flex min-h-14 w-full items-center justify-center rounded-xl border border-ivory-line bg-ivory-surface text-base font-semibold text-ink transition-colors hover:bg-ivory ${focus}`}
       >
-        Continue as Guest
+        {login.guest}
       </Link>
 
       {/* Facebook and Apple are in Figma but not enabled in Supabase yet; only Google works. */}
@@ -157,7 +160,7 @@ export default function LoginPage() {
         <>
           <div className="mt-5 flex items-center gap-3">
             <span className="h-px flex-1 bg-ivory-line" aria-hidden />
-            <p className="text-xs font-semibold text-ink-muted">Or continue with</p>
+            <p className="text-xs font-semibold text-ink-muted">{login.orContinue}</p>
             <span className="h-px flex-1 bg-ivory-line" aria-hidden />
           </div>
           <div className="flex justify-center pt-3">
@@ -166,7 +169,7 @@ export default function LoginPage() {
               onClick={continueWithGoogle}
               disabled={busy !== null}
               aria-busy={busy === 'google'}
-              aria-label="Continue with Google"
+              aria-label={login.google}
               className={`flex size-13 items-center justify-center rounded-full border border-ivory-line bg-ivory-surface text-ink transition-colors hover:bg-ivory disabled:opacity-70 ${focus}`}
             >
               <LogoGoogleIcon size={22} />
@@ -176,12 +179,12 @@ export default function LoginPage() {
       )}
 
       <p className="mt-4 flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-ink-muted">
-        New here?
+        {login.newHere}
         <Link
           to="/register"
           className={`flex min-h-12 items-center rounded-lg font-bold text-navy underline underline-offset-4 ${focus}`}
         >
-          Create Account
+          {login.createAccount}
         </Link>
       </p>
     </AuthScreen>

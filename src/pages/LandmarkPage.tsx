@@ -22,6 +22,8 @@ import { useBack } from '@/hooks/useBack'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useBookmarks } from '@/features/bookmarks/useBookmarks'
 import { useSpeech } from '@/hooks/useSpeech'
+import { useT } from '@/i18n'
+import { errorText } from '@/i18n/errors'
 import { formatFee } from '@/lib/format'
 
 /** Set by ScanPage when it navigates here after a match. */
@@ -40,6 +42,8 @@ export default function LandmarkPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const back = useBack()
+  const t = useT()
+  const l = t.landmark
   // Read once, then cleared from history so back/forward doesn't show an old scan result again.
   const [match] = useState(() => location.state as ScanMatchState | null)
   useEffect(() => {
@@ -60,19 +64,19 @@ export default function LandmarkPage() {
     const notFound = query.error instanceof ApiError && query.error.status === 404
     return (
       <div className="min-h-dvh bg-ivory">
-        <TopNavbar title="Landmark Details" />
+        <TopNavbar title={l.details} />
         {query.isPending ? (
           <Skeleton />
         ) : notFound ? (
-          <Notice title="We couldn't find this landmark" body="It may have been removed. Browse the other heritage sites instead.">
+          <Notice title={l.notFound} body={l.notFoundBody}>
             <Link to="/" className={`flex min-h-12 items-center self-start text-sm font-bold text-terracotta-ink underline ${focus}`}>
-              Explore landmarks
+              {l.exploreLandmarks}
             </Link>
           </Notice>
         ) : (
-          <Notice alert title="Couldn't load this landmark" body="Check your connection and try again. Landmarks you bookmark are available offline.">
+          <Notice alert title={l.loadFailed} body={l.loadFailedBody}>
             <button type="button" onClick={() => query.refetch()} className={`flex min-h-12 items-center self-start text-sm font-bold underline ${focus}`}>
-              Try again
+              {t.common.tryAgain}
             </button>
           </Notice>
         )}
@@ -81,7 +85,7 @@ export default function LandmarkPage() {
   }
 
   const saved = isSaved(landmark.id)
-  const fee = formatFee(landmark.admissionFee)
+  const fee = formatFee(landmark.admissionFee, t.common.free)
   const share = async () => {
     const url = window.location.href
     if (navigator.share) return navigator.share({ title: landmark.name, url }).catch(() => undefined)
@@ -97,13 +101,13 @@ export default function LandmarkPage() {
     <div className="flex min-h-dvh flex-col bg-ivory">
       <article className="flex flex-1 flex-col">
         <div className="relative h-80 shrink-0 overflow-hidden bg-sage-soft">
-          <LandmarkImage src={landmark.imageUrl} alt={`Photo of ${landmark.name}`} className="absolute inset-0 size-full" />
+          <LandmarkImage src={landmark.imageUrl} alt={l.photoOf(landmark.name)} className="absolute inset-0 size-full" />
           <div className="absolute inset-x-5 top-[max(1rem,env(safe-area-inset-top))] flex items-center justify-between">
-            <button type="button" onClick={back} aria-label="Go back" className={quietDisc}>
+            <button type="button" onClick={back} aria-label={t.common.goBack} className={quietDisc}>
               <ArrowBackIcon size={18} />
             </button>
             <div className="flex gap-2">
-              <button type="button" onClick={share} aria-label={copied ? 'Link copied' : `Share ${landmark.name}`} className={quietDisc}>
+              <button type="button" onClick={share} aria-label={copied ? l.linkCopied : l.share(landmark.name)} className={quietDisc}>
                 {copied ? <CheckmarkIcon size={18} /> : <ShareSocialOutlineIcon size={18} />}
               </button>
               {/* Saved is a filled icon on coral, not only a colour change. */}
@@ -111,7 +115,7 @@ export default function LandmarkPage() {
                 type="button"
                 onClick={() => toggle(landmark)}
                 aria-pressed={saved}
-                aria-label={saved ? 'Remove bookmark' : 'Save for offline reading'}
+                aria-label={saved ? l.removeBookmark : l.saveOffline}
                 className={saved ? `${disc} bg-terracotta text-on-navy` : quietDisc}
               >
                 {saved ? <BookmarkIcon size={18} /> : <BookmarkOutlineIcon size={18} />}
@@ -121,7 +125,7 @@ export default function LandmarkPage() {
           {/* shortcut: the API returns one photo, so this always reads 1/1; count the gallery once it returns more. */}
           {landmark.imageUrl && (
             <p className={`absolute right-5 bottom-[2.625rem] rounded-full bg-navy/85 px-2.5 py-1 font-mono text-on-navy ${micro}`}>
-              <span className="sr-only">Photo </span>1/1
+              <span className="sr-only">{l.photo}</span>1/1
             </p>
           )}
         </div>
@@ -129,7 +133,7 @@ export default function LandmarkPage() {
         <div className="relative -mt-[1.875rem] flex flex-1 flex-col gap-4 rounded-t-[2rem] bg-ivory-surface px-6 pt-[1.625rem] pb-6">
           {match && (
             <p className={`self-start rounded-full bg-sage-soft px-3 py-1 font-mono text-sage-deep ${micro}`}>
-              Landmark matched · {Math.round(match.confidence * 100)}%
+              {l.matched(Math.round(match.confidence * 100))}
             </p>
           )}
           <h1 className="font-display text-3xl font-bold tracking-[-0.01em] text-ink">{landmark.name}</h1>
@@ -138,9 +142,9 @@ export default function LandmarkPage() {
             <span aria-hidden>
               {landmark.rating.toFixed(1)} ({landmark.visitCount.toLocaleString()})
             </span>
-            <span className="sr-only">Rated {landmark.rating.toFixed(1)} out of 5</span>
+            <span className="sr-only">{l.ratedOutOf(landmark.rating.toFixed(1))}</span>
             <span aria-hidden>·</span>
-            <span>Open - {landmark.visitingHours}</span>
+            <span>{l.open(landmark.visitingHours)}</span>
           </p>
           <p className="flex items-center gap-2 rounded-xl bg-sage-soft px-3.5 py-2.5 text-sm text-sage-deep">
             <LocationIcon size={16} className="shrink-0 text-terracotta-ink" />
@@ -150,7 +154,7 @@ export default function LandmarkPage() {
           <section aria-labelledby="about-title" className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
               <h2 id="about-title" className={cardTitle}>
-                About
+                {l.about}
               </h2>
               {speech.supported && (
                 <button
@@ -159,25 +163,25 @@ export default function LandmarkPage() {
                   className={`-my-[0.6875rem] flex min-h-12 items-center gap-1.5 rounded-full px-2 text-xs font-bold text-sage-deep ${focus}`}
                 >
                   {speech.state === 'playing' ? <PauseIcon size={16} /> : <VolumeHighOutlineIcon size={16} />}
-                  {speech.state === 'playing' ? 'Pause' : 'Listen'}
-                  <span className="sr-only"> to the story</span>
+                  {speech.state === 'playing' ? l.pause : l.listen}
+                  <span className="sr-only">{l.toStory}</span>
                 </button>
               )}
             </div>
             <Text value={story.about} className="text-sm text-ink-body" />
             <dl className="grid grid-cols-3 gap-2">
-              <Fact value={`${landmark.estimatedVisitMinutes} min`} label="Typical visit" />
-              <Fact value={fee} label="Admission" />
-              <Fact value={landmark.visitCount.toLocaleString()} label="Visits" />
+              <Fact value={t.common.minutes(landmark.estimatedVisitMinutes)} label={l.typicalVisit} />
+              <Fact value={fee} label={l.admission} />
+              <Fact value={landmark.visitCount.toLocaleString()} label={l.visits} />
             </dl>
             <Link to={`/landmarks/${landmark.id}/chat`} className={`${pill} bg-ivory-surface`}>
-              <ChatbubbleIcon size={16} /> Ask bAI, your guide
+              <ChatbubbleIcon size={16} /> {l.askGuide}
             </Link>
           </section>
 
           <details open className="group">
             <summary className={`-my-[0.6875rem] flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-lg [&::-webkit-details-marker]:hidden ${focus}`}>
-              <h2 className={cardTitle}>Significance &amp; History</h2>
+              <h2 className={cardTitle}>{l.significance}</h2>
               <ChevronDownOutlineIcon size={20} className="shrink-0 text-ink-muted transition-transform group-open:rotate-180 motion-reduce:transition-none" />
             </summary>
             <div className="mt-4 flex flex-col gap-3">
@@ -188,7 +192,7 @@ export default function LandmarkPage() {
 
           <section aria-labelledby="trivia-title" className="flex flex-col gap-1 rounded-2xl border border-terracotta bg-terracotta-soft px-4 py-3.5">
             <h2 id="trivia-title" className="text-xs font-bold tracking-[0.1em] text-terracotta-ink uppercase">
-              Trivia
+              {l.trivia}
             </h2>
             <Text value={story.trivia} className="text-xs font-medium text-ink" />
           </section>
@@ -203,11 +207,11 @@ export default function LandmarkPage() {
                 className={`${pill} bg-ivory-deep disabled:opacity-80`}
               >
                 {checkIn.isSuccess && <CheckmarkIcon size={18} className="text-sage-deep" />}
-                {checkIn.isSuccess ? 'Checked in' : "I'm here, check me in"}
+                {checkIn.isSuccess ? l.checkedIn : l.checkIn}
               </button>
               {checkIn.isError && (
                 <p role="alert" className="text-sm text-danger">
-                  Couldn't check you in. {checkIn.error.message}
+                  {l.checkInFailed(errorText(checkIn.error, t))}
                 </p>
               )}
             </>
@@ -217,12 +221,12 @@ export default function LandmarkPage() {
 
       <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-ivory-line bg-ivory-surface px-4 pt-3.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] min-[375px]:px-6">
         <p className="flex shrink-0 flex-col gap-0.5 font-mono font-bold whitespace-nowrap">
-          <span className="text-xs text-ink">{fee} entry</span>
-          <span className={`text-ink-muted ${micro}`}>{landmark.estimatedVisitMinutes} min visit</span>
+          <span className="text-xs text-ink">{l.entry(fee)}</span>
+          <span className={`text-ink-muted ${micro}`}>{l.visitLength(landmark.estimatedVisitMinutes)}</span>
         </p>
         {/* Coral text buttons use terracotta-ink: on-navy on brand coral is only 3.1:1. With large text the label wraps. */}
         <Link to="/scan" className={`flex min-h-12 min-w-0 items-center gap-1.5 rounded-full bg-terracotta-ink px-[1.125rem] py-1 text-xs font-bold text-on-navy ${focus}`}>
-          <CameraIcon size={16} className="shrink-0" /> Scan another landmark
+          <CameraIcon size={16} className="shrink-0" /> {l.scanAnother}
         </Link>
       </div>
     </div>
@@ -247,10 +251,11 @@ function Notice({ title, body, alert, children }: { title: string; body: string;
 
 /** Story text capped near 70 characters a line, with a note when that part isn't written yet. */
 function Text({ value, className }: { value: string; className: string }) {
+  const t = useT()
   return value.trim() ? (
     <p className={`max-w-[65ch] ${className}`}>{value}</p>
   ) : (
-    <p className="text-sm text-ink-muted italic">This part of the story hasn't been written yet.</p>
+    <p className="text-sm text-ink-muted italic">{t.landmark.notWritten}</p>
   )
 }
 
@@ -273,9 +278,10 @@ function Fact({ value, label }: { value: string; label: string }) {
 }
 
 function Skeleton() {
+  const t = useT()
   return (
     <div role="status" className="animate-pulse">
-      <span className="sr-only">Loading landmark</span>
+      <span className="sr-only">{t.landmark.loading}</span>
       <div className="-mt-10 h-80 bg-sage-soft" aria-hidden />
       <div className="-mt-[1.875rem] flex flex-col gap-3 rounded-t-[2rem] bg-ivory-surface px-6 pt-[1.625rem]" aria-hidden>
         <div className="h-5 w-40 rounded-full bg-ivory-line" />

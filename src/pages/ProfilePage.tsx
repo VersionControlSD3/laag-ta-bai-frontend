@@ -39,54 +39,26 @@ import { GRANTED_KEY } from '@/hooks/useGeolocation'
 import { env } from '@/lib/env'
 import { normalizeSavedNationality } from '@/lib/nationality'
 import { clearOfflineCache, readJson } from '@/lib/storage'
+import { LOCALES, useLanguage, useT, type Language } from '@/i18n'
 
-type LanguageOption = {
-  code: 'en' | 'ceb'
-  name: string
-}
-
-const LANGUAGES: LanguageOption[] = [
+// Each language is named in itself, so it can be found whatever the current language is.
+const LANGUAGES: { code: Language; name: string }[] = [
   { code: 'en', name: 'English' },
   { code: 'ceb', name: 'Cebuano' },
 ]
 
-type AppearanceOption = {
-  mode: ThemeMode
-  name: string
-}
-
-const APPEARANCE_OPTIONS: AppearanceOption[] = [
-  { mode: 'system', name: 'System default' },
-  { mode: 'light', name: 'Light' },
-  { mode: 'dark', name: 'Dark' },
-]
+const APPEARANCE_OPTIONS: ThemeMode[] = ['system', 'light', 'dark']
 
 type PermissionId = 'camera' | 'location'
 type PermissionStatus = 'granted' | 'denied' | 'prompt'
 
-type PermissionMeta = {
-  id: PermissionId
-  title: string
-  description: string
-}
+// Titles, descriptions and status labels are in `t.profile.permissions`.
+const PERMISSION_ITEMS: PermissionId[] = ['camera', 'location']
 
-const PERMISSION_ITEMS: PermissionMeta[] = [
-  {
-    id: 'camera',
-    title: 'Camera',
-    description: 'Scan landmarks and hear their stories',
-  },
-  {
-    id: 'location',
-    title: 'Location',
-    description: 'Sort nearby landmarks and verify scans',
-  },
-]
-
-const STATUS_PILL: Record<PermissionStatus, { label: string; className: string }> = {
-  granted: { label: 'Allowed', className: 'bg-sage-soft text-sage-deep' },
-  denied: { label: 'Blocked', className: 'bg-terracotta-soft text-terracotta-ink' },
-  prompt: { label: 'Not enabled', className: 'bg-navy-soft text-navy' },
+const STATUS_PILL: Record<PermissionStatus, string> = {
+  granted: 'bg-sage-soft text-sage-deep',
+  denied: 'bg-terracotta-soft text-terracotta-ink',
+  prompt: 'bg-navy-soft text-navy',
 }
 
 async function queryBrowserPermission(id: PermissionId): Promise<PermissionStatus> {
@@ -120,6 +92,7 @@ export default function ProfilePage() {
   const me = useMe()
   const updateMe = useUpdateMe()
   const prefs = usePreferences()
+  const p = useT().profile
   const queryClient = useQueryClient()
   const location = useLocation()
   const navigate = useNavigate()
@@ -172,7 +145,7 @@ export default function ProfilePage() {
     }
   }
 
-  const handleSelectLanguage = (language: 'en' | 'ceb') => {
+  const handleSelectLanguage = (language: Language) => {
     prefs.update({ language })
     if (auth.status === 'signed-in') {
       updateMe.mutate({ language })
@@ -206,8 +179,7 @@ export default function ProfilePage() {
 
   const allowedPermissionsCount = Object.values(permissionStates).filter((s) => s === 'granted').length
   const currentLangLabel = LANGUAGES.find((l) => l.code === prefs.language)?.name ?? 'English'
-  const currentAppearanceLabel =
-    APPEARANCE_OPTIONS.find((a) => a.mode === prefs.theme)?.name ?? 'System default'
+  const currentAppearanceLabel = p.themes[prefs.theme]
 
   if (isPermissionsView) {
     return (
@@ -228,10 +200,10 @@ export default function ProfilePage() {
         {/* Header Section */}
         <header className="mb-4">
           <div className="mb-1 text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
-            Your account
+            {p.eyebrow}
           </div>
           <h1 className="text-3xl leading-9 font-extrabold tracking-tight text-ink">
-            Profile
+            {p.title}
           </h1>
         </header>
 
@@ -240,7 +212,7 @@ export default function ProfilePage() {
            ======================================================== */}
         <div className="mb-5">
           {auth.status !== 'signed-in' ? (
-            <SignInPrompt message="Sign in to set up your traveler profile." />
+            <SignInPrompt message={p.signInPrompt} />
           ) : me.isPending ? (
             <Loading />
           ) : me.isError ? (
@@ -256,10 +228,10 @@ export default function ProfilePage() {
         <section aria-labelledby="preferences-title" className="mb-5">
           <div className="mb-2.5">
             <h2 id="preferences-title" className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
-              Preferences
+              {p.preferences}
             </h2>
             <p className="mt-0.5 text-xs leading-4 font-medium text-ink-muted">
-              Personalize your Laag ta bAI experience.
+              {p.preferencesBody}
             </p>
           </div>
 
@@ -269,15 +241,15 @@ export default function ProfilePage() {
               type="button"
               onClick={() => setIsAppearanceOpen(true)}
               className="touch-target flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl px-1.5 py-2 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-              aria-label={`Appearance, current selection: ${currentAppearanceLabel}`}
+              aria-label={p.appearanceLabel(currentAppearanceLabel)}
             >
               <div className="flex min-w-0 items-center gap-2.5">
                 <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-terracotta-soft text-terracotta-ink">
                   <MoonIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Appearance</span>
-                  <span className="block truncate text-xs leading-4 text-ink-muted">System default, light, or dark theme</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.appearance}</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">{p.appearanceBody}</span>
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1.5 text-xs leading-4 font-bold text-ink-muted">
@@ -291,15 +263,15 @@ export default function ProfilePage() {
               type="button"
               onClick={() => setIsLanguageOpen(true)}
               className="touch-target flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl px-1.5 py-2 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-              aria-label={`Language, current selection: ${currentLangLabel}`}
+              aria-label={p.languageLabel(currentLangLabel)}
             >
               <div className="flex min-w-0 items-center gap-2.5">
                 <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-terracotta-soft text-terracotta-ink">
                   <GlobeOutlineIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Language</span>
-                  <span className="block truncate text-xs leading-4 text-ink-muted">App language and translations</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.language}</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">{p.languageBody}</span>
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1.5 text-xs leading-4 font-bold text-ink-muted">
@@ -313,19 +285,19 @@ export default function ProfilePage() {
               type="button"
               onClick={openPermissionsView}
               className="touch-target flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl px-1.5 py-2 text-left transition-colors hover:bg-ivory/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-              aria-label={`Permissions, ${allowedPermissionsCount} allowed`}
+              aria-label={p.permissionsLabel(allowedPermissionsCount)}
             >
               <div className="flex min-w-0 items-center gap-2.5">
                 <span className="flex size-[34px] shrink-0 items-center justify-center rounded-[10px] bg-terracotta-soft text-terracotta-ink">
                   <ShieldCheckmarkIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Permissions</span>
-                  <span className="block truncate text-xs leading-4 text-ink-muted">Camera and location access</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.permissionsRow}</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">{p.permissionsBody}</span>
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1.5 text-xs leading-4 font-bold text-ink-muted">
-                <span>{allowedPermissionsCount} allowed</span>
+                <span>{p.allowedCount(allowedPermissionsCount)}</span>
                 <ChevronForwardOutlineIcon size={16} className="text-ink-muted" />
               </div>
             </button>
@@ -337,13 +309,13 @@ export default function ProfilePage() {
                   <LocationIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Proximity alerts</span>
-                  <span className="block truncate text-xs leading-4 text-ink-muted">Notify when near heritage landmarks</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.proximity}</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">{p.proximityBody}</span>
                 </div>
               </div>
               <AccessibleToggle
                 id="proximity-alerts-toggle"
-                label="Proximity alerts"
+                label={p.proximity}
                 checked={prefs.proximityAlerts}
                 onToggle={() => prefs.update({ proximityAlerts: !prefs.proximityAlerts })}
               />
@@ -356,13 +328,13 @@ export default function ProfilePage() {
                   <FlameIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Daily streak reminders</span>
-                  <span className="block truncate text-xs leading-4 text-ink-muted">Keep your exploration streak active</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.streak}</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">{p.streakBody}</span>
                 </div>
               </div>
               <AccessibleToggle
                 id="streak-reminders-toggle"
-                label="Daily streak reminders"
+                label={p.streak}
                 checked={prefs.streakReminders}
                 onToggle={() => prefs.update({ streakReminders: !prefs.streakReminders })}
               />
@@ -375,13 +347,13 @@ export default function ProfilePage() {
                   <NotificationsIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Quest completion notices</span>
-                  <span className="block truncate text-xs leading-4 text-ink-muted">Alerts when quests and badges unlock</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.quests}</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">{p.questsBody}</span>
                 </div>
               </div>
               <AccessibleToggle
                 id="quest-notices-toggle"
-                label="Quest completion notices"
+                label={p.quests}
                 checked={prefs.questNotices}
                 onToggle={() => prefs.update({ questNotices: !prefs.questNotices })}
               />
@@ -394,8 +366,8 @@ export default function ProfilePage() {
                   <CloudOfflineOutlineIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Offline storage</span>
-                  <span className="block truncate text-xs leading-4 text-ink-muted">Cached landmarks and saved data</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.offline}</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">{p.offlineBody}</span>
                 </div>
               </div>
               <button
@@ -403,7 +375,7 @@ export default function ProfilePage() {
                 onClick={handleClearCache}
                 className="touch-target flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-xl px-2.5 text-xs leading-4 font-bold text-terracotta-ink transition-colors hover:bg-terracotta-soft/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               >
-                {cacheCleared ? 'Cleared' : 'Clear cache'}
+                {cacheCleared ? p.cleared : p.clearCache}
               </button>
             </div>
           </div>
@@ -421,7 +393,7 @@ export default function ProfilePage() {
         <section aria-labelledby="support-title" className="mb-5">
           <div className="mb-2.5">
             <h2 id="support-title" className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
-              Support & about
+              {p.support}
             </h2>
           </div>
 
@@ -437,8 +409,8 @@ export default function ProfilePage() {
                   <HelpCircleOutlineIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">Help center</span>
-                  <span className="block truncate text-xs leading-4 text-ink-muted">FAQs, permissions, and support</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.help}</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">{p.helpBody}</span>
                 </div>
               </div>
               <ChevronForwardOutlineIcon size={16} className="text-ink-muted" />
@@ -455,8 +427,8 @@ export default function ProfilePage() {
                   <InformationCircleOutlineIcon size={16} />
                 </span>
                 <div className="min-w-0">
-                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">About the app</span>
-                  <span className="block truncate text-xs leading-4 text-ink-muted">Privacy, terms, and acknowledgements</span>
+                  <span className="block text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.about}</span>
+                  <span className="block truncate text-xs leading-4 text-ink-muted">{p.aboutBody}</span>
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1.5 text-xs leading-4 font-bold text-ink-muted">
@@ -475,13 +447,13 @@ export default function ProfilePage() {
             <div className="w-[5px] shrink-0 rounded-full bg-terracotta" aria-hidden="true" />
             <div className="min-w-0 flex-1">
               <h2 id="developer-title" className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
-                About the developer · Laag ta bAI
+                {p.developer}
               </h2>
               <p className="mt-1 text-xs leading-4 font-medium text-ink-body">
-                Your AI-powered companion for discovering the stories, places, and culture of Cebu.
+                {p.developerBody}
               </p>
               <p className="mt-1 text-xs leading-4 text-ink-muted">
-                Crafted by student developers and Cebuano heritage enthusiasts to preserve local history through modern agentic mobile technology.
+                {p.developerCredit}
               </p>
             </div>
           </div>
@@ -491,14 +463,14 @@ export default function ProfilePage() {
             SECTION 7: LOG OUT (SIGNED-IN TRAVELERS)
            ======================================================== */}
         {auth.status === 'signed-in' && (
-          <section aria-label="Account management actions" className="mb-6">
+          <section aria-label={p.accountActions} className="mb-6">
             <button
               type="button"
               onClick={() => setIsLogoutConfirmOpen(true)}
               className="touch-target flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-ivory-line bg-ivory-surface px-4 py-3.5 text-[0.9375rem] leading-[1.375rem] font-bold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               <LogOutOutlineIcon size={18} />
-              <span>Log out</span>
+              <span>{p.logOut}</span>
             </button>
           </section>
         )}
@@ -541,9 +513,9 @@ export default function ProfilePage() {
          ======================================================== */}
       {isLogoutConfirmOpen && (
         <ConfirmActionModal
-          title="Log out?"
-          message="Are you sure you want to log out of your Laag ta bAI account?"
-          confirmLabel="Log out"
+          title={p.logOutTitle}
+          message={p.logOutBody}
+          confirmLabel={p.logOut}
           onConfirm={handleConfirmLogout}
           onCancel={() => setIsLogoutConfirmOpen(false)}
         />
@@ -558,6 +530,8 @@ export default function ProfilePage() {
 
 function AuthenticatedProfileContent({ me }: { me: Me }) {
   const updateMe = useUpdateMe()
+  const p = useT().profile
+  const locales = LOCALES[useLanguage()]
   const [isEditOpen, setIsEditOpen] = useState(false)
   const getEditFormData = () => {
     const savedNationality = me.profile.nationality ?? ''
@@ -567,7 +541,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
   const [editFormData, setEditFormData] = useState(getEditFormData)
   const [validationError, setValidationError] = useState<string | null>(null)
 
-  const displayName = me.profile.displayName.trim() || 'Unnamed traveler'
+  const displayName = me.profile.displayName.trim() || p.unnamed
   const initials =
     me.profile.displayName
       .trim()
@@ -599,7 +573,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
     e.preventDefault()
     const trimmedName = editFormData.displayName.trim()
     if (!trimmedName) {
-      setValidationError('Display name is required.')
+      setValidationError(p.nameRequired)
       return
     }
     const { nationality, savedNationality } = editFormData
@@ -621,7 +595,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
     <>
       {/* SECTION 1: PROFILE CARD */}
       <section
-        aria-label="Profile information"
+        aria-label={p.info}
         className="mb-4 rounded-3xl border border-ivory-line bg-ivory-surface p-[18px]"
       >
         <div className="flex items-center justify-between gap-3.5">
@@ -630,13 +604,13 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
             {me.profile.avatarUrl ? (
               <img
                 src={me.profile.avatarUrl}
-                alt={`Profile picture of ${displayName}`}
+                alt={p.pictureOf(displayName)}
                 className="size-16 rounded-full border-2 border-terracotta object-cover"
               />
             ) : (
               <div
                 role="img"
-                aria-label={`Avatar for ${displayName}: initials ${initials}`}
+                aria-label={p.avatarFor(displayName, initials)}
                 className="flex size-16 items-center justify-center rounded-full bg-terracotta text-[1.375rem] leading-7 font-bold tracking-[0.01em] text-on-navy select-none"
               >
                 {initials}
@@ -647,7 +621,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
           {/* Profile Name & Rank Details */}
           <div className="min-w-0 flex-1">
             <span className="block truncate text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
-              {me.rank.title} · LEVEL {me.rank.level}
+              {p.rankLevel(me.rank.title, me.rank.level)}
             </span>
             <h2 className="mt-0.5 truncate text-lg leading-6 font-bold break-words text-ink">
               {displayName}
@@ -663,7 +637,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
               </p>
             )}
             <p className="mt-1 line-clamp-2 text-xs leading-4 break-words text-ink-muted">
-              {me.profile.bio ? me.profile.bio : <span className="italic">No travel bio yet.</span>}
+              {me.profile.bio ? me.profile.bio : <span className="italic">{p.noBio}</span>}
             </p>
           </div>
 
@@ -678,15 +652,15 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 ? 'border-terracotta bg-terracotta-soft text-terracotta-ink'
                 : 'border-ivory-line bg-ivory text-ink hover:bg-ivory-deep'
             }`}
-            aria-label={isEditOpen ? 'Editing profile details' : 'Edit profile details'}
+            aria-label={isEditOpen ? p.editingLabel : p.editLabel}
           >
             <CreateOutlineIcon size={15} />
-            <span>{isEditOpen ? 'Editing' : 'Edit'}</span>
+            <span>{isEditOpen ? p.editing : p.edit}</span>
           </button>
         </div>
 
         {me.badges.length > 0 && (
-          <ul className="mt-4 flex flex-wrap gap-2 border-t border-ivory-line pt-3" aria-label="Earned badges">
+          <ul className="mt-4 flex flex-wrap gap-2 border-t border-ivory-line pt-3" aria-label={p.earnedBadges}>
             {me.badges.map((badge) => (
               <li
                 key={badge.questId}
@@ -704,22 +678,22 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
       {isEditOpen && (
         <section
           id="edit-profile-section"
-          aria-label="Edit profile details"
+          aria-label={p.editLabel}
           className="mb-4 overflow-hidden rounded-3xl border border-terracotta bg-ivory-surface p-5 transition-all"
         >
           <div className="mb-4 flex items-center justify-between">
             <div>
               <div className="text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase">
-                Personal details
+                {p.personalDetails}
               </div>
               <h3 className="mt-0.5 text-lg leading-6 font-bold text-ink">
-                Edit profile
+                {p.editProfile}
               </h3>
             </div>
             <button
               type="button"
               onClick={handleCancelEdit}
-              aria-label="Close profile editor"
+              aria-label={p.closeEditor}
               className="touch-target flex size-12 min-h-12 min-w-12 items-center justify-center rounded-full bg-ivory text-ink-muted transition-colors hover:bg-ivory-line/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               <CloseOutlineIcon size={20} />
@@ -732,7 +706,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 htmlFor="edit-display-name"
                 className="mb-1.5 block text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase"
               >
-                Display name
+                {p.displayName}
               </label>
               <div className="relative flex items-center">
                 <span className="pointer-events-none absolute left-3.5 text-terracotta">
@@ -759,7 +733,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 htmlFor="edit-nationality"
                 className="mb-1.5 block text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase"
               >
-                Nationality
+                {p.nationality}
               </label>
               <div className="relative flex items-center">
                 <span className="pointer-events-none absolute left-3.5 z-10 text-terracotta">
@@ -783,7 +757,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 htmlFor="edit-travel-bio"
                 className="mb-1.5 block text-xs leading-4 font-bold tracking-[0.1em] text-terracotta-ink uppercase"
               >
-                Travel bio
+                {p.bio}
               </label>
               <textarea
                 id="edit-travel-bio"
@@ -792,7 +766,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 maxLength={280}
                 value={editFormData.bio}
                 onChange={(e) => setEditFormData((prev) => ({ ...prev, bio: e.target.value }))}
-                placeholder="Tell others about your travels in Cebu..."
+                placeholder={p.bioPlaceholder}
                 className="w-full resize-none rounded-[14px] border border-line-strong bg-ivory px-3.5 py-3 text-sm leading-5 font-normal text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-navy"
               />
             </div>
@@ -811,7 +785,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 onClick={handleCancelEdit}
                 className="touch-target flex min-h-12 items-center justify-center rounded-xl border border-ivory-line bg-ivory-surface px-[18px] py-3 text-[0.9375rem] leading-[1.375rem] font-bold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-navy"
               >
-                Cancel
+                {p.cancel}
               </button>
               <button
                 type="submit"
@@ -819,7 +793,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
                 className="touch-target flex min-h-12 items-center gap-1.5 rounded-xl bg-navy px-[18px] py-3 text-[0.9375rem] leading-[1.375rem] font-bold text-on-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60"
               >
                 <CheckmarkIcon size={16} />
-                <span>{updateMe.isPending ? 'Saving…' : 'Save changes'}</span>
+                <span>{updateMe.isPending ? p.saving : p.save}</span>
               </button>
             </div>
           </form>
@@ -827,12 +801,12 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
       )}
 
       {/* SECTION 2: STATS SUMMARY (VISITED, BADGES, STREAK) */}
-      <section aria-label="Exploration statistics" className="mb-4 grid grid-cols-3 gap-2.5">
+      <section aria-label={p.stats} className="mb-4 grid grid-cols-3 gap-2.5">
         <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-ivory-line bg-ivory-surface px-2 py-3 text-center">
           <LocationIcon size={18} className="shrink-0 text-terracotta" />
           <span className="text-lg leading-6 font-bold text-ink">{me.stats.visitedCount}</span>
           <span className="text-[0.6875rem] leading-[0.875rem] font-bold tracking-[0.02em] text-ink-muted">
-            Places visited
+            {p.placesVisited}
           </span>
         </div>
 
@@ -840,7 +814,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
           <RibbonIcon size={18} className="shrink-0 text-sage-deep" />
           <span className="text-lg leading-6 font-bold text-ink">{me.badges.length}</span>
           <span className="text-[0.6875rem] leading-[0.875rem] font-bold tracking-[0.02em] text-ink-muted">
-            Badges earned
+            {p.badgesEarned}
           </span>
         </div>
 
@@ -848,27 +822,27 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
           <FlameIcon size={18} className="shrink-0 text-terracotta" />
           <span className="text-lg leading-6 font-bold text-ink">{me.stats.streakCount}</span>
           <span className="text-[0.6875rem] leading-[0.875rem] font-bold tracking-[0.02em] text-ink-muted">
-            Day streak
+            {p.dayStreak}
           </span>
         </div>
       </section>
 
       {/* SECTION 3: JOURNEY PROGRESS (LEVEL & XP) */}
       <section
-        aria-label="Level progress"
+        aria-label={p.levelProgress}
         className="rounded-3xl bg-navy p-[18px] text-on-navy"
       >
         <div className="flex items-start justify-between gap-2">
           <div>
             <span className="text-xs leading-4 font-bold tracking-[0.1em] text-on-navy/80 uppercase">
-              Your journey
+              {p.journey}
             </span>
             <h2 className="mt-0.5 text-lg leading-6 font-bold text-on-navy">
-              Level {me.rank.level} progress
+              {p.levelTitle(me.rank.level)}
             </h2>
           </div>
           <span className="font-mono text-xs leading-4 font-bold tabular-nums text-on-navy">
-            {me.rank.xp.toLocaleString()} XP
+            {me.rank.xp.toLocaleString(locales)} XP
           </span>
         </div>
 
@@ -877,7 +851,7 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
           aria-valuenow={progressPercent}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`Progress to level ${me.rank.level + 1}`}
+          aria-label={p.progressTo(me.rank.level + 1)}
           className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-navy-soft"
         >
           <div
@@ -888,8 +862,8 @@ function AuthenticatedProfileContent({ me }: { me: Me }) {
 
         <p className="mt-2.5 text-xs leading-4 font-medium text-on-navy/90">
           {me.rank.nextLevelXp !== null
-            ? `${xpRemaining.toLocaleString()} XP to reach Level ${me.rank.level + 1}`
-            : 'You reached the top rank.'}
+            ? p.toReach(xpRemaining.toLocaleString(locales), me.rank.level + 1)
+            : p.topRank}
         </p>
       </section>
     </>
@@ -914,6 +888,7 @@ function AccessibleToggle({
 }) {
   const generatedId = useId()
   const toggleId = id || generatedId
+  const p = useT().profile
 
   return (
     <button
@@ -921,7 +896,7 @@ function AccessibleToggle({
       type="button"
       role="switch"
       aria-checked={checked}
-      aria-label={`${label}, ${checked ? 'on' : 'off'}`}
+      aria-label={p.toggle(label, checked)}
       onClick={onToggle}
       className="touch-target group relative inline-flex min-h-12 min-w-12 cursor-pointer touch-manipulation items-center justify-center rounded-full p-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
     >
@@ -1053,24 +1028,25 @@ function ChooseAppearanceModal({
   onSelectTheme: (theme: ThemeMode) => void
   onClose: () => void
 }) {
+  const p = useT().profile
   return (
     <ModalDialog
       titleId="choose-appearance-title"
-      eyebrow="Theme"
-      title="Choose appearance"
-      closeLabel="Close appearance selector"
+      eyebrow={p.theme}
+      title={p.chooseAppearance}
+      closeLabel={p.closeAppearance}
       onClose={onClose}
     >
-      <div role="radiogroup" aria-label="Appearance options" className="space-y-2">
-        {APPEARANCE_OPTIONS.map((opt) => {
-          const isSelected = currentTheme === opt.mode
+      <div role="radiogroup" aria-label={p.appearanceOptions} className="space-y-2">
+        {APPEARANCE_OPTIONS.map((mode) => {
+          const isSelected = currentTheme === mode
           return (
             <button
-              key={opt.mode}
+              key={mode}
               type="button"
               role="radio"
               aria-checked={isSelected}
-              onClick={() => onSelectTheme(opt.mode)}
+              onClick={() => onSelectTheme(mode)}
               className={`touch-target flex min-h-12 w-full items-center justify-between rounded-xl border px-3.5 py-2.5 text-xs leading-4 font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
                 isSelected
                   ? 'border-navy bg-navy-soft text-ink'
@@ -1079,7 +1055,7 @@ function ChooseAppearanceModal({
             >
               <div className="flex items-center gap-3">
                 <MoonOutlineIcon size={18} className="shrink-0 text-terracotta" />
-                <span>{opt.name}</span>
+                <span>{p.themes[mode]}</span>
               </div>
               {isSelected && <CheckmarkIcon size={18} className="shrink-0 font-bold text-navy" />}
             </button>
@@ -1096,19 +1072,20 @@ function ChooseLanguageModal({
   onSelectLanguage,
   onClose,
 }: {
-  currentLanguage: 'en' | 'ceb'
-  onSelectLanguage: (code: 'en' | 'ceb') => void
+  currentLanguage: Language
+  onSelectLanguage: (code: Language) => void
   onClose: () => void
 }) {
+  const p = useT().profile
   return (
     <ModalDialog
       titleId="choose-lang-title"
-      eyebrow="App language"
-      title="Choose language"
-      closeLabel="Close language selector"
+      eyebrow={p.appLanguage}
+      title={p.chooseLanguage}
+      closeLabel={p.closeLanguage}
       onClose={onClose}
     >
-      <div role="radiogroup" aria-label="Available app languages" className="space-y-2">
+      <div role="radiogroup" aria-label={p.languages} className="space-y-2">
         {LANGUAGES.map((lang) => {
           const isSelected = currentLanguage === lang.code
           return (
@@ -1118,6 +1095,7 @@ function ChooseLanguageModal({
               role="radio"
               aria-checked={isSelected}
               onClick={() => onSelectLanguage(lang.code)}
+              lang={lang.code}
               className={`touch-target flex min-h-12 w-full items-center justify-between rounded-xl border px-3.5 py-2.5 text-xs leading-4 font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
                 isSelected
                   ? 'border-navy bg-navy-soft text-ink'
@@ -1149,70 +1127,70 @@ function PermissionsSubpage({
   onRequestCamera: () => void
   onBack: () => void
 }) {
+  const p = useT().profile
   return (
     <div>
-      <TopNavbar title="Permissions" titleAs="h1" backLabel="Back to profile" onBack={onBack} />
+      <TopNavbar title={p.permissionsRow} titleAs="h1" backLabel={p.backToProfile} onBack={onBack} />
       <main className="relative z-10 mx-auto max-w-md px-5 pt-5 pb-8 focus:outline-none">
         <div className="space-y-4">
           {/* You're in control banner */}
           <section
-            aria-label="Privacy control"
+            aria-label={p.privacyControl}
             className="flex items-center gap-3 rounded-3xl border border-sage bg-sage-soft p-4"
           >
             <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-sage-deep text-on-navy">
               <ShieldCheckmarkIcon size={20} />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg leading-6 font-bold text-ink">You&apos;re in control</h2>
+              <h2 className="text-lg leading-6 font-bold text-ink">{p.inControl}</h2>
               <p className="mt-0.5 text-xs leading-4 font-medium text-ink-muted">
-                See what Laag ta bAI can access on your device. Location is only requested after you review the in-app rationale.
+                {p.inControlBody}
               </p>
             </div>
           </section>
 
           {/* Permission item cards */}
-          <section aria-label="Permission items" className="space-y-3">
-            {PERMISSION_ITEMS.map((p) => {
-              const status = permissionStates[p.id]
-              const pill = STATUS_PILL[status]
+          <section aria-label={p.items} className="space-y-3">
+            {PERMISSION_ITEMS.map((id) => {
+              const status = permissionStates[id]
               return (
                 <article
-                  key={p.id}
+                  key={id}
                   className="flex items-center justify-between gap-3 rounded-2xl border border-ivory-line bg-ivory-surface px-4 py-3.5"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-terracotta-soft text-terracotta-ink">
-                      {p.id === 'location' && <LocationOutlineIcon size={18} />}
-                      {p.id === 'camera' && <CameraOutlineIcon size={18} />}
+                      {id === 'location' && <LocationOutlineIcon size={18} />}
+                      {id === 'camera' && <CameraOutlineIcon size={18} />}
                     </span>
                     <div className="min-w-0">
-                      <h3 className="text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.title}</h3>
-                      <p className="mt-0.5 truncate text-xs leading-4 font-medium text-ink-muted">{p.description}</p>
+                      <h3 className="text-[0.9375rem] leading-[1.375rem] font-bold text-ink">{p.permissions[id]}</h3>
+                      <p className="mt-0.5 truncate text-xs leading-4 font-medium text-ink-muted">{p.permissions[`${id}Body`]}</p>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <span className={`rounded-full px-3 py-1.5 text-xs leading-4 font-bold ${pill.className}`}>
-                      {pill.label}
+                    <span className={`rounded-full px-3 py-1.5 text-xs leading-4 font-bold ${STATUS_PILL[status]}`}>
+                      {p.permissions[status]}
                     </span>
-                    {status === 'prompt' && p.id === 'camera' && (
+                    {status === 'prompt' && id === 'camera' && (
                       <button
                         type="button"
                         disabled={requestingCamera}
                         onClick={onRequestCamera}
-                        aria-label="Allow Camera"
+                        aria-label={p.allowCamera}
                         className="touch-target flex min-h-12 min-w-12 items-center justify-center rounded-xl bg-navy px-3 text-xs font-bold text-on-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60"
                       >
-                        {requestingCamera ? 'Asking…' : 'Allow'}
+                        {requestingCamera ? p.asking : p.allow}
                       </button>
                     )}
-                    {status === 'prompt' && p.id === 'location' && (
+                    {status === 'prompt' && id === 'location' && (
                       <Link
                         to="/permissions"
                         state={{ next: '/profile' }}
-                        aria-label="Allow Location"
+                        aria-label={p.allowLocation}
                         className="touch-target flex min-h-12 min-w-12 items-center justify-center rounded-xl bg-navy px-3 text-xs font-bold text-on-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                       >
-                        Allow
+                        {p.allow}
                       </Link>
                     )}
                   </div>
@@ -1223,12 +1201,12 @@ function PermissionsSubpage({
 
           {/* Privacy Note */}
           <aside
-            aria-label="Privacy note"
+            aria-label={p.privacyNote}
             className="flex items-start gap-3 rounded-2xl border border-terracotta/20 bg-terracotta-soft p-4 text-xs text-ink"
           >
             <LockClosedOutlineIcon size={18} className="mt-0.5 shrink-0 text-terracotta-ink" />
             <p className="leading-relaxed text-ink-body">
-              Your coordinates are sent to the API only to sort nearby landmarks and verify scans. To change an allowed or blocked permission, update it in your browser settings.
+              {p.privacyBody}
             </p>
           </aside>
 
@@ -1239,14 +1217,14 @@ function PermissionsSubpage({
               state={{ next: '/profile' }}
               className="touch-target flex min-h-12 w-full items-center justify-center rounded-2xl border border-ivory-line bg-ivory-surface px-4 text-sm font-bold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
-              Open permissions setup
+              {p.openSetup}
             </Link>
             <button
               type="button"
               onClick={onBack}
               className="touch-target flex min-h-12 w-full items-center justify-center rounded-2xl bg-navy text-base font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
-              Done
+              {p.done}
             </button>
           </div>
         </div>
@@ -1257,23 +1235,15 @@ function PermissionsSubpage({
 
 /** Help Center Modal */
 function HelpCenterModal({ onClose }: { onClose: () => void }) {
-  const faqs = [
-    {
-      q: 'How does landmark scanning work?',
-      a: 'Open Scan, point your camera at a landmark, and bAI will match it with a Cebu story.',
-    },
-    {
-      q: 'Can I use the app offline?',
-      a: 'Bookmarked places and stories stay available offline for reading without a connection.',
-    },
-  ]
+  const p = useT().profile
+  const faqs = p.faqs
 
   return (
     <ModalDialog
       titleId="help-center-title"
-      eyebrow="Support"
-      title="Help center"
-      closeLabel="Close help center"
+      eyebrow={p.supportEyebrow}
+      title={p.help}
+      closeLabel={p.closeHelp}
       onClose={onClose}
     >
       <div className="mb-5 space-y-3">
@@ -1290,7 +1260,7 @@ function HelpCenterModal({ onClose }: { onClose: () => void }) {
         className="touch-target flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-navy text-sm font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
       >
         <MailOutlineIcon size={18} />
-        <span>Contact support</span>
+        <span>{p.contact}</span>
       </a>
     </ModalDialog>
   )
@@ -1298,12 +1268,13 @@ function HelpCenterModal({ onClose }: { onClose: () => void }) {
 
 /** About App Modal */
 function AboutAppModal({ onClose }: { onClose: () => void }) {
+  const p = useT().profile
   return (
     <ModalDialog
       titleId="about-dialog-title"
-      eyebrow="About"
-      title="About Laag ta bAI"
-      closeLabel="Close about dialog"
+      eyebrow={p.aboutEyebrow}
+      title={p.aboutTitle}
+      closeLabel={p.closeAbout}
       onClose={onClose}
     >
       <div className="mb-3 flex items-center gap-1.5 rounded-2xl border border-sage/30 bg-sage-soft p-3">
@@ -1312,19 +1283,19 @@ function AboutAppModal({ onClose }: { onClose: () => void }) {
       </div>
 
       <p className="mb-4 text-xs leading-relaxed text-ink-muted">
-        Laag ta bAI is an AI-powered companion for discovering Cebu&apos;s heritage through places, photos, and local stories.
+        {p.aboutIntro}
       </p>
 
       <div className="mb-5 space-y-2.5">
         <div className="rounded-2xl border border-sage/30 bg-sage-soft p-3">
-          <h3 className="text-xs font-bold text-ink">Version</h3>
+          <h3 className="text-xs font-bold text-ink">{p.version}</h3>
           <p className="mt-0.5 text-xs text-ink-muted">v{env.appVersion || '1.0.0'}</p>
         </div>
 
         <div className="rounded-2xl border border-sage/30 bg-sage-soft p-3">
-          <h3 className="text-xs font-bold text-ink">Privacy</h3>
+          <h3 className="text-xs font-bold text-ink">{p.privacy}</h3>
           <p className="mt-0.5 text-xs leading-relaxed text-ink-muted">
-            Bookmarks are stored on this device. Your profile is stored on your account.
+            {p.aboutPrivacy}
           </p>
         </div>
       </div>
@@ -1334,7 +1305,7 @@ function AboutAppModal({ onClose }: { onClose: () => void }) {
         onClick={onClose}
         className="touch-target flex min-h-12 w-full items-center justify-center rounded-2xl bg-navy text-sm font-bold text-on-navy shadow-sm transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
       >
-        Close
+        {p.close}
       </button>
     </ModalDialog>
   )
@@ -1354,12 +1325,13 @@ function ConfirmActionModal({
   onConfirm: () => void
   onCancel: () => void
 }) {
+  const p = useT().profile
   return (
     <ModalDialog
       titleId="confirm-modal-title"
-      eyebrow="Account"
+      eyebrow={p.account}
       title={title}
-      closeLabel="Close dialog"
+      closeLabel={p.closeDialog}
       describedBy="confirm-modal-desc"
       onClose={onCancel}
     >
@@ -1379,7 +1351,7 @@ function ConfirmActionModal({
           onClick={onCancel}
           className="touch-target flex min-h-12 items-center justify-center rounded-xl border border-ivory-line text-sm font-bold text-ink transition-colors hover:bg-ivory-surface focus-visible:outline-2 focus-visible:outline-navy"
         >
-          Cancel
+          {p.cancel}
         </button>
         <button
           type="button"

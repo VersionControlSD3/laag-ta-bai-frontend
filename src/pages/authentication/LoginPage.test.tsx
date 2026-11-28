@@ -9,6 +9,7 @@ import { readJson, writeJson } from '@/lib/storage'
 import { routes } from '@/routes'
 import { mockFetch, renderRoutes } from '@/test/render'
 import { signInErrorMessage } from '@/features/auth/signInError'
+import { MESSAGES } from '@/i18n'
 import LoginPage from './LoginPage'
 
 /** Renders /login with a Supabase-mode auth double, so the real form (not the dev sign-in) shows. */
@@ -202,11 +203,12 @@ describe('login page against the API', () => {
 
 describe('signInErrorMessage', () => {
   it('maps API and Supabase errors to traveller copy', () => {
-    expect(signInErrorMessage(new ApiError(401, 'unauthorized', 'Invalid email or password'))).toMatch(/don't match/)
-    expect(signInErrorMessage(new ApiError(0, 'network_error', "Can't reach the server."))).toMatch(/couldn't reach the server/)
-    expect(signInErrorMessage(new Error('Email not confirmed'))).toMatch(/Confirm your email first/)
-    expect(signInErrorMessage(new TypeError('Failed to fetch'))).toMatch(/couldn't reach the server/)
-    expect(signInErrorMessage(new Error('Something else'))).toBe('Something else')
-    expect(signInErrorMessage(null)).toBe('Log in failed. Please try again.')
+    expect(signInErrorMessage(new ApiError(401, 'unauthorized', 'Invalid email or password'), MESSAGES.en)).toMatch(/don't match/)
+    expect(signInErrorMessage(new ApiError(0, 'network_error', "Can't reach the server."), MESSAGES.en)).toMatch(/couldn't reach the server/)
+    expect(signInErrorMessage(new Error('Email not confirmed'), MESSAGES.en)).toMatch(/Confirm your email first/)
+    expect(signInErrorMessage(new TypeError('Failed to fetch'), MESSAGES.en)).toMatch(/couldn't reach the server/)
+    expect(signInErrorMessage(new Error('Something else'), MESSAGES.en)).toBe('Something else')
+    expect(signInErrorMessage(null, MESSAGES.en)).toBe('Log in failed. Please try again.')
+    expect(signInErrorMessage(new Error('Email not confirmed'), MESSAGES.ceb)).toMatch(/Kumpirmaha una ang imong email/)
   })
 })

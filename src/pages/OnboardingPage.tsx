@@ -2,28 +2,11 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
 import { ArrowForwardIcon } from '@/components/icons/ionicons'
+import { useT } from '@/i18n'
 
 /** UI Redesign #2: full-bleed Cebu photo with an editorial headline, then a rounded white sheet. */
-const SLIDES = [
-  {
-    headline: 'Go where the map runs out.',
-    title: 'Every corner has a story.',
-    body: 'Discover heritage landmarks, ancestral homes, and coastal stories across Cebu.',
-    image: '/authenticationBG/LoginDay.webp',
-  },
-  {
-    headline: 'Point, snap, and ask bAI.',
-    title: 'Point. Scan. Step into history.',
-    body: 'Take or upload a photo of any landmark and ask bAI where it is or what shaped it.',
-    image: '/landmarks/magellan.jpg',
-  },
-  {
-    headline: 'Explore Cebu at your own pace.',
-    title: 'Learn more with every laag.',
-    body: 'Save places for offline reading, follow walking trails, and collect heritage badges.',
-    image: '/onboarding/bridge.webp',
-  },
-] as const
+// The slide copy is in `t.onboarding.slides`, in the same order.
+const SLIDE_IMAGES = ['/authenticationBG/LoginDay.webp', '/landmarks/magellan.jpg', '/onboarding/bridge.webp'] as const
 
 const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy'
 const focusRingOnPhoto = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ivory'
@@ -31,11 +14,13 @@ const focusRingOnPhoto = 'focus-visible:outline-2 focus-visible:outline-offset-2
 /** First-run onboarding: three slides, then Permissions then Sign up (Start exploring), or Login (Skip). */
 export default function OnboardingPage() {
   const prefs = usePreferences()
+  const t = useT().onboarding
   const navigate = useNavigate()
   const [index, setIndex] = useState(0)
   const swipeX = useRef<number | null>(null)
-  const slide = SLIDES[index]
-  const last = index === SLIDES.length - 1
+  const slides = t.slides.map((copy, i) => ({ ...copy, image: SLIDE_IMAGES[i] }))
+  const slide = slides[index]
+  const last = index === slides.length - 1
 
   // replace: back from Permissions or Login must not return to the slides.
   const finish = (completed: boolean) => {
@@ -53,8 +38,8 @@ export default function OnboardingPage() {
         className="absolute inset-x-0 top-0 z-20 grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-[max(0.5rem,env(safe-area-inset-top))] text-ivory"
       >
         <span className="pl-2 font-mono text-xs font-bold tracking-[0.15em]">
-          <span aria-hidden="true">EN</span>
-          <span className="sr-only">Language: English</span>
+          <span aria-hidden="true">{t.languageBadge}</span>
+          <span className="sr-only">{t.languageLabel}</span>
         </span>
         <p className="font-display text-xl font-semibold tracking-tight" role="img" aria-label="Laag ta bAI">
           Laag ta <span className="font-bold italic">bAI</span>
@@ -62,10 +47,10 @@ export default function OnboardingPage() {
         <button
           type="button"
           onClick={() => finish(false)}
-          aria-label="Skip onboarding"
+          aria-label={t.skipLabel}
           className={`touch-target justify-self-end rounded-full px-3 text-sm font-bold ${focusRingOnPhoto}`}
         >
-          Skip
+          {t.skip}
         </button>
       </header>
 
@@ -87,7 +72,7 @@ export default function OnboardingPage() {
         }}
       >
         {/* Stays mounted so screen readers announce each slide change. */}
-        <p role="status" className="sr-only">{`Page ${index + 1} of ${SLIDES.length}: ${slide.title}`}</p>
+        <p role="status" className="sr-only">{t.pageStatus(index + 1, slides.length, slide.title)}</p>
 
         <section data-palette="light" className="relative flex min-h-[56dvh] flex-col justify-end overflow-hidden bg-navy [@media(max-height:680px)]:min-h-[46dvh]">
           {/* key restarts the fade on every slide; motion-reduce turns it off. */}
@@ -119,12 +104,12 @@ export default function OnboardingPage() {
 
       <footer className="flex flex-wrap items-center justify-between gap-x-2 gap-y-3 bg-ivory-surface px-6 pt-2 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
         <div className="-ml-4 flex">
-          {SLIDES.map((s, i) => (
+          {slides.map((s, i) => (
             <button
-              key={s.title}
+              key={s.image}
               type="button"
               onClick={() => setIndex(i)}
-              aria-label={`Page ${i + 1} of ${SLIDES.length}`}
+              aria-label={t.page(i + 1, slides.length)}
               aria-current={i === index ? 'step' : undefined}
               className={`touch-target flex items-center justify-center rounded-full ${focusRing}`}
             >
@@ -142,7 +127,7 @@ export default function OnboardingPage() {
           onClick={() => (last ? finish(true) : setIndex(index + 1))}
           className={`ml-auto flex h-14 shrink-0 items-center gap-2 rounded-xl bg-navy px-4 text-[0.9375rem] font-bold min-[400px]:px-7 min-[400px]:text-base text-on-navy shadow-navy active:bg-navy-pressed ${focusRing}`}
         >
-          {last ? 'Start exploring' : 'Next'}
+          {last ? t.start : t.next}
           <ArrowForwardIcon size={20} />
         </button>
       </footer>

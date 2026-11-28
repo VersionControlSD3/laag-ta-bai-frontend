@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { LocationOutlineIcon } from '@/components/icons/ionicons'
 import { usePreferences } from '@/features/preferences/PreferencesContext'
+import { useT } from '@/i18n'
 
 /**
  * UI Redesign #3 auth layout: a Cebu coastal photo band (day photo in light, night photo in dark)
@@ -12,6 +13,7 @@ import { usePreferences } from '@/features/preferences/PreferencesContext'
  */
 function RedesignedAuthScreen({ children }: { children: ReactNode }) {
   const night = usePreferences().resolvedTheme === 'dark'
+  const t = useT()
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-ivory-surface">
       <section
@@ -27,8 +29,8 @@ function RedesignedAuthScreen({ children }: { children: ReactNode }) {
         <div className="absolute inset-0 bg-linear-to-b from-ink/50 via-ink/10 to-ink/40" aria-hidden="true" />
         <header className="relative grid grid-cols-[1fr_auto_1fr] items-center px-6 pt-[max(1rem,env(safe-area-inset-top))]">
           <span className="font-mono text-xs font-bold tracking-[0.15em]">
-            <span aria-hidden="true">EN</span>
-            <span className="sr-only">Language: English</span>
+            <span aria-hidden="true">{t.onboarding.languageBadge}</span>
+            <span className="sr-only">{t.onboarding.languageLabel}</span>
           </span>
           <p className="font-display text-xl font-semibold tracking-tight" role="img" aria-label="Laag ta bAI">
             Laag ta <span className="font-bold italic">bAI</span>
@@ -36,7 +38,7 @@ function RedesignedAuthScreen({ children }: { children: ReactNode }) {
           <p className="justify-self-end text-sm font-semibold">Cebu, PH</p>
         </header>
         <p className="relative mt-auto px-6 pb-14 font-display text-[2.125rem] leading-[1.08] font-bold tracking-tight">
-          Go where the map <em>runs out.</em>
+          {t.auth.screen.tagline} <em>{t.auth.screen.taglineEnd}</em>
         </p>
       </section>
       <main className="relative z-10 -mt-8 flex flex-1 flex-col rounded-t-[2rem] bg-ivory-surface px-6 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
@@ -52,6 +54,7 @@ export function AuthScreen({ children, centered = false }: { children: ReactNode
 
 function LegacyAuthScreen({ children, centered = false }: { children: ReactNode; centered?: boolean }) {
   const night = usePreferences().resolvedTheme === 'dark'
+  const t = useT()
   return (
     <div
       data-theme="light"
@@ -77,7 +80,7 @@ function LegacyAuthScreen({ children, centered = false }: { children: ReactNode;
           </p>
           <p className="flex items-center gap-1.5 rounded-full border border-ivory/30 bg-navy/40 px-3 py-2 text-xs font-semibold text-ivory backdrop-blur-md">
             <LocationOutlineIcon size={16} />
-            Cebu, Philippines
+            {t.auth.screen.cebu}
           </p>
         </header>
         <main className={centered ? 'my-auto py-8' : 'pt-22'}>{children}</main>

@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import { NavLink, useLocation } from 'react-router'
+import { useT, type Messages } from '@/i18n'
 import {
   BookIcon,
   BookOutlineIcon,
@@ -13,14 +14,14 @@ import {
 } from './icons/ionicons'
 
 type Icon = ComponentType<{ size?: number; className?: string }>
-type Tab = { to: string; label: string; icon: Icon; activeIcon: Icon }
+type Tab = { to: string; label: keyof Messages['common']['nav']; icon: Icon; activeIcon: Icon }
 
 const TABS: Tab[] = [
-  { to: '/', label: 'Explore', icon: MapOutlineIcon, activeIcon: MapIcon },
-  { to: '/archives', label: 'Archives', icon: BookOutlineIcon, activeIcon: BookIcon },
-  { to: '/scan', label: 'Scan', icon: CameraOutlineIcon, activeIcon: CameraOutlineIcon },
-  { to: '/mastery', label: 'Mastery', icon: TrophyOutlineIcon, activeIcon: TrophyIcon },
-  { to: '/profile', label: 'Profile', icon: PersonOutlineIcon, activeIcon: PersonIcon },
+  { to: '/', label: 'explore', icon: MapOutlineIcon, activeIcon: MapIcon },
+  { to: '/archives', label: 'archives', icon: BookOutlineIcon, activeIcon: BookIcon },
+  { to: '/scan', label: 'scan', icon: CameraOutlineIcon, activeIcon: CameraOutlineIcon },
+  { to: '/mastery', label: 'mastery', icon: TrophyOutlineIcon, activeIcon: TrophyIcon },
+  { to: '/profile', label: 'profile', icon: PersonOutlineIcon, activeIcon: PersonIcon },
 ]
 
 /**
@@ -31,6 +32,7 @@ const TABS: Tab[] = [
  */
 export function BottomNav() {
   const { pathname } = useLocation()
+  const t = useT()
   const current = TABS.findIndex((t) => t.to === pathname)
   // Tells the CSS which way to slide: towards the tab's side of the bar. Re-tapping the current tab doesn't animate.
   const onNavigate = (index: number) => {
@@ -38,21 +40,21 @@ export function BottomNav() {
   }
   return (
     <nav
-      aria-label="Main"
+      aria-label={t.common.nav.main}
       className="fixed inset-x-3.5 bottom-[calc(14px+env(safe-area-inset-bottom))] z-40 mx-auto flex min-h-tabbar max-w-[calc(28rem-28px)] items-center justify-between rounded-full border border-ivory-line bg-ivory-surface px-[10px] py-[6px] shadow-navy [view-transition-name:bottom-nav]"
     >
       {TABS.map((tab, i) =>
         tab.to === '/scan' ? (
-          <ScanTab key={tab.to} tab={tab} animate={i !== current} onClick={() => onNavigate(i)} />
+          <ScanTab key={tab.to} tab={tab} label={t.common.nav[tab.label]} animate={i !== current} onClick={() => onNavigate(i)} />
         ) : (
-          <TabLink key={tab.to} tab={tab} animate={i !== current} onClick={() => onNavigate(i)} />
+          <TabLink key={tab.to} tab={tab} label={t.common.nav[tab.label]} animate={i !== current} onClick={() => onNavigate(i)} />
         ),
       )}
     </nav>
   )
 }
 
-function TabLink({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClick: () => void }) {
+function TabLink({ tab, label, animate, onClick }: { tab: Tab; label: string; animate: boolean; onClick: () => void }) {
   return (
     <NavLink
       to={tab.to}
@@ -76,7 +78,7 @@ function TabLink({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClic
                   : 'sr-only'
               }
             >
-              {tab.label}
+              {label}
             </span>
           </>
         )
@@ -86,7 +88,7 @@ function TabLink({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClic
 }
 
 /** Scan: a 48px coral-to-lagoon disc inside the bar; solid coral with a ring while Scan is open, so the state isn't colour alone. */
-function ScanTab({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClick: () => void }) {
+function ScanTab({ tab, label, animate, onClick }: { tab: Tab; label: string; animate: boolean; onClick: () => void }) {
   return (
     <NavLink
       to={tab.to}
@@ -101,7 +103,7 @@ function ScanTab({ tab, animate, onClick }: { tab: Tab; animate: boolean; onClic
       }
     >
       <tab.icon size={22} />
-      <span className="sr-only">{tab.label}</span>
+      <span className="sr-only">{label}</span>
     </NavLink>
   )
 }

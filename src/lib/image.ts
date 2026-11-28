@@ -4,20 +4,21 @@ export const MIN_SHORT_SIDE = 720
 export const MIN_LONG_SIDE = 1280
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
-export type ImageCheck = { ok: true } | { ok: false; reason: string }
+/** `reason` is a key of `t.common.image`, so the screen shows it in the current language. */
+export type ImageCheck = { ok: true } | { ok: false; reason: 'type' | 'size' | 'dimensions' }
 
 export function checkImageMeta(
   file: Pick<File, 'type' | 'size' | 'name'>,
   dimensions: { width: number; height: number } | null,
 ): ImageCheck {
   const type = file.type || (/\.(heic|heif)$/i.test(file.name) ? 'image/heic' : '')
-  if (!ACCEPTED_IMAGE_TYPES.includes(type)) return { ok: false, reason: 'Use a JPEG, PNG or HEIC photo.' }
-  if (file.size > MAX_IMAGE_BYTES) return { ok: false, reason: 'That photo is over 10 MB. Try a smaller one.' }
+  if (!ACCEPTED_IMAGE_TYPES.includes(type)) return { ok: false, reason: 'type' }
+  if (file.size > MAX_IMAGE_BYTES) return { ok: false, reason: 'size' }
   if (dimensions) {
     const short = Math.min(dimensions.width, dimensions.height)
     const long = Math.max(dimensions.width, dimensions.height)
     if (short < MIN_SHORT_SIDE || long < MIN_LONG_SIDE) {
-      return { ok: false, reason: 'The photo needs to be at least 1280×720. Try a sharper shot.' }
+      return { ok: false, reason: 'dimensions' }
     }
   }
   return { ok: true }

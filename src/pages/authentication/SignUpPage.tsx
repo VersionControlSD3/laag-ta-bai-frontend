@@ -14,13 +14,15 @@ import {
 } from '@/components/icons/ionicons'
 import { useAuth } from '@/features/auth/AuthContext'
 import { DevSignIn } from '@/features/auth/DevSignIn'
+import { signInErrorMessage } from '@/features/auth/signInError'
+import { LOCALES, useLanguage, useT } from '@/i18n'
 import { nationalityOptions } from '@/lib/nationality'
 import './SignUpPage.css'
 
-// Custom calendar controls keep the date picker consistent across browsers.
-const MONTHS = Array.from({ length: 12 }, (_, month) => new Date(2000, month, 1).toLocaleString('en-US', { month: 'long' }))
-// Unique labels: 'S' twice broke the React key on the weekday row.
-const WEEKDAYS = ['Su', 'M', 'T', 'W', 'Th', 'F', 'Sa']
+// Custom calendar controls keep the date picker consistent across browsers. Month names follow the
+// app language; weekday labels come from `t.auth.datePicker.weekdays` (unique, as they are React keys).
+const monthNames = (locales: string[]) =>
+  Array.from({ length: 12 }, (_, month) => new Date(2000, month, 1).toLocaleString(locales, { month: 'long' }))
 
 function formatDate(value: string) {
   if (!value) return ''
@@ -44,7 +46,7 @@ function parseTypedDate(text: string, minYear: number) {
   return real && Number(year) >= minYear ? `${year}-${month}-${day}` : ''
 }
 
-function CalendarSelect({ label, value, options, open, onToggle, onChange, isDisabled }: { label: string; value: number; options: string[]; open: boolean; onToggle: () => void; onChange: (value: number) => void; isDisabled?: (index: number) => boolean }) {
+function CalendarSelect({ label, kind, value, options, open, onToggle, onChange, isDisabled }: { label: string; kind: 'month' | 'year'; value: number; options: string[]; open: boolean; onToggle: () => void; onChange: (value: number) => void; isDisabled?: (index: number) => boolean }) {
   return (
     <div className="auth-calendar-select">
       <button type="button" aria-haspopup="listbox" aria-expanded={open} aria-label={label} onClick={onToggle} className="auth-calendar-select-button">
@@ -52,7 +54,7 @@ function CalendarSelect({ label, value, options, open, onToggle, onChange, isDis
         <ChevronDownOutlineIcon size={14} />
       </button>
       {open && (
-        <div className={`auth-calendar-select-menu ${label === 'Month' ? 'auth-calendar-select-menu-month' : 'auth-calendar-select-menu-year'}`}>
+        <div className={`auth-calendar-select-menu ${kind === 'month' ? 'auth-calendar-select-menu-month' : 'auth-calendar-select-menu-year'}`}>
           <div className="auth-calendar-select-scroll" role="listbox" aria-label={label}>
             {options.map((option, index) => (
               <button key={option} type="button" role="option" aria-selected={index === value} disabled={isDisabled?.(index)} className={index === value ? 'auth-calendar-select-option auth-calendar-select-option-selected' : 'auth-calendar-select-option'} onClick={() => onChange(index)}>
@@ -72,6 +74,8 @@ function CalendarSelect({ label, value, options, open, onToggle, onChange, isDis
  * field holds text that isn't a complete, real date, so the page can say that instead of "required".
  */
 export function CustomDatePicker({ id, value, onChange, onTypedInvalid, invalid, describedBy }: { id: string; value: string; onChange: (value: string) => void; onTypedInvalid: (invalid: boolean) => void; invalid: boolean; describedBy?: string }) {
+  const t = useT().auth.datePicker
+  const months = monthNames(LOCALES[useLanguage()])
   const today = new Date()
   const maxYear = today.getFullYear() - 18
   // Age gate: latest selectable date is today minus 18 years (PR #17 review).
@@ -196,7 +200,7 @@ export function CustomDatePicker({ id, value, onChange, onTypedInvalid, invalid,
           type="button"
           aria-haspopup="dialog"
           aria-expanded={open}
-          aria-label="Choose date of birth"
+          aria-label={t.choose}
           onClick={() => {
             if (open) return closeCalendar()
             // Open on the chosen date, else on the "18 years ago" default — never
@@ -210,21 +214,21 @@ export function CustomDatePicker({ id, value, onChange, onTypedInvalid, invalid,
         </button>
       </div>
       {open && (
-        <div ref={calendarRef} className={`auth-calendar ${openAbove ? 'auth-calendar-above' : ''}`} role="dialog" aria-label="Choose date of birth">
+        <div ref={calendarRef} className={`auth-calendar ${openAbove ? 'auth-calendar-above' : ''}`} role="dialog" aria-label={t.choose}>
           <div className="auth-calendar-toolbar">
-            <CalendarSelect label="Month" value={viewDate.getMonth()} options={MONTHS} open={openSelect === 'month'} onToggle={() => setOpenSelect((current) => current === 'month' ? null : 'month')} isDisabled={isUnderageMonth} onChange={(month) => { setViewDate(clampViewDate(new Date(viewDate.getFullYear(), month, 1))); setOpenSelect(null) }} />
-            <CalendarSelect label="Year" value={years.indexOf(viewDate.getFullYear())} options={years.map(String)} open={openSelect === 'year'} onToggle={() => setOpenSelect((current) => current === 'year' ? null : 'year')} onChange={(yearIndex) => { setViewDate(clampViewDate(new Date(years[yearIndex], viewDate.getMonth(), 1))); setOpenSelect(null) }} />
-            <button type="button" aria-label="Previous month" disabled={atMinMonth} onClick={() => setViewDate(clampViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)))}><ChevronBackOutlineIcon size={18} /></button>
-            <button type="button" aria-label="Next month" disabled={atMaxMonth} onClick={() => setViewDate(clampViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)))}><ChevronForwardOutlineIcon size={18} /></button>
+            <CalendarSelect label={t.month} kind="month" value={viewDate.getMonth()} options={months} open={openSelect === 'month'} onToggle={() => setOpenSelect((current) => current === 'month' ? null : 'month')} isDisabled={isUnderageMonth} onChange={(month) => { setViewDate(clampViewDate(new Date(viewDate.getFullYear(), month, 1))); setOpenSelect(null) }} />
+            <CalendarSelect label={t.year} kind="year" value={years.indexOf(viewDate.getFullYear())} options={years.map(String)} open={openSelect === 'year'} onToggle={() => setOpenSelect((current) => current === 'year' ? null : 'year')} onChange={(yearIndex) => { setViewDate(clampViewDate(new Date(years[yearIndex], viewDate.getMonth(), 1))); setOpenSelect(null) }} />
+            <button type="button" aria-label={t.previous} disabled={atMinMonth} onClick={() => setViewDate(clampViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)))}><ChevronBackOutlineIcon size={18} /></button>
+            <button type="button" aria-label={t.next} disabled={atMaxMonth} onClick={() => setViewDate(clampViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)))}><ChevronForwardOutlineIcon size={18} /></button>
           </div>
           <div className="auth-calendar-grid" role="grid">
-            {WEEKDAYS.map((weekday) => <span key={weekday} className="auth-calendar-weekday">{weekday}</span>)}
+            {t.weekdays.map((weekday) => <span key={weekday} className="auth-calendar-weekday">{weekday}</span>)}
             {days.map((day, index) => day ? (
               <button key={day} type="button" role="gridcell" aria-selected={isSelected(day)} disabled={isUnderageDay(day)} onClick={() => selectDate(day)} className={`auth-calendar-day ${isSelected(day) ? 'auth-calendar-day-selected' : ''}`}>{day}</button>
             ) : <span key={`empty-${index}`} aria-hidden="true" />)}
           </div>
           <div className="auth-calendar-actions">
-            <button type="button" onClick={() => { setText(''); onChange(''); onTypedInvalid(false); closeCalendar() }}>Clear</button>
+            <button type="button" onClick={() => { setText(''); onChange(''); onTypedInvalid(false); closeCalendar() }}>{t.clear}</button>
           </div>
         </div>
       )}
@@ -254,6 +258,8 @@ function parseRateLimitCooldown(error: unknown): number | null {
 
 export default function SignUpPage() {
   const auth = useAuth()
+  const t = useT()
+  const s = t.auth.signUp
   const navigate = useNavigate()
   const emailInputRef = useRef<HTMLInputElement>(null)
   const focusEmailOnReturnRef = useRef(false)
@@ -308,10 +314,10 @@ export default function SignUpPage() {
     return new Date(now.getFullYear() - 18, now.getMonth(), now.getDate())
   })()
   const passwordRules = useMemo(() => [
-    ['At least 8 characters', form.password.length >= 8],
-    ['One uppercase letter', /[A-Z]/.test(form.password)],
-    ['One number', /\d/.test(form.password)],
-  ] as const, [form.password])
+    [s.rules.length, form.password.length >= 8],
+    [s.rules.upper, /[A-Z]/.test(form.password)],
+    [s.rules.number, /\d/.test(form.password)],
+  ] as const, [form.password, s])
   const passwordValid = passwordRules.every(([, valid]) => valid)
   const confirmValid = form.confirmPassword.length > 0 && form.password === form.confirmPassword
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
@@ -348,7 +354,7 @@ export default function SignUpPage() {
         navigate('/')
       }
     } catch (e) {
-      setError({ message: e instanceof Error ? e.message || 'Sign up failed.' : 'Sign up failed.' })
+      setError({ message: signInErrorMessage(e, t, t.auth.errors.signUpFailed) })
     } finally {
       setBusy(false)
     }
@@ -361,13 +367,13 @@ export default function SignUpPage() {
     try {
       await auth.resendConfirmationEmail(form.email)
       setResendCooldown(RESEND_COOLDOWN_SECONDS)
-      setResendFeedback({ type: 'success', message: 'Confirmation email resent.' })
+      setResendFeedback({ type: 'success', message: s.resent })
     } catch (e) {
       const cooldown = parseRateLimitCooldown(e)
       if (cooldown !== null) setResendCooldown(cooldown)
       setResendFeedback({
         type: 'error',
-        message: e instanceof Error ? e.message : 'Could not resend confirmation email. Please try again.',
+        message: e instanceof Error ? e.message : s.resendFailed,
       })
     } finally {
       setResending(false)
@@ -392,7 +398,7 @@ export default function SignUpPage() {
       setBlockedGoogleCount((count) => count + 1)
       return
     }
-    void auth.signInWithGoogle().catch((e) => setOauthError(e instanceof Error ? e.message : 'Google sign-up failed.'))
+    void auth.signInWithGoogle().catch((e) => setOauthError(signInErrorMessage(e, t, t.auth.errors.googleSignUpFailed)))
   }
 
   // One border state per field, so error/success never compete with the neutral border.
@@ -410,10 +416,10 @@ export default function SignUpPage() {
       <div className="auth-signup">
           {confirmEmail ? (
             <>
-              <h1 className="text-center font-display text-[2.25rem] leading-[1.15] font-bold tracking-tight text-ink">Check your email</h1>
+              <h1 className="text-center font-display text-[2.25rem] leading-[1.15] font-bold tracking-tight text-ink">{s.checkEmail}</h1>
               <div role="status" className="mt-4 rounded-2xl border border-ivory-line bg-sage-soft p-4 text-center text-ink">
-                <p>Check <strong>{form.email}</strong> for a confirmation link, then sign in.</p>
-                <p className="mt-2 text-xs text-ink-body">Don&apos;t see it? Check your Spam or Junk folder.</p>
+                <p>{s.checkEmailBefore} <strong>{form.email}</strong> {s.checkEmailAfter}</p>
+                <p className="mt-2 text-xs text-ink-body">{s.spam}</p>
               </div>
               <button
                 type="button"
@@ -421,11 +427,11 @@ export default function SignUpPage() {
                 onClick={() => void handleResendConfirmation()}
                 className="mt-5 min-h-14 w-full rounded-xl bg-navy px-4 text-base font-bold text-on-navy shadow-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60"
               >
-                {resending ? 'Sending…' : 'Resend confirmation email'}
+                {resending ? s.sending : s.resend}
               </button>
               {resendCooldown > 0 && (
                 <p aria-live="off" className="mt-2 text-center text-xs text-ink-muted">
-                  You can resend in {resendCooldown}s.
+                  {s.resendIn(resendCooldown)}
                 </p>
               )}
               {resendFeedback && (
@@ -441,40 +447,40 @@ export default function SignUpPage() {
                 onClick={handleUseDifferentEmail}
                 className="touch-target mt-2 w-full rounded-xl text-center text-sm font-bold text-navy underline underline-offset-4 transition-colors hover:text-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
               >
-                Use a different email
+                {s.differentEmail}
               </button>
             </>
           ) : (
             <>
               {/* Form header */}
-              <h1 className="text-center font-display text-[2.25rem] leading-[1.15] font-bold tracking-tight text-ink">Create Account</h1>
-              <p className="mt-1 text-center text-ink-muted">Get started.</p>
+              <h1 className="text-center font-display text-[2.25rem] leading-[1.15] font-bold tracking-tight text-ink">{s.title}</h1>
+              <p className="mt-1 text-center text-ink-muted">{s.subtitle}</p>
               {auth.mode === 'dev' && <div className="mt-4"><DevSignIn tone="notice" /></div>}
 
               {/* Registration form */}
               <form ref={formRef} onSubmit={submit} noValidate className="mt-7 space-y-4">
                 <div>
-                  <label className="auth-label block">Full name <span aria-hidden="true">*</span>
+                  <label className="auth-label block">{s.fullName} <span aria-hidden="true">*</span>
                     <input required maxLength={60} autoComplete="name" value={form.displayName} onChange={(e) => update('displayName', e.target.value)} className={inputClass(nameInvalid)} aria-invalid={nameInvalid} aria-describedby={nameInvalid ? 'signup-name-error' : undefined} />
                   </label>
-                  {nameInvalid && fieldError('Full name is required.', 'signup-name-error')}
+                  {nameInvalid && fieldError(s.nameRequired, 'signup-name-error')}
                 </div>
                 <div>
-                  <label className="auth-label block">Email <span aria-hidden="true">*</span>
+                  <label className="auth-label block">{t.auth.fields.email} <span aria-hidden="true">*</span>
                     <input ref={emailInputRef} type="email" autoComplete="email" required value={form.email} onChange={(e) => update('email', e.target.value)} className={inputClass(emailInvalid)} aria-invalid={emailInvalid} aria-describedby={emailInvalid ? 'signup-email-error' : undefined} />
                   </label>
-                  {emailInvalid && fieldError(form.email ? 'Enter a valid email address.' : 'Email is required.', 'signup-email-error')}
+                  {emailInvalid && fieldError(form.email ? t.auth.fields.emailInvalid : s.emailRequired, 'signup-email-error')}
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {/* A div, not a <label>: the field holds both the text input and the calendar button. */}
                   <div>
-                    <label htmlFor="signup-dob" className="auth-label block">Date of birth <span aria-hidden="true">*</span></label>
+                    <label htmlFor="signup-dob" className="auth-label block">{s.dateOfBirth} <span aria-hidden="true">*</span></label>
                     <CustomDatePicker id="signup-dob" value={form.dateOfBirth} onChange={(value) => update('dateOfBirth', value)} onTypedInvalid={setDobTypedInvalid} invalid={birthDateInvalid} describedBy={birthDateInvalid ? 'signup-birth-date-error' : undefined} />
                     <input type="text" className="sr-only" tabIndex={-1} aria-hidden="true" name="dateOfBirth" value={form.dateOfBirth} onChange={(e) => update('dateOfBirth', e.target.value)} />
-                    {birthDateInvalid && fieldError(isUnderage ? 'You must be at least 18 to create an account.' : dobTypedInvalid ? 'Enter a real date as mm/dd/yyyy.' : 'Date of birth is required.', 'signup-birth-date-error')}
+                    {birthDateInvalid && fieldError(isUnderage ? s.underage : dobTypedInvalid ? s.dateInvalid : s.dateRequired, 'signup-birth-date-error')}
                   </div>
                   <div className="min-w-0">
-                    <label htmlFor="signup-nationality" className="auth-label mb-2 block">Nationality <span aria-hidden="true">*</span></label>
+                    <label htmlFor="signup-nationality" className="auth-label mb-2 block">{s.nationality} <span aria-hidden="true">*</span></label>
                     <NationalitySelect
                       id="signup-nationality"
                       required
@@ -484,61 +490,61 @@ export default function SignUpPage() {
                       aria-invalid={nationalityInvalid}
                       aria-describedby={nationalityInvalid ? 'signup-nationality-error' : undefined}
                     />
-                    {nationalityInvalid && fieldError('Nationality is required.', 'signup-nationality-error')}
+                    {nationalityInvalid && fieldError(s.nationalityRequired, 'signup-nationality-error')}
                   </div>
                 </div>
                 <div className="auth-label">
-                  <label className="block">Password <span aria-hidden="true">*</span>
+                  <label className="block">{t.auth.fields.password} <span aria-hidden="true">*</span>
                     <span className="relative block">
                       <input type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.password} onChange={(e) => update('password', e.target.value)} className={`${inputClass(passwordInvalid)} pr-12`} aria-invalid={passwordInvalid} aria-describedby="signup-password-rules" />
-                      <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
+                      <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showPassword ? t.auth.fields.hidePassword : t.auth.fields.showPassword} onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
                     </span>
                   </label>
                   <span className="mt-2 grid gap-1 text-xs" aria-hidden="true">
                     {passwordRules.map(([label, valid]) => <span key={label} className={`flex items-center gap-1 ${valid ? 'font-semibold text-sage-deep' : 'text-ink-muted'}`}>{valid ? <CheckmarkIcon size={14} /> : <CloseOutlineIcon size={14} />}{label}</span>)}
                   </span>
                   <span id="signup-password-rules" className="sr-only" aria-live="polite">
-                    {passwordRules.map(([label, valid]) => `${label}: ${valid ? 'met' : 'required'}.`).join(' ')}
+                    {passwordRules.map(([label, valid]) => s.ruleStatus(label, valid)).join(' ')}
                   </span>
                 </div>
                 <div>
-                  <label className="auth-label block">Confirm password <span aria-hidden="true">*</span>
+                  <label className="auth-label block">{s.confirmPassword} <span aria-hidden="true">*</span>
                     <span className="relative block">
                       <input type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} className={`${fieldClass(confirmationState)} mt-2 pr-12`} aria-invalid={confirmationInvalid} aria-describedby={confirmationInvalid ? 'signup-confirm-password-message' : undefined} />
-                      <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
+                      <button type="button" className="touch-target absolute top-2 right-1 flex items-center justify-center rounded-full text-ink-muted focus-visible:outline-2 focus-visible:outline-navy" aria-label={showConfirmPassword ? s.hideConfirm : s.showConfirm} onClick={() => setShowConfirmPassword((visible) => !visible)}>{showConfirmPassword ? <EyeOffOutlineIcon size={20} /> : <EyeOutlineIcon size={20} />}</button>
                     </span>
                   </label>
                   {form.confirmPassword ? (
-                    <span id="signup-confirm-password-message" className={`auth-password-status mt-1 block ${confirmValid ? 'text-sage-deep' : 'text-danger'}`}>{confirmValid ? 'Passwords match' : 'Passwords do not match'}</span>
-                  ) : confirmationInvalid && fieldError('Please confirm your password.', 'signup-confirm-password-message')}
+                    <span id="signup-confirm-password-message" className={`auth-password-status mt-1 block ${confirmValid ? 'text-sage-deep' : 'text-danger'}`}>{confirmValid ? s.match : s.noMatch}</span>
+                  ) : confirmationInvalid && fieldError(s.confirmRequired, 'signup-confirm-password-message')}
                 </div>
-                <label className="auth-label block">Bio <span className="font-normal text-ink-muted">(optional)</span>
+                <label className="auth-label block">{s.bio} <span className="font-normal text-ink-muted">{s.optional}</span>
                   <textarea maxLength={240} value={form.bio} onChange={(e) => update('bio', e.target.value)} className="mt-2 min-h-20 w-full rounded-xl border border-ivory-line bg-ivory-deep p-4 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy" />
                 </label>
                 <label className="flex min-h-12 items-center gap-3 text-sm text-ink-body">
                   <input type="checkbox" checked={form.acceptedTerms} onChange={(e) => update('acceptedTerms', e.target.checked)} aria-invalid={termsInvalid} aria-describedby={termsInvalid ? 'signup-terms-error' : undefined} className={`auth-terms-checkbox size-5 shrink-0 accent-navy ${termsInvalid ? 'auth-terms-checkbox-invalid' : ''}`} />
-                  <span>I agree to the <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Terms</a> and <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Privacy Policy</a>. <span aria-hidden="true">*</span></span>
+                  <span>{s.agree} <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">{s.terms}</a> {s.and} <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">{s.privacy}</a>. <span aria-hidden="true">*</span></span>
                 </label>
-                {termsInvalid && <p id="signup-terms-error" className="text-sm font-semibold text-danger" role="alert">You must accept the Terms and Privacy Policy.</p>}
+                {termsInvalid && <p id="signup-terms-error" className="text-sm font-semibold text-danger" role="alert">{s.termsRequired}</p>}
                 {error && <p ref={errorRef} tabIndex={-1} role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-semibold text-danger">{error.message}</p>}
 
                 {/* Primary action */}
-                <button type="submit" disabled={busy} className="min-h-14 w-full rounded-xl bg-navy text-base font-bold text-on-navy shadow-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">{busy ? 'Creating account…' : 'Create account'}</button>
+                <button type="submit" disabled={busy} className="min-h-14 w-full rounded-xl bg-navy text-base font-bold text-on-navy shadow-navy transition-colors hover:bg-navy-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">{busy ? s.submitting : s.submit}</button>
               </form>
 
               {/* Secondary authentication option */}
-              <div className="my-5 flex items-center gap-3 text-xs font-semibold text-ink-muted"><span className="h-px flex-1 bg-ivory-line" />OR<span className="h-px flex-1 bg-ivory-line" /></div>
+              <div className="my-5 flex items-center gap-3 text-xs font-semibold text-ink-muted"><span className="h-px flex-1 bg-ivory-line" />{s.or}<span className="h-px flex-1 bg-ivory-line" /></div>
               <button type="button" disabled={auth.mode === 'dev' || busy} onClick={continueWithGoogle} className="flex min-h-14 w-full items-center justify-center gap-3 rounded-xl border border-ivory-line bg-ivory-surface font-semibold text-ink transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60">
                 <GoogleIcon />
-                Continue with Google
+                {s.google}
               </button>
-              {blockedGoogleCount > 0 && googleBlocked && <p role="status" className="mt-2 text-center text-sm font-semibold text-danger">Enter your date of birth (18+) and accept the Terms and Privacy Policy before continuing with Google.</p>}
+              {blockedGoogleCount > 0 && googleBlocked && <p role="status" className="mt-2 text-center text-sm font-semibold text-danger">{s.googleBlocked}</p>}
               {oauthError && <p role="alert" className="mt-2 text-center text-sm font-semibold text-danger">{oauthError}</p>}
             </>
           )}
 
           {/* Sign-in footer */}
-          <p className="mt-4 flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-ink-muted">Already have an account? <Link to="/login" className="flex min-h-12 items-center rounded-lg font-bold text-navy underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-navy">Sign in</Link></p>
+          <p className="mt-4 flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-ink-muted">{s.haveAccount} <Link to="/login" className="flex min-h-12 items-center rounded-lg font-bold text-navy underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-navy">{s.signIn}</Link></p>
       </div>
     </AuthScreen>
   )

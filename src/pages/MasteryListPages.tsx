@@ -3,15 +3,17 @@ import { useMe, useQuests } from '@/api/hooks'
 import { ArrowBackIcon } from '@/components/icons/ionicons'
 import { MasteryNotice, QuestCard } from '@/components/MasteryCards'
 import { activeQuests, badgesFrom } from '@/features/mastery/progress'
+import { useT } from '@/i18n'
 import { BadgeGrid, GridSkeleton, MasteryScreen, RailSkeleton, RetryButton } from '@/pages/MasteryPage'
 
 /** Figma TopNavbar: back to Mastery, centred title, 40 px bottom corners. */
 function TopBar({ title }: { title: string }) {
+  const m = useT().mastery
   return (
     <div className="sticky top-0 z-10 grid grid-cols-[3rem_1fr_3rem] items-center rounded-b-chrome bg-ivory-surface px-3 pt-[env(safe-area-inset-top)] shadow-topbar">
       <Link
         to="/mastery"
-        aria-label="Back to Mastery"
+        aria-label={m.backToMastery}
         className="flex size-12 items-center justify-center rounded-full text-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
       >
         <ArrowBackIcon size={22} />
@@ -35,23 +37,24 @@ function Intro({ eyebrow, title, body }: { eyebrow: string; title: string; body:
 
 /** Figma → Mastery Page - All Quests: every active quest, nearest to completion first. */
 export function MasteryQuestsPage() {
+  const m = useT().mastery
   const quests = useQuests()
   const active = quests.data ? activeQuests(quests.data) : []
   return (
-    <MasteryScreen top={<TopBar title="All Quests" />}>
+    <MasteryScreen top={<TopBar title={m.allQuests} />}>
       <Intro
-        eyebrow="Keep exploring"
-        title={quests.data ? `${active.length} active ${active.length === 1 ? 'quest' : 'quests'}` : 'Your quests'}
-        body="Complete each journey to earn XP and unlock new ranks."
+        eyebrow={m.keepExploring}
+        title={quests.data ? m.activeCount(active.length) : m.yourQuests}
+        body={m.questsBody}
       />
       {quests.isPending ? (
         <RailSkeleton />
       ) : quests.isError ? (
-        <MasteryNotice alert title="Couldn't load quests" action={<RetryButton onClick={() => quests.refetch()} />}>
-          Check your connection and try again.
+        <MasteryNotice alert title={m.questsFailed} action={<RetryButton onClick={() => quests.refetch()} />}>
+          {m.checkConnection}
         </MasteryNotice>
       ) : active.length === 0 ? (
-        <MasteryNotice title="No active quests">New heritage quests are on the way. Check back soon.</MasteryNotice>
+        <MasteryNotice title={m.noActive}>{m.noQuestsBody}</MasteryNotice>
       ) : (
         <ul className="flex flex-col gap-4">
           {active.map((q) => (
@@ -67,22 +70,23 @@ export function MasteryQuestsPage() {
 
 /** Figma → Mastery Page - All Badges: unlocked badges first, then locked ones. */
 export function MasteryBadgesPage() {
+  const m = useT().mastery
   const quests = useQuests()
   const me = useMe()
   const badges = quests.data ? badgesFrom(quests.data, me.data) : []
   const unlocked = badges.filter((b) => b.unlocked).length
   return (
-    <MasteryScreen top={<TopBar title="All Badges" />}>
+    <MasteryScreen top={<TopBar title={m.allBadges} />}>
       <Intro
-        eyebrow="Your collection"
-        title={quests.data ? `${unlocked} ${unlocked === 1 ? 'badge' : 'badges'} unlocked` : 'Your badges'}
-        body="Every badge marks a milestone in your Cebu heritage journey."
+        eyebrow={m.yourCollection}
+        title={quests.data ? m.unlockedCount(unlocked) : m.yourBadges}
+        body={m.badgesBody}
       />
       {quests.isPending ? (
         <GridSkeleton />
       ) : quests.isError ? (
-        <MasteryNotice alert title="Couldn't load badges" action={<RetryButton onClick={() => quests.refetch()} />}>
-          Check your connection and try again.
+        <MasteryNotice alert title={m.badgesFailed} action={<RetryButton onClick={() => quests.refetch()} />}>
+          {m.checkConnection}
         </MasteryNotice>
       ) : (
         <BadgeGrid badges={badges} />

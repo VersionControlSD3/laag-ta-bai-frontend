@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import type { QuestProgress } from '@/api/types'
 import { BookIcon, LockClosedIcon, RibbonIcon, StarIcon } from '@/components/icons/ionicons'
 import type { Badge } from '@/features/mastery/progress'
+import { useT } from '@/i18n'
 
 /*
  * Mastery pieces from Figma → 07 · Mastery & Gamification (LevelRing, ProgressBar, StatTile,
@@ -13,10 +14,11 @@ const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visi
 
 /** One per screen, under Current Rank and above the XP ProgressBar. */
 export function LevelRing({ level }: { level: number }) {
+  const m = useT().mastery
   return (
     <div className="flex size-32 items-center justify-center rounded-full border-4 border-navy bg-ivory-surface shadow-navy">
       <div className="flex size-28 flex-col items-center justify-center rounded-full border border-terracotta">
-        <span className="text-xs leading-4 font-bold tracking-[0.1em] text-ink-muted uppercase">Level</span>
+        <span className="text-xs leading-4 font-bold tracking-[0.1em] text-ink-muted uppercase">{m.level}</span>
         <span className="text-5xl leading-none font-extrabold text-navy">{String(level).padStart(2, '0')}</span>
       </div>
     </div>
@@ -112,6 +114,7 @@ export function QuestCard({ quest, className = '' }: { quest: QuestProgress; cla
   const done = quest.completedLandmarkIds.length
   const total = quest.landmarkIds.length
   const percent = Math.round(Math.min(Math.max(total === 0 ? 0 : done / total, 0), 1) * 100)
+  const m = useT().mastery
   return (
     <article className={`flex flex-col gap-2.5 rounded-2xl border border-ivory-line bg-ivory-surface p-4 shadow-card ${className}`}>
       <div className="flex items-center justify-between gap-2">
@@ -127,11 +130,11 @@ export function QuestCard({ quest, className = '' }: { quest: QuestProgress; cla
       <p className="line-clamp-2 text-xs leading-4 font-medium text-ink-muted">{quest.description}</p>
       <div
         role="progressbar"
-        aria-label="Progress"
+        aria-label={m.progress}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={percent}
-        aria-valuetext={`${done} of ${total} landmarks visited`}
+        aria-valuetext={m.landmarksVisited(done, total)}
         className="h-1.5 overflow-hidden rounded-full bg-ivory-deep"
       >
         <div
@@ -143,7 +146,7 @@ export function QuestCard({ quest, className = '' }: { quest: QuestProgress; cla
         to="/scan"
         className={`mt-0.5 flex min-h-12 items-center justify-center rounded-lg border border-ivory-line bg-ivory text-xs leading-4 font-bold text-ink ${focus}`}
       >
-        Log a visit
+        {m.logVisit}
       </Link>
     </article>
   )
@@ -154,6 +157,7 @@ export function QuestCard({ quest, className = '' }: { quest: QuestProgress; cla
  * colour, and every tile's text says locked or unlocked for screen readers.
  */
 export function BadgeTile({ badge }: { badge: Badge }) {
+  const m = useT().mastery
   return (
     <li className="flex flex-col items-center gap-2">
       <div
@@ -168,13 +172,13 @@ export function BadgeTile({ badge }: { badge: Badge }) {
         ) : (
           <span className="flex items-center gap-1 text-[0.6875rem] leading-[0.875rem] font-bold tracking-[0.02em] text-ink-muted uppercase">
             <LockClosedIcon size={10} />
-            Locked
+            {m.locked}
           </span>
         )}
       </div>
       <span className={`text-center text-xs leading-4 font-bold ${badge.unlocked ? 'text-ink' : 'text-ink-muted'}`}>
         {badge.name}
-        <span className="sr-only">, {badge.unlocked ? 'unlocked' : 'locked'}</span>
+        <span className="sr-only">{badge.unlocked ? m.unlockedSr : m.lockedSr}</span>
       </span>
     </li>
   )
@@ -182,6 +186,7 @@ export function BadgeTile({ badge }: { badge: Badge }) {
 
 /** Section heading with an optional "See all" link, as on the Mastery frame. */
 export function SectionHeader({ id, title, to, linkLabel }: { id: string; title: string; to?: string; linkLabel?: string }) {
+  const m = useT().mastery
   return (
     <div className="flex items-center justify-between gap-2">
       <h2 id={id} className="text-lg leading-6 font-bold text-ink">
@@ -189,7 +194,7 @@ export function SectionHeader({ id, title, to, linkLabel }: { id: string; title:
       </h2>
       {to && (
         <Link to={to} aria-label={linkLabel} className={`flex min-h-12 items-center px-2 text-xs leading-4 font-bold text-terracotta-ink ${focus}`}>
-          See all
+          {m.seeAll}
         </Link>
       )}
     </div>

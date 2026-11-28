@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { LocateOutlineIcon } from '@/components/icons/ionicons'
 import type { GeoState } from '@/hooks/useGeolocation'
+import { useT } from '@/i18n'
 import { env } from '@/lib/env'
 import { loadGoogleMaps, MAPS_AUTH_FAILURE, type GoogleMap } from '@/lib/googleMaps'
 
@@ -32,6 +33,7 @@ function centerNearLocation(map: GoogleMap, location: Location) {
 
 export function ExploreMap({ hidden, location, locating, onRefreshLocation, theme }: ExploreMapProps) {
   const apiKey = env.googleMapsApiKey
+  const t = useT().explore.map
   const container = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'unavailable'>(apiKey ? 'loading' : 'unavailable')
   const [view, setView] = useState<MapView | null>(null)
@@ -96,7 +98,7 @@ export function ExploreMap({ hidden, location, locating, onRefreshLocation, them
     const pin = document.createElement('span')
     pin.className = 'pointer-events-none absolute h-9 w-8 -translate-x-1/2 -translate-y-full'
     pin.setAttribute('role', 'img')
-    pin.setAttribute('aria-label', 'Your current location')
+    pin.setAttribute('aria-label', t.you)
     const pinBody = document.createElement('span')
     pinBody.className = 'absolute bottom-1 left-1/2 grid size-7 -translate-x-1/2 -rotate-45 place-items-center rounded-t-full rounded-br-full rounded-bl-sm border-2 border-ivory-surface bg-danger shadow-md'
     const pinCenter = document.createElement('span')
@@ -118,21 +120,21 @@ export function ExploreMap({ hidden, location, locating, onRefreshLocation, them
     overlay.setMap(view.map)
 
     return () => overlay.setMap(null)
-  }, [location, status, view])
+  }, [location, status, view, t.you])
 
   return (
-    <section className="px-6" aria-label="Explore map" hidden={hidden}>
+    <section className="px-6" aria-label={t.label} hidden={hidden}>
       <div className="relative h-56 overflow-hidden rounded-3xl border border-ivory-line bg-sage-soft shadow-lg">
         <div ref={container} className="absolute inset-0" hidden={status === 'unavailable'} />
         {status !== 'ready' && (
           <p role="status" className="pointer-events-none absolute inset-0 grid place-items-center bg-sage-soft px-4 text-center text-sm font-semibold text-sage-deep">
-            {status === 'loading' ? 'Loading map…' : 'Map unavailable'}
+            {status === 'loading' ? t.loading : t.unavailable}
           </p>
         )}
         {status === 'ready' && locating && (
           <p role="status" className="pointer-events-none absolute top-3 left-1/2 flex w-max max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-2 rounded-full bg-ivory-surface px-3 py-2 text-sm font-semibold text-ink shadow-md">
             <span aria-hidden className="size-2 shrink-0 rounded-full bg-navy motion-safe:animate-pulse" />
-            Finding your location…
+            {t.finding}
           </p>
         )}
         {status === 'ready' && view && location && (
@@ -140,7 +142,7 @@ export function ExploreMap({ hidden, location, locating, onRefreshLocation, them
             type="button"
             onClick={onRefreshLocation}
             disabled={locating}
-            aria-label="Refresh and center map on my location"
+            aria-label={t.recenter}
             className="absolute right-3 bottom-8 flex size-12 items-center justify-center rounded-xl bg-ivory-surface text-navy shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-70"
           >
             <LocateOutlineIcon size={20} aria-hidden />
