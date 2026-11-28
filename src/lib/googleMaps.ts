@@ -1,13 +1,16 @@
-type Coordinates = { lat: number; lng: number }
+export type Coordinates = { lat: number; lng: number }
+export type Bounds = { north: number; south: number; east: number; west: number }
 
 type MapCamera = {
   center: Coordinates
   zoom: number
 }
 
+type GestureHandling = 'cooperative' | 'greedy'
+
 type MapOptions = MapCamera & {
   colorScheme: 'LIGHT' | 'DARK'
-  gestureHandling: 'cooperative'
+  gestureHandling: GestureHandling
   cameraControl: boolean
   fullscreenControl: boolean
   mapTypeControl: boolean
@@ -17,21 +20,28 @@ type MapOptions = MapCamera & {
 }
 
 export type GoogleMap = {
-  addListener(event: 'tilesloaded', listener: () => void): { remove: () => void }
+  addListener(event: 'tilesloaded' | 'click', listener: () => void): { remove: () => void }
   moveCamera(camera: MapCamera): void
+  fitBounds(bounds: Bounds, padding?: number): void
+  setOptions(options: { gestureHandling: GestureHandling }): void
 }
+
+export type MapProjection = { fromLatLngToDivPixel(coords: Coordinates): { x: number; y: number } | null }
 
 type MapsLibrary = {
   ControlPosition: { INLINE_START_BLOCK_END: number }
   Map: new (element: HTMLElement, options: MapOptions) => GoogleMap
-  OverlayView: new () => {
+  OverlayView: {
+    /** Stops clicks and drags on the element from reaching the map underneath. */
+    preventMapHitsAndGesturesFrom?(element: Element): void
+  } & (new () => {
     onAdd(): void
     draw(): void
     onRemove(): void
     setMap(map: GoogleMap | null): void
-    getPanes(): { overlayLayer: Element } | undefined
-    getProjection(): { fromLatLngToDivPixel(coords: Coordinates): { x: number; y: number } | null } | undefined
-  }
+    getPanes(): { overlayLayer: Element; overlayMouseTarget: Element } | undefined
+    getProjection(): MapProjection | undefined
+  })
 }
 
 declare global {
