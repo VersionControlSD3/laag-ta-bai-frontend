@@ -74,6 +74,10 @@ describe('reset password route', () => {
     await user.type(confirmation, 'DifferentPassword123')
     await user.click(screen.getByRole('button', { name: 'Update Password' }))
     expect(screen.getByRole('alert')).toHaveTextContent('The passwords must match.')
+    expect(confirmation).toHaveAttribute('aria-invalid', 'true')
+    expect(confirmation).toHaveAttribute('aria-describedby', 'reset-password-error')
+    expect(confirmation).toHaveFocus()
+    expect(password).toHaveAttribute('aria-invalid', 'false')
     expect(supabaseAuth.updateUser).not.toHaveBeenCalled()
 
     await user.clear(confirmation)
@@ -81,6 +85,68 @@ describe('reset password route', () => {
     await user.click(screen.getByRole('button', { name: 'Update Password' }))
     expect(supabaseAuth.updateUser).toHaveBeenCalledWith({ password: 'NewPassword123' })
     expect(await screen.findByRole('status')).toHaveTextContent('Your password has been updated.')
+  })
+
+  it('enforces sign-up password rules (length, uppercase, and digit), announces rule state, and links errors to the field', async () => {
+    const user = userEvent.setup()
+    writeJson('password-recovery-session', 'recovery-session')
+    supabaseAuth.getSession.mockResolvedValueOnce({ data: { session } })
+    renderRoutes(routes, '/reset-password')
+
+    const passwordInput = await screen.findByLabelText('New password', { exact: true })
+    const confirmationInput = screen.getByLabelText('Confirm new password')
+    const submitBtn = screen.getByRole('button', { name: 'Update Password' })
+    const rulesLiveRegion = document.getElementById('reset-password-rules')
+    expect(rulesLiveRegion).toHaveTextContent(
+      'At least 8 characters: required. One uppercase letter: required. One number: required.',
+    )
+
+    // Repro #14: lowercase-only 8+ char password must be blocked.
+    await user.type(passwordInput, 'abcdefgh')
+    expect(rulesLiveRegion).toHaveTextContent(
+      'At least 8 characters: met. One uppercase letter: required. One number: required.',
+    )
+    await user.type(confirmationInput, 'abcdefgh')
+    await user.click(submitBtn)
+    expect(screen.getByRole('alert')).toHaveTextContent('Include at least one uppercase letter and one digit.')
+    expect(passwordInput).toHaveAttribute('aria-invalid', 'true')
+    expect(passwordInput).toHaveAttribute('aria-describedby', 'reset-password-error reset-password-rules')
+    expect(passwordInput).toHaveFocus()
+    expect(confirmationInput).toHaveAttribute('aria-invalid', 'false')
+    expect(supabaseAuth.updateUser).not.toHaveBeenCalled()
+
+    // Missing uppercase letter only.
+    await user.clear(passwordInput)
+    await user.clear(confirmationInput)
+    await user.type(passwordInput, 'abcdefgh1')
+    await user.type(confirmationInput, 'abcdefgh1')
+    await user.click(submitBtn)
+    expect(screen.getByRole('alert')).toHaveTextContent('Include at least one uppercase letter.')
+    expect(passwordInput).toHaveAttribute('aria-invalid', 'true')
+    expect(passwordInput).toHaveFocus()
+    expect(supabaseAuth.updateUser).not.toHaveBeenCalled()
+
+    // Missing digit only.
+    await user.clear(passwordInput)
+    await user.clear(confirmationInput)
+    await user.type(passwordInput, 'Abcdefgh')
+    await user.type(confirmationInput, 'Abcdefgh')
+    await user.click(submitBtn)
+    expect(screen.getByRole('alert')).toHaveTextContent('Include at least one digit.')
+    expect(passwordInput).toHaveAttribute('aria-invalid', 'true')
+    expect(passwordInput).toHaveFocus()
+    expect(supabaseAuth.updateUser).not.toHaveBeenCalled()
+
+    // Too short.
+    await user.clear(passwordInput)
+    await user.clear(confirmationInput)
+    await user.type(passwordInput, 'Abc1')
+    await user.type(confirmationInput, 'Abc1')
+    await user.click(submitBtn)
+    expect(screen.getByRole('alert')).toHaveTextContent('Use at least 8 characters.')
+    expect(passwordInput).toHaveAttribute('aria-invalid', 'true')
+    expect(passwordInput).toHaveFocus()
+    expect(supabaseAuth.updateUser).not.toHaveBeenCalled()
   })
 
   it('rejects a different session for the same account', async () => {
